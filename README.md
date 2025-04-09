@@ -23,7 +23,7 @@
 
 ## 🛠️ **Giới thiệu về SVN Tool**
 
-**SVN Tool** là một ứng dụng giao diện đồ họa (GUI) được xây dựng trên nền tảng **Tkinter**, giúp người dùng quản lý việc **commit** các thay đổi trong mã nguồn **SVN** một cách dễ dàng và trực quan. Công cụ này không chỉ hỗ trợ thao tác commit thông thường mà còn tích hợp các tính năng (tích hợp AI) như:
+**SVN Tool** là một ứng dụng giao diện đồ họa (GUI) được xây dựng trên nền tảng **Electron** kết hợp với **React** và **shadcn-ui**, giúp người dùng quản lý việc **commit** các thay đổi trong mã nguồn **SVN** một cách dễ dàng và trực quan. Công cụ này không chỉ hỗ trợ thao tác commit thông thường mà còn tích hợp các tính năng (tích hợp AI) như:
 
 - **Kiểm tra coding rule**
 - **Tự động sinh commit message theo chuẩn (Conventional Commits)**
