@@ -1,0 +1,71 @@
+{
+  "common": {
+    "close": "Đóng"
+  },
+  "menu": {
+    "info": "Danh mục",
+    "about": "Giới thiệu",
+    "version": "Phiên bản",
+    "logs": "Nhật ký",
+    "showLogs": "Xem nhật ký",
+    "clearLogs": "Xóa nhật ký",
+    "support": "Hỗ trợ",
+    "contact": "Liên hệ",
+    "faq": "Câu hỏi thường gặp",
+    "settings": "Cài đặt"
+  },
+  "action": {
+    "refresh": "Làm mới",
+    "generate": "Tạo thông điệp commit",
+    "check": "Kiểm tra quy tắc mã hóa",
+    "commit": "Commit mã"
+  },
+  "label": {
+    "changesMade": "Các thay đổi",
+    "commitMessage": "Thông điệp commit"
+  },
+  "table": {
+    "status": "Trạng thái",
+    "filePath": "Đường dẫn tập tin"
+  },
+  "placeholder": {
+    "commitMessage": "Nhập thông điệp commit..."
+  },
+  "theme": {
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Hệ thống"
+  },
+  "aboutDialog": {
+    "title": "Giới thiệu",
+    "description": "Ứng dụng này được phát triển nhằm hỗ trợ sinh commit message từ SVN diff và kiểm tra tiêu chuẩn mã nguồn.",
+    "developer": "Người phát triển",
+    "version": "Phiên bản",
+    "email": "Email",
+    "github": "GitHub",
+    "close": "Đóng"
+  },
+  "settings": {
+    "fontSize": "Cỡ chữ",
+    "theme": "Chủ đề",
+    "language": "Ngôn ngữ",
+    "buttonVariant": "Biến thể nút",
+    "fontFamily": "Phông chữ",
+    "description": "Cài đặt được lưu trong bộ nhớ cục bộ. Bạn có thể thay đổi cỡ chữ, chủ đề và ngôn ngữ của ứng dụng.",
+    "tab": {
+      "appearance": "Giao diện",
+      "configuration": "Cấu hình",
+      "mailserver": "Máy chủ gửi mail"
+    }
+  },
+  "fontSize": {
+    "small": "Nhỏ",
+    "medium": "Trung bình",
+    "large": "Lớn"
+  },
+  "fontFamily": {
+    "sans": "Sans",
+    "serif": "Serif",
+    "mono": "Monospace"
+  }
+}

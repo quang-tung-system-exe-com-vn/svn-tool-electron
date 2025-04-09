@@ -1,0 +1,71 @@
+{
+  "common": {
+    "close": "Close"
+  },
+  "menu": {
+    "info": "Menu",
+    "about": "About",
+    "version": "Version",
+    "logs": "Logs",
+    "showLogs": "Show Logs",
+    "clearLogs": "Clear Logs",
+    "support": "Support",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "settings": "Settings"
+  },
+  "action": {
+    "refresh": "Refresh",
+    "generate": "Generate Commit Message",
+    "check": "Check Coding Rules",
+    "commit": "Commit Code"
+  },
+  "label": {
+    "changesMade": "Changes made",
+    "commitMessage": "Commit message"
+  },
+  "table": {
+    "status": "Status",
+    "filePath": "File path"
+  },
+  "placeholder": {
+    "commitMessage": "Enter commit message..."
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "aboutDialog": {
+    "title": "About",
+    "description": "This application is developed to assist in generating meaningful commit messages from SVN diffs and enforce coding standards.",
+    "developer": "Developer",
+    "version": "Version",
+    "email": "Email",
+    "github": "GitHub",
+    "close": "Close"
+  },
+  "settings": {
+    "fontSize": "Font Size",
+    "theme": "Theme",
+    "language": "Language",
+    "buttonVariant": "Button Variant",
+    "fontFamily": "Font Family",
+    "description": "Settings are saved in local storage. You can change the font size, theme, and language of the application.",
+    "tab": {
+      "appearance": "Appearance",
+      "configuration": "Configuration",
+      "mailserver": "Mail Server"
+    }
+  },
+  "fontSize": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "fontFamily": {
+    "sans": "Sans",
+    "serif": "Serif",
+    "mono": "Monospace"
+  }
+}
