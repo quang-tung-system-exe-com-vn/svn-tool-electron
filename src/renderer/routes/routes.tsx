@@ -3,9 +3,9 @@ import { Route } from 'react-router-dom'
 import { Router } from 'lib/electron-router-dom'
 
 import { useEffect } from 'react'
-import { useAppearanceStore } from './components/stores/useAppearanceStore'
-import i18n from './lib/i18n'
-import { MainPage } from './pages/MainPage'
+import { useAppearanceStore } from '../components/stores/useAppearanceStore'
+import i18n from '../lib/i18n'
+import { MainPage } from '../pages/MainPage'
 
 export function AppRoutes() {
   const { theme, fontSize, fontFamily, buttonVariant, language, setTheme, setLanguage } = useAppearanceStore()

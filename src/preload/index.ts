@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC } from 'main/constants'
+import { IPC, PROMPT } from 'main/constants'
 
 // This preload script is used to expose APIs to the renderer process
 declare global {
@@ -53,6 +53,11 @@ declare global {
 
       svn: {
         get_changed_files: () => Promise<any[]>
+        get_svn_diff: (selectedFiles: any[]) => Promise<string>
+      }
+
+      openai: {
+        send_message: (params: any) => Promise<string>
       }
 
       select_folder: () => Promise<string>
@@ -91,8 +96,25 @@ contextBridge.exposeInMainWorld('api', {
     }) => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.SET, config),
   },
 
+  openai: {
+    send_message: (data: {
+      apiKey: string
+      type: keyof typeof PROMPT
+      values: Record<string, string>
+    }) => {
+      const { type, values } = data
+      const template = PROMPT[type]
+      const prompt = Object.entries(values).reduce((result, [key, val]) => result.replaceAll(`{${key}}`, val), template)
+      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, {
+        apiKey: data.apiKey,
+        prompt,
+      })
+    },
+  },
+
   svn: {
-    get_changed_files: (svnPath: string, srcPath: string) => ipcRenderer.invoke(IPC.SVN.GET_CHANGED_FILES, svnPath, srcPath),
+    get_changed_files: () => ipcRenderer.invoke(IPC.SVN.GET_CHANGED_FILES),
+    get_svn_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_SVN_DIFF, selectedFiles),
   },
 
   select_folder: () => ipcRenderer.invoke(IPC.DIALOG.OPEN_FOLDER),

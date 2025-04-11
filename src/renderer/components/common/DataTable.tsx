@@ -11,7 +11,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
-import * as React from 'react'
+import { useEffect, useState, forwardRef, useImperativeHandle } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -19,16 +19,16 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import type { Theme } from 'main/setting/AppearanceStore'
-import { STATUS_COLOR_MAP_DARK, STATUS_COLOR_MAP_LIGHT, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
-import { useAppearanceStore } from '../stores/useAppearanceStore'
+import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
+import 'ldrs/react/Quantum.css'
+import { OverlayLoader } from './OverlayLoader'
 
 export type SvnFile = {
   filePath: string
   status: SvnStatusCode
 }
 
-export const getColumns = (theme: Theme): ColumnDef<SvnFile>[] => [
+export const columns: ColumnDef<SvnFile>[] = [
   {
     id: 'select',
     size: 20,
@@ -55,12 +55,8 @@ export const getColumns = (theme: Theme): ColumnDef<SvnFile>[] => [
     },
     cell: ({ row }) => {
       const statusCode = row.getValue('status') as SvnStatusCode
-      const color = theme === 'dark' ? STATUS_COLOR_MAP_DARK[statusCode] : STATUS_COLOR_MAP_LIGHT[statusCode]
-      return (
-        <div className="capitalize" style={{ color }}>
-          {row.getValue('filePath')}
-        </div>
-      )
+      const className = STATUS_COLOR_CLASS_MAP[statusCode]
+      return <div className={className}>{row.getValue('filePath')}</div>
     },
   },
   {
@@ -78,7 +74,7 @@ export const getColumns = (theme: Theme): ColumnDef<SvnFile>[] => [
     cell: ({ row }) => {
       const statusCode = row.getValue('status') as SvnStatusCode
       const status = STATUS_TEXT[statusCode]
-      return <div className="capitalize">{status}</div>
+      return <div>{status}</div>
     },
   },
 ]
@@ -88,36 +84,62 @@ async function getSvnChangedFiles(): Promise<SvnFile[]> {
   return result as SvnFile[]
 }
 
-export function DataTable() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [data, setData] = React.useState<SvnFile[]>([])
-  const { theme } = useAppearanceStore()
+export const DataTable = forwardRef((props, ref) => {
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [rowSelection, setRowSelection] = useState({})
+  const [data, setData] = useState<SvnFile[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  React.useEffect(() => {
-    getSvnChangedFiles().then(setData).catch(console.error)
+  useImperativeHandle(ref, () => table)
+
+  const reloadData = async () => {
+    try {
+      setIsLoading(true)
+      const newData = await getSvnChangedFiles()
+      setData(newData)
+      setTimeout(() => {
+        table.toggleAllPageRowsSelected(false)
+      }, 0)
+    } catch (err) {
+      console.error('Error reloading SVN files:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    reloadData()
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
+        event.preventDefault()
+        reloadData()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
   }, [])
 
   const table = useReactTable({
     data,
-    columns: getColumns(theme),
+    columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+
     state: {
       sorting,
-      columnFilters,
-      columnVisibility,
       rowSelection,
     },
   })
-  const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => (
+  const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => (
     <div className={cn('relative w-full overflow-auto', wrapperClassName)}>
       <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
     </div>
@@ -127,6 +149,7 @@ export function DataTable() {
   return (
     <div className="h-full">
       <ScrollArea className="h-full">
+        <OverlayLoader isLoading={isLoading} />
         <Table wrapperClassName="overflow-clip">
           <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
             {table.getHeaderGroups().map(headerGroup => (
@@ -172,4 +195,4 @@ export function DataTable() {
       </div>
     </div>
   )
-}
+})

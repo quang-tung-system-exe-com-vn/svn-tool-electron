@@ -13,30 +13,17 @@ export const STATUS_TEXT: Record<SvnStatusCode, string> = {
   '~': 'Type Changed',
 }
 
-export const STATUS_COLOR_MAP_LIGHT: Record<SvnStatusCode, string> = {
-  A: '#7DDC82',
-  M: '#66B2FF',
-  D: '#FF6B6B',
-  R: '#FFD86B',
-  C: '#D1A0E5',
-  X: '#A9A9A9',
-  I: '#DA8C4D',
-  '?': '#F8F9FA',
-  '!': '#F8D7DA',
-  '~': '#D6A4E4',
-}
-
-export const STATUS_COLOR_MAP_DARK: Record<SvnStatusCode, string> = {
-  A: '#28A745',
-  M: '#007BFF',
-  D: '#DC3545',
-  R: '#FFC107',
-  C: '#6F42C1',
-  X: '#6C757D',
-  I: '#B5672A',
-  '?': '#343A40',
-  '!': '#721C24',
-  '~': '#6610F2',
+export const STATUS_COLOR_CLASS_MAP = {
+  A: 'text-green-600 dark:text-green-400',
+  M: 'text-blue-600 dark:text-blue-400',
+  D: 'text-red-600 dark:text-red-400',
+  R: 'text-orange-500 dark:text-orange-300',
+  C: 'text-purple-600 dark:text-purple-400',
+  X: 'text-gray-600 dark:text-gray-400',
+  I: 'text-yellow-700 dark:text-yellow-500',
+  '?': 'text-gray-800 dark:text-gray-300',
+  '!': 'text-rose-600 dark:text-rose-400',
+  '~': 'text-indigo-600 dark:text-indigo-400',
 }
 
 export const FONT_SIZES = ['small', 'medium', 'large'] as const
