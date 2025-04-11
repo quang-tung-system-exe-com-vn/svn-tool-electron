@@ -4,6 +4,7 @@ import React from "react";
 
 import { AppRoutes } from "./routes";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner"
 
 import "./globals.css";
 
@@ -11,6 +12,7 @@ ReactDom.createRoot(document.querySelector("app") as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <AppRoutes />
+        <Toaster />
     </ThemeProvider>
   </React.StrictMode>
 );

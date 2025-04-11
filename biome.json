@@ -4,10 +4,11 @@
     "enabled": true
   },
   "formatter": {
+    "attributePosition": "auto",
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 80,
+    "lineWidth": 180,
     "lineEnding": "lf"
   },
   "javascript": {

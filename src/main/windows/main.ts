@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow } from "electron";
 import { join } from "node:path";
 
 import { createWindow } from "lib/electron-app/factories/windows/create";
@@ -47,24 +47,3 @@ export async function MainWindow() {
   return window;
 }
 
-ipcMain.on("window-action", (event, action) => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (!win) return;
-
-  switch (action) {
-    case "minimize":
-      win.minimize();
-      break;
-    case "maximize":
-      win.isMaximized() ? win.unmaximize() : win.maximize();
-      break;
-    case "close":
-      win.close();
-      break;
-  }
-});
-
-ipcMain.handle("store:get", (_, key) => store.get(key));
-ipcMain.handle("store:set", (_, key, value) => store.set(key, value));
-ipcMain.handle("store:has", (_, key) => store.has(key));
-ipcMain.handle("store:delete", (_, key) => store.delete(key));
