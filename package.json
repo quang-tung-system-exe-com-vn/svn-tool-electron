@@ -2,7 +2,7 @@
   "displayName": "SVN Tool App",
   "name": "svn-tool-electron",
   "description": "Your awesome app description",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
