@@ -2,125 +2,19 @@ import { execFile } from 'node:child_process'
 import { log } from 'node:console'
 import fs from 'node:fs'
 import path from 'node:path'
+import { isText } from 'main/utils/istextorbinary'
 import configurationStore from '../store/ConfigurationStore'
 
-export const TEXT_FILE_EXTENSIONS: Set<string> = new Set([
-  // 📄 Văn bản & cấu hình
-  '.txt',
-  '.md',
-  '.log',
-  '.xml',
-  '.json',
-  '.yaml',
-  '.yml',
-  '.ini',
-  '.toml',
-  '.csv',
-
-  // 💻 Ngôn ngữ lập trình
-  '.py',
-  '.java',
-  '.c',
-  '.cpp',
-  '.h',
-  '.hpp',
-  '.cs',
-  '.go',
-  '.rs',
-  '.swift',
-  '.m',
-  '.mm',
-
-  // 🌐 Web development
-  '.html',
-  '.htm',
-  '.css',
-  '.scss',
-  '.sass',
-  '.less',
-  '.js',
-  '.jsx',
-  '.ts',
-  '.tsx',
-
-  // ⚙️ Script & Automation
-  '.sh',
-  '.bat',
-  '.ps1',
-  '.cmd',
-  '.pl',
-  '.rb',
-  '.php',
-  '.perl',
-  '.lua',
-  '.tcl',
-  '.awk',
-
-  // 📊 Dữ liệu & Cơ sở dữ liệu
-  '.sql',
-  '.sqlite',
-  '.db',
-  '.db3',
-
-  // 🏗️ Build systems
-  '.cmake',
-  '.make',
-  '.mak',
-  'Makefile',
-  'CMakeLists.txt',
-
-  // 🐳 DevOps & hạ tầng
-  '.dockerfile',
-  'Dockerfile',
-  '.k8s',
-  '.helm',
-  '.tf',
-  '.terraform',
-
-  // 📘 Markdown & ReStructuredText
-  '.rst',
-  '.mdown',
-
-  // ⚙️ File cấu hình bổ sung
-  '.gitignore',
-  '.gitattributes',
-  '.editorconfig',
-  '.eslintrc',
-  '.prettierrc',
-
-  // ☕ Java & JVM ecosystem
-  '.gradle',
-  '.kt',
-  '.kts',
-  '.groovy',
-  '.jar',
-  '.war',
-
-  // 🔧 Khác
-  '.env',
-  '.config',
-  '.properties',
-  '.toml',
-])
-
-export function isTextFile(filePath: string, status: string, sourceFolder: string): boolean {
-  const fullPath = path.join(sourceFolder.trim(), filePath)
+export function isTextFile(filePath: string, status: string) {
   const fileName = path.basename(filePath)
-  const fileExt = path.extname(filePath).toLowerCase()
-
   if (status === '!') return false
-
   if (status === '?') {
     try {
-      const buffer = fs.readFileSync(fullPath, { encoding: 'utf-8' })
-      buffer.slice(0, 1024)
-      return true
+      isText(fileName)
     } catch {
       return false
     }
   }
-
-  return TEXT_FILE_EXTENSIONS.has(fileExt) || TEXT_FILE_EXTENSIONS.has(fileName)
 }
 
 interface SelectedFile {
@@ -139,7 +33,7 @@ export async function getSvnDiff(selectedFiles: SelectedFile[]) {
       for (const file of unversionedFiles) {
         const status = file.status
         const filePath = path.join(sourceFolder, file.filePath)
-        const isText = isTextFile(file.filePath, status, sourceFolder)
+        const isText = isTextFile(file.filePath, status)
         if (isText && fs.existsSync(filePath)) {
           try {
             const fileContent = fs.readFileSync(filePath, 'utf-8')

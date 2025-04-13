@@ -173,7 +173,7 @@ export function MainPage() {
       {/* Main Content */}
       <div className="flex flex-col flex-1 w-full">
         {/* Title Bar */}
-        <TitleBar />
+        <TitleBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} />
         {/* Content */}
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
           <ResizablePanelGroup direction="vertical" className="rounded-md border">

@@ -1,5 +1,6 @@
 // src/main/svn/user-info.ts
 import { execFile } from 'node:child_process'
+import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
@@ -9,6 +10,8 @@ const execFileAsync = promisify(execFile)
 export async function getSvnRepositoryRoot() {
   try {
     const { svnFolder, sourceFolder } = configurationStore.store
+    if (!fs.existsSync(svnFolder)) return null
+    if (!fs.existsSync(sourceFolder)) return null
     const { stdout } = await execFileAsync(path.join(svnFolder, 'bin', 'svn.exe'), ['info', '--show-item', 'repos-root-url'], { cwd: sourceFolder, windowsHide: true })
 
     return stdout.trim()
@@ -21,6 +24,8 @@ export async function getSvnRepositoryRoot() {
 export async function getSvnLocalUser(): Promise<[string, string][] | null> {
   try {
     const { svnFolder, sourceFolder } = configurationStore.store
+    if (!fs.existsSync(svnFolder)) return null
+    if (!fs.existsSync(sourceFolder)) return null
     const { stdout } = await execFileAsync(path.join(svnFolder, 'bin', 'svn.exe'), ['auth'], { cwd: sourceFolder, windowsHide: true })
 
     const lines = stdout.split(/\r?\n/)

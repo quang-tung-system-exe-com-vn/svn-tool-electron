@@ -17,9 +17,9 @@ export function GlowLoader({ className = 'w-6 h-6' }: { className?: string }) {
           <stop offset="100%" stopColor="#3b82f6" />
         </linearGradient>
 
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#8b5cf6" floodOpacity="0.7" />
-        </filter>
+        {/* <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#8b5cf6" floodOpacity="0.9" />
+        </filter> */}
       </defs>
 
       <circle cx="12" cy="12" r="10" strokeDasharray="60" strokeDashoffset="20" />

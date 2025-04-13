@@ -8,7 +8,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import 'ldrs/react/Quantum.css'
-import { t } from 'i18next'
 import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder } from 'lucide-react'
 import { toast } from 'sonner'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
@@ -139,7 +138,7 @@ async function getSvnChangedFiles(): Promise<SvnFile[]> {
     toast.error(message)
     return [] as SvnFile[]
   }
-  toast.success(t('toast.getSvnChangedFilesSuccess'))
+  // toast.success(t('toast.getSvnChangedFilesSuccess'))
   return data as SvnFile[]
 }
 

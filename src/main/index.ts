@@ -7,6 +7,6 @@ import { MainWindow } from './windows/main'
 
 makeAppWithSingleInstanceLock(async () => {
   await app.whenReady()
-  registerConfigIpcHandlers() // Register IPC handlers for configuration
+  registerConfigIpcHandlers()
   await makeAppSetup(MainWindow)
 })

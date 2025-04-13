@@ -1,6 +1,6 @@
 import { exec } from 'node:child_process'
+import fs from 'node:fs'
 import path from 'node:path'
-import { dialog } from 'electron'
 import { sendMail } from 'main/notification/sendMail'
 import { sendTeams } from 'main/notification/sendTeams'
 import configurationStore from '../store/ConfigurationStore'
@@ -16,7 +16,7 @@ export async function commit(commitMessage: string, violations: string, selected
       console.log('Deleted files:', result)
       await runSVNCommand('update')
     } catch (error) {
-      dialog.showErrorBox('Error', `Deletion failed:\n${error}`)
+      console.log(`Deletion failed:\n${error}`)
       return
     }
   }
@@ -56,12 +56,15 @@ export async function commit(commitMessage: string, violations: string, selected
     sendMail(data)
     sendTeams(data)
   } catch (error) {
-    dialog.showErrorBox('Error', `Commit failed:\n${error}`)
+    console.log(`Commit failed:\n${error}`)
   }
 }
 
 function runSVNCommand(command: string, selectedFiles: any[] = []) {
   const { svnFolder, sourceFolder } = configurationStore.store
+  if (!fs.existsSync(svnFolder)) return { status: 'error', message: 'Invalid path to svn.exe.' }
+  if (!fs.existsSync(sourceFolder)) return { status: 'error', message: 'Invalid source folder.' }
+
   return new Promise(resolve => {
     exec([path.join(svnFolder, 'bin', 'svn.exe'), command, ...selectedFiles].join(' '), { cwd: sourceFolder }, (error, stdout, stderr) => {
       if (error) {

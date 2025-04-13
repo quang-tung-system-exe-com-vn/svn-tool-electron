@@ -1,10 +1,17 @@
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
+import { Button } from '@/components/ui/button'
+import { Menubar, MenubarContent, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
 import { t } from 'i18next'
 import { Minus, Sparkles, Square, X } from 'lucide-react'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
+import { GlowLoader } from '../shared/GlowLoader'
 
-export const TitleBar = () => {
+interface TitleBarProps {
+  isLoading: boolean
+  progress: number
+}
+
+export const TitleBar = ({ isLoading, progress }: TitleBarProps) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -22,7 +29,7 @@ export const TitleBar = () => {
     >
       {/* Left Section (Menu) */}
       <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <Sparkles className="w-10 h-4" />
+        {isLoading ? <GlowLoader className="w-8 h-6 p-1" /> : <Sparkles className="w-8 h-4" />}
         <div className="flex items-center h-full">
           <Menubar className="bg-transparent h-full border-none rounded-none shadow-none">
             <MenubarMenu>
@@ -32,20 +39,13 @@ export const TitleBar = () => {
                 <InfoDialog />
               </MenubarContent>
             </MenubarMenu>
-            <MenubarMenu>
-              <MenubarTrigger className="px-2 hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)] font-normal h-full flex items-center">{t('menu.logs')}</MenubarTrigger>
-              <MenubarContent>
-                <MenubarItem>{t('menu.showLogs')}</MenubarItem>
-                <MenubarItem>{t('menu.clearLogs')}</MenubarItem>
-              </MenubarContent>
-            </MenubarMenu>
           </Menubar>
         </div>
       </div>
       {/* Center Section (Title) */}
-      {/* <Label className="font-medium text-xs text-gray-500">
-        {t("SVN Tool")}
-      </Label> */}
+      <Button variant="ghost" className="font-medium text-xs text-gray-500">
+        {t('SVN Tool')}
+      </Button>
       {/* Right Section (Window Controls) */}
       <div className="flex gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">

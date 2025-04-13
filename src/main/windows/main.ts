@@ -1,15 +1,22 @@
-import { BrowserWindow } from "electron";
-import { join } from "node:path";
+import { join } from 'node:path'
+import { BrowserWindow } from 'electron'
 
-import { createWindow } from "lib/electron-app/factories/windows/create";
-import { ENVIRONMENT } from "shared/constants";
-import { displayName } from "~/package.json";
-import Store from "electron-store";
-const store = new Store();
+import Store from 'electron-store'
+import { createWindow } from 'lib/electron-app/factories/windows/create'
+import { ENVIRONMENT } from 'shared/constants'
+import { displayName } from '~/package.json'
+const store = new Store()
+
+import log from 'electron-log'
+import { autoUpdater } from 'electron-updater'
+
+autoUpdater.logger = log
+log.transports.file.level = 'info'
+log.info('App starting...')
 
 export async function MainWindow() {
   const window = createWindow({
-    id: "main",
+    id: 'main',
     title: displayName,
     frame: false,
     width: 800,
@@ -23,27 +30,42 @@ export async function MainWindow() {
     // alwaysOnTop: true,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-  });
+  })
 
-  window.webContents.on("did-finish-load", () => {
+  window.webContents.on('did-finish-load', () => {
     if (ENVIRONMENT.IS_DEV) {
-      window.webContents.openDevTools({ mode: "detach" });
+      window.webContents.openDevTools({ mode: 'right' })
     }
-    window.show();
-  });
+    window.show()
+  })
 
-  window.on("close", () => {
-    store.set("bounds", window.getBounds());
+  window.on('close', () => {
+    store.set('bounds', window.getBounds())
     for (const window of BrowserWindow.getAllWindows()) {
-      window.destroy();
+      window.destroy()
     }
-  });
+  })
 
-  window.setBounds(store.get("bounds") as Partial<Electron.Rectangle>);
-  return window;
+  window.setBounds(store.get('bounds') as Partial<Electron.Rectangle>)
+  return window
 }
 
+// Sự kiện update
+autoUpdater.on('checking-for-update', () => log.info('Checking for update...'))
+autoUpdater.on('update-available', info => log.info('Update available.', info))
+autoUpdater.on('update-not-available', info => log.info('Update not available.', info))
+autoUpdater.on('error', err => log.error('Error in auto-updater:', err))
+autoUpdater.on('download-progress', progressObj => {
+  log.info(`Download speed: ${progressObj.bytesPerSecond}`)
+  log.info(`Downloaded: ${progressObj.percent}%`)
+})
+autoUpdater.on('update-downloaded', () => {
+  log.info('Update downloaded, quitting and installing...')
+  autoUpdater.quitAndInstall()
+})
+autoUpdater.forceDevUpdateConfig = true
+autoUpdater.checkForUpdatesAndNotify()

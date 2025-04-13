@@ -1,14 +1,6 @@
 import type { Configuration } from 'electron-builder'
 
-import {
-  main,
-  name,
-  version,
-  resources,
-  description,
-  displayName,
-  author as _author,
-} from './package.json'
+import { author as _author, description, displayName, main, name, resources, version } from './package.json'
 
 import { getDevFolder } from './src/lib/electron-app/release/utils/path'
 
@@ -31,7 +23,7 @@ export default {
 
   mac: {
     artifactName,
-    icon: `${resources}/build/icons/icon.icns`,
+    icon: `${resources}/build/icons/001-pig.ico`,
     category: 'public.app-category.utilities',
     target: ['zip', 'dmg', 'dir'],
   },
