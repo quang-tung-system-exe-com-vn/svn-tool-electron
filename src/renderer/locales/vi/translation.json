@@ -2,6 +2,10 @@
   "common": {
     "close": "Đóng"
   },
+  "message": {
+    "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
+    "noFilesWarning": "Chưa có file nào được chọn!"
+  },
   "menu": {
     "info": "Danh mục",
     "about": "Giới thiệu",
@@ -37,7 +41,7 @@
     "system": "Hệ thống"
   },
   "aboutDialog": {
-    "title": "Giới thiệu",
+    "title": "SVN Tool",
     "description": "Ứng dụng này được phát triển nhằm hỗ trợ sinh commit message từ SVN diff và kiểm tra tiêu chuẩn mã nguồn.",
     "developer": "Người phát triển",
     "version": "Phiên bản",
@@ -67,5 +71,13 @@
     "sans": "Sans",
     "serif": "Serif",
     "mono": "Monospace"
+  },
+  "toast": {
+    "commitSuccess": "Commit thành công",
+    "commitError": "Lỗi commit",
+    "checkSuccess": "Kiểm tra thành công",
+    "checkError": "Lỗi kiểm tra",
+    "generateSuccess": "Tạo thông điệp commit thành công",
+    "generateError": "Lỗi tạo thông điệp commit"
   }
 }

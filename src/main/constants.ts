@@ -4,10 +4,7 @@ export const IPC = {
   },
   SETTING: {
     APPEARANCE: {
-      GET: 'setting:appearance:get',
       SET: 'setting:appearance:set',
-      HAS: 'setting:appearance:has',
-      DELETE: 'setting:appearance:delete',
     },
     CONFIGURATION: {
       GET: 'setting:configuration:get',
@@ -17,18 +14,24 @@ export const IPC = {
       GET: 'setting:mail-server:get',
       SET: 'setting:mail-server:set',
     },
+    WEBHOOK: {
+      GET: 'setting:webhook:get',
+      SET: 'setting:webhook:set',
+    },
   },
   SVN: {
     GET_CHANGED_FILES: 'svn:get-changed-files',
     GET_SVN_DIFF: 'svn:get-svn-diff',
+    OPEN_SVN_DIFF: 'svn:open-svn-diff',
     GET_USER_SVN: 'svn:get_user_svn',
+    COMMIT: 'svn:commit',
   },
   OPENAI: {
     SEND_MESSAGE: 'openai:send-message',
   },
   NOTIFICATIONS: {
-    GET: 'notification:send_mail',
-    SET: 'notification:send_msg',
+    SEND_MAIL: 'notification:send_mail',
+    SEND_TEAMS: 'notification:send_teams',
   },
   DIALOG: {
     OPEN_FOLDER: 'dialog:open-folder',
@@ -50,6 +53,7 @@ Provide the final conclusion starting with the symbol =>
 `,
 
   GENERATE_COMMIT: `
+Formatting re-enabled.
 You are a source code management expert. Generate a professional commit message using the Conventional Commit Specification with Emoji.
 Split the message into Frontend and Backend sections. If any part is missing, then there is no need to mention Frontend or Backend.
 Based on this diff:

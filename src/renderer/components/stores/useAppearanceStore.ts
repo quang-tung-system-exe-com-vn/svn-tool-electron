@@ -1,4 +1,4 @@
-import type { ButtonVariant, FontFamily, FontSize, Language, Theme } from 'main/setting/AppearanceStore'
+import type { ButtonVariant, FontFamily, FontSize, Language, Theme } from 'main/store/AppearanceStore'
 import { useTheme } from 'next-themes'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'

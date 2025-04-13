@@ -1,11 +1,14 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import { IPC } from 'main/constants'
+import { commit } from 'main/svn/commit'
 import { getSvnChangedFiles } from 'main/svn/getSvnChangedFiles'
 import { getSvnDiff } from 'main/svn/getSvnDiff'
-import appearanceStore from '../setting/AppearanceStore'
-import configurationStore from '../setting/ConfigurationStore'
-import mailServerStore from '../setting/MailServerStore'
+import { openSvnDiff } from 'main/svn/openSvnDiff'
 import OpenAI from 'openai'
+import appearanceStore from '../store/AppearanceStore'
+import configurationStore from '../store/ConfigurationStore'
+import mailServerStore from '../store/MailServerStore'
+import webhookStore from '../store/WebhookStore'
 
 export function registerConfigIpcHandlers() {
   console.log('✅ Config ipc handlers registered')
@@ -26,10 +29,7 @@ export function registerConfigIpcHandlers() {
     }
   })
 
-  ipcMain.handle(IPC.SETTING.APPEARANCE.GET, (_, key) => appearanceStore.get(key))
   ipcMain.handle(IPC.SETTING.APPEARANCE.SET, (_, key, value) => appearanceStore.set(key, value))
-  ipcMain.handle(IPC.SETTING.APPEARANCE.HAS, (_, key) => appearanceStore.has(key))
-  ipcMain.handle(IPC.SETTING.APPEARANCE.DELETE, (_, key) => appearanceStore.delete(key))
 
   ipcMain.handle(IPC.SETTING.CONFIGURATION.GET, () => configurationStore.store)
   ipcMain.handle(IPC.SETTING.CONFIGURATION.SET, (_, config) => configurationStore.set(config))
@@ -37,11 +37,12 @@ export function registerConfigIpcHandlers() {
   ipcMain.handle(IPC.SETTING.MAIL_SERVER.GET, () => mailServerStore.store)
   ipcMain.handle(IPC.SETTING.MAIL_SERVER.SET, (_, config) => mailServerStore.set(config))
 
+  ipcMain.handle(IPC.SETTING.WEBHOOK.GET, () => webhookStore.store)
+  ipcMain.handle(IPC.SETTING.WEBHOOK.SET, (_, config) => webhookStore.set(config))
+
   ipcMain.handle(IPC.SVN.GET_CHANGED_FILES, async _event => {
     try {
-      console.log('Fetching SVN changed files...')
-      const { svnFolder, sourceFolder } = configurationStore.store
-      if (!svnFolder || !sourceFolder) throw new Error('Missing SVN configuration paths')
+      console.log('Get SVN changed files...')
       const result = await getSvnChangedFiles()
       return result
     } catch (err) {
@@ -49,11 +50,9 @@ export function registerConfigIpcHandlers() {
     }
   })
 
-  ipcMain.handle(IPC.SVN.GET_SVN_DIFF, async (_event, selectedFiles: string[]) => {
+  ipcMain.handle(IPC.SVN.GET_SVN_DIFF, async (_event, selectedFiles: any[]) => {
     try {
-      console.log('Fetching SVN changed files...')
-      const { svnFolder, sourceFolder } = configurationStore.store
-      if (!svnFolder || !sourceFolder) throw new Error('Missing SVN configuration paths')
+      console.log('Get SVN diff...')
       const result = await getSvnDiff(selectedFiles)
       return result
     } catch (err) {
@@ -62,19 +61,31 @@ export function registerConfigIpcHandlers() {
     }
   })
 
-  ipcMain.handle(IPC.DIALOG.OPEN_FOLDER, async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openDirectory'],
-    })
-    if (result.canceled || result.filePaths.length === 0) {
-      return ''
+  ipcMain.handle(IPC.SVN.OPEN_SVN_DIFF, async (_event, file: string, status: string) => {
+    try {
+      console.log('Open SVN diff...')
+      const result = await openSvnDiff(file, status)
+      return result
+    } catch (err) {
+      console.error(err)
+      return []
     }
-    return result.filePaths[0]
+  })
+
+  ipcMain.handle(IPC.SVN.COMMIT, async (_event, commitMessage: string, violations: string, selectedFiles: any[]) => {
+    try {
+      console.log('Commit code...')
+      const result = await commit(commitMessage, violations, selectedFiles)
+      return result
+    } catch (err) {
+      console.error(err)
+      return []
+    }
   })
 
   ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, { prompt }) => {
     try {
-      console.log(prompt)
+      console.log('Send message to openAI...')
       const { openaiApiKey } = configurationStore.store
       const openai = new OpenAI({ apiKey: openaiApiKey })
       const response = await openai.chat.completions.create({
@@ -87,5 +98,16 @@ export function registerConfigIpcHandlers() {
     } catch (err) {
       return `Error generating message: ${err}`
     }
+  })
+
+  ipcMain.handle(IPC.DIALOG.OPEN_FOLDER, async () => {
+    console.log('Open folder...')
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return ''
+    }
+    return result.filePaths[0]
   })
 }

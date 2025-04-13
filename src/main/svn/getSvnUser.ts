@@ -1,0 +1,62 @@
+// src/main/svn/user-info.ts
+import { execFile } from 'node:child_process'
+import path from 'node:path'
+import { promisify } from 'node:util'
+import configurationStore from '../store/ConfigurationStore'
+
+const execFileAsync = promisify(execFile)
+
+export async function getSvnRepositoryRoot() {
+  try {
+    const { svnFolder, sourceFolder } = configurationStore.store
+    const { stdout } = await execFileAsync(path.join(svnFolder, 'bin', 'svn.exe'), ['info', '--show-item', 'repos-root-url'], { cwd: sourceFolder, windowsHide: true })
+
+    return stdout.trim()
+  } catch (error) {
+    console.log(`Error for get Repository Root: ${error}`, 'error')
+    return null
+  }
+}
+
+export async function getSvnLocalUser(): Promise<[string, string][] | null> {
+  try {
+    const { svnFolder, sourceFolder } = configurationStore.store
+    const { stdout } = await execFileAsync(path.join(svnFolder, 'bin', 'svn.exe'), ['auth'], { cwd: sourceFolder, windowsHide: true })
+
+    const lines = stdout.split(/\r?\n/)
+    const credentials: [string, string][] = []
+    let currentRealm: string | null = null
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (trimmed.startsWith('Authentication realm:')) {
+        currentRealm = trimmed.split('Authentication realm:')[1].trim()
+      }
+      if (trimmed.startsWith('Username:') && currentRealm) {
+        const username = trimmed.split('Username:')[1].trim()
+        credentials.push([currentRealm, username])
+      }
+    }
+
+    return credentials
+  } catch (error) {
+    console.log(`Error for get SVN auth: ${error}`, 'error')
+    return null
+  }
+}
+
+export async function findSvnUser(): Promise<string | null> {
+  const repoRoot = await getSvnRepositoryRoot()
+  if (!repoRoot) return null
+  const credentials = await getSvnLocalUser()
+  if (!credentials) return null
+  console.log(repoRoot)
+  console.log(credentials)
+  const repoAuthRealm = repoRoot.includes('/svn/') ? `<${repoRoot.split('/svn/')[0]}:443> Subversion` : `<${repoRoot}:443> Subversion`
+  for (const [realm, username] of credentials) {
+    if (realm === repoAuthRealm) {
+      return username
+    }
+  }
+  return null
+}

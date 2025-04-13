@@ -2,20 +2,33 @@ import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import configurationStore from '../setting/ConfigurationStore'
+import configurationStore from '../store/ConfigurationStore'
 
 const execFileAsync = promisify(execFile)
 
-export async function getSvnChangedFiles(): Promise<any[]> {
-  const { svnFolder, sourceFolder } = configurationStore.store
-  if (!svnFolder || !sourceFolder) return []
+function listAllFilesRecursive(dirPath: string): string[] {
+  const result: string[] = []
 
-  if (!fs.existsSync(svnFolder)) {
-    throw new Error(`SVN path '${svnFolder}' does not exist.`)
+  function walk(currentPath: string) {
+    const entries = fs.readdirSync(currentPath, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name)
+      if (entry.isDirectory()) {
+        result.push(fullPath)
+        walk(fullPath)
+      } else {
+        result.push(fullPath)
+      }
+    }
   }
 
-  const svnExecutable = path.join(svnFolder, 'bin', 'svn.exe')
+  if (fs.existsSync(dirPath)) walk(dirPath)
+  return result
+}
 
+export async function getSvnChangedFiles() {
+  const { svnFolder, sourceFolder } = configurationStore.store
+  const svnExecutable = path.join(svnFolder, 'bin', 'svn.exe')
   try {
     const { stdout } = await execFileAsync(svnExecutable, ['status'], {
       cwd: sourceFolder,
@@ -23,8 +36,7 @@ export async function getSvnChangedFiles(): Promise<any[]> {
     })
 
     const rawChangedFiles = stdout.split('\n').filter(line => line.trim() !== '')
-
-    const changedFiles = []
+    const changedFiles: any[] = []
 
     for (const line of rawChangedFiles) {
       const status = line[0]
@@ -41,22 +53,61 @@ export async function getSvnChangedFiles(): Promise<any[]> {
         break
       }
 
-      changedFiles.push({
-        status,
-        propStatus,
-        lockStatus,
-        historyStatus,
-        switchedStatus,
-        lockInfo,
-        versionStatus,
-        filePath,
-      })
-    }
+      const absolutePath = path.join(sourceFolder, filePath)
 
-    console.log('✅ SVN status succesfully retrieved')
-    return changedFiles
+      const fileType = path.extname(filePath).toLowerCase()
+      const isFile = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()
+
+      if (status === '?' && fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()) {
+        changedFiles.push({
+          status,
+          propStatus,
+          lockStatus,
+          historyStatus,
+          switchedStatus,
+          lockInfo,
+          versionStatus,
+          filePath,
+          fileType,
+          isFile: false,
+        })
+
+        const untrackedFiles = listAllFilesRecursive(absolutePath)
+        for (const file of untrackedFiles) {
+          const relative = path.relative(sourceFolder, file)
+          changedFiles.push({
+            status: '?',
+            propStatus: '',
+            lockStatus: '',
+            historyStatus: '',
+            switchedStatus: '',
+            lockInfo: '',
+            versionStatus: '',
+            filePath: relative,
+            fileType: path.extname(relative).toLowerCase(),
+            isFile: fs.statSync(file).isFile(),
+          })
+        }
+      } else {
+        changedFiles.push({
+          status,
+          propStatus,
+          lockStatus,
+          historyStatus,
+          switchedStatus,
+          lockInfo,
+          versionStatus,
+          filePath,
+          fileType,
+          isFile,
+        })
+      }
+    }
+    console.log(changedFiles)
+    console.log('✅ SVN status successfully retrieved with all files and folders')
+    return { status: 'success', data: changedFiles }
   } catch (error) {
     console.error('❌ SVN status error:', error)
-    return []
+    return { status: 'error', message: error }
   }
 }

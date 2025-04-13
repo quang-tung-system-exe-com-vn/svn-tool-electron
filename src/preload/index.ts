@@ -7,57 +7,43 @@ declare global {
     api: {
       electron: {
         send: (channel: string, data: any) => void
-        on: (channel: string, func: (...args: any[]) => void) => void
-        removeAllListeners: (channel: string) => void
-        invoke: (channel: string, data: any) => Promise<any>
       }
 
       appearance: {
-        get: (key: string) => Promise<any>
         set: (key: string, value: any) => Promise<void>
-        has: (key: string) => Promise<boolean>
-        delete: (key: string) => Promise<void>
       }
 
       configuration: {
-        get: () => Promise<{
-          openaiApiKey: string
-          svnFolder: string
-          sourceFolder: string
-          emailPL: string
-          webhookMS: string
-        }>
-        set: (configuration: {
-          openaiApiKey: string
-          svnFolder: string
-          sourceFolder: string
-          emailPL: string
-          webhookMS: string
-        }) => Promise<void>
+        get: () => Promise<Configuration>
+        set: (configuration: Configuration) => Promise<void>
       }
 
       mail_server: {
-        get: () => Promise<{
-          smtpServer: string
-          port: string
-          email: string
-          password: string
-        }>
-        set: (config: {
-          smtpServer: string
-          port: string
-          email: string
-          password: string
-        }) => Promise<void>
+        get: () => Promise<MailServerConfig>
+        set: (config: MailServerConfig) => Promise<void>
       }
 
       svn: {
-        get_changed_files: () => Promise<any[]>
-        get_svn_diff: (selectedFiles: any[]) => Promise<string>
+        get_changed_files: () => Promise<SVNResponse>
+        get_svn_diff: (selectedFiles: any[]) => Promise<SVNResponse>
+        open_svn_dif: (filePath: string, status: string) => Promise<SVNResponse>
+        commit: (commitMessage: string, violations: string, selectedFiles: any[]) => Promise<SVNResponse>
       }
 
       openai: {
         send_message: (params: any) => Promise<string>
+      }
+
+      webhook: {
+        get: () => Promise<{
+          webhooks: [
+            {
+              name: string
+              url: string
+            },
+          ]
+        }>
+        set: (...args: any[]) => Promise<void>
       }
 
       select_folder: () => Promise<string>
@@ -69,16 +55,10 @@ declare global {
 contextBridge.exposeInMainWorld('api', {
   electron: {
     send: (channel: string, data: any) => ipcRenderer.send(channel, data),
-    on: (channel: string, func: (...args: any[]) => void) => ipcRenderer.on(channel, func),
-    removeAllListeners: (channel: string) => ipcRenderer.removeAllListeners(channel),
-    invoke: (channel: string, data: any) => ipcRenderer.invoke(channel, data),
   },
 
   appearance: {
-    get: (key: string) => ipcRenderer.invoke(IPC.SETTING.APPEARANCE.GET, key),
     set: (key: string, value: any) => ipcRenderer.invoke(IPC.SETTING.APPEARANCE.SET, key, value),
-    has: (key: string) => ipcRenderer.invoke(IPC.SETTING.APPEARANCE.HAS, key),
-    delete: (key: string) => ipcRenderer.invoke(IPC.SETTING.APPEARANCE.DELETE, key),
   },
 
   configuration: {
@@ -88,12 +68,7 @@ contextBridge.exposeInMainWorld('api', {
 
   mail_server: {
     get: () => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.GET),
-    set: (config: {
-      smtpServer: string
-      port: string
-      email: string
-      password: string
-    }) => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.SET, config),
+    set: (config: MailServerConfig) => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.SET, config),
   },
 
   openai: {
@@ -115,6 +90,13 @@ contextBridge.exposeInMainWorld('api', {
   svn: {
     get_changed_files: () => ipcRenderer.invoke(IPC.SVN.GET_CHANGED_FILES),
     get_svn_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_SVN_DIFF, selectedFiles),
+    open_svn_dif: (filePath: string, status: string) => ipcRenderer.invoke(IPC.SVN.OPEN_SVN_DIFF, filePath, status),
+    commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
+  },
+
+  webhook: {
+    get: () => ipcRenderer.invoke(IPC.SETTING.WEBHOOK.GET),
+    set: (webhook: string) => ipcRenderer.invoke(IPC.SETTING.WEBHOOK.SET, webhook),
   },
 
   select_folder: () => ipcRenderer.invoke(IPC.DIALOG.OPEN_FOLDER),

@@ -1,7 +1,7 @@
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
 import { t } from 'i18next'
 import { Minus, Sparkles, Square, X } from 'lucide-react'
-import { InfoDialog } from '../dialogs/InfoDialog'
+import { InfoDialog } from '../dialogs/AboutDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
 
 export const TitleBar = () => {

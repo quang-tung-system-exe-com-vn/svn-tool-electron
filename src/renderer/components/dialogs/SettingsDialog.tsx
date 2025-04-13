@@ -6,14 +6,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Mail, Palette, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-
 import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES } from '../shared/constants'
 import { useAppearanceStore } from '../stores/useAppearanceStore'
 import { useConfigurationStore } from '../stores/useConfigurationStore'
 import { useMailServerStore } from '../stores/useMailServerStore'
+import { useWebhookStore } from '../stores/useWebhookStore'
+import { AddWebhookDialog } from './AddNewWebhookDialog'
 
 export function SettingsDialog() {
   const { theme, setTheme, fontSize, setFontSize, fontFamily, setFontFamily, buttonVariant, setButtonVariant, language, setLanguage } = useAppearanceStore()
@@ -25,12 +27,32 @@ export function SettingsDialog() {
   const { openaiApiKey, svnFolder, sourceFolder, emailPL, webhookMS, setFieldConfiguration, saveConfigurationConfig, loadConfigurationConfig } = useConfigurationStore()
   const { smtpServer, port, email, password, setFieldMailServer, saveMailServerConfig, loadMailServerConfig } = useMailServerStore()
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const handleOpenDialog = () => {
-    setIsDialogOpen(true)
+  const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook } = useWebhookStore()
+
+  const [nestedDialogOpen, setNestedDialogOpen] = useState(false)
+  const [webhookName, setWebhookName] = useState('')
+  const [webhookUrl, setWebhookUrl] = useState('')
+
+  const handleAddWebhook = async () => {
+    if (!webhookName.trim() || !webhookUrl.trim()) {
+      return
+    }
+    const newWebhook = {
+      name: webhookName,
+      url: webhookUrl,
+    }
+    const result = await addWebhook(newWebhook)
+    if (result) {
+      setWebhookName('')
+      setWebhookUrl('')
+      setNestedDialogOpen(false)
+      setFieldConfiguration('webhookMS', webhookUrl)
+    }
   }
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false)
+
+  const handleDeleteWebhook = async (url: string) => {
+    deleteWebhook(url)
+    setFieldConfiguration('webhookMS', '')
   }
 
   const handleSaveConfigurationConfig = async () => {
@@ -55,6 +77,7 @@ export function SettingsDialog() {
     <Dialog
       onOpenChange={open => {
         if (open) {
+          loadWebhookConfig()
           loadConfigurationConfig()
           loadMailServerConfig()
         }
@@ -62,6 +85,7 @@ export function SettingsDialog() {
     >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-full justify-start p-2 h-8 font-normal">
+          <Settings />
           {t('menu.settings')}
         </Button>
       </DialogTrigger>
@@ -72,9 +96,20 @@ export function SettingsDialog() {
         </DialogHeader>
         <Tabs defaultValue="appearance" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="appearance">{t('settings.tab.appearance')}</TabsTrigger>
-            <TabsTrigger value="configuration">{t('settings.tab.configuration')}</TabsTrigger>
-            <TabsTrigger value="mailserver">{t('settings.tab.mailserver')}</TabsTrigger>
+            <TabsTrigger value="appearance" className="flex items-center">
+              <Palette />
+              {t('settings.tab.appearance')}
+            </TabsTrigger>
+
+            <TabsTrigger value="configuration" className="flex items-center">
+              <Settings />
+              {t('settings.tab.configuration')}
+            </TabsTrigger>
+
+            <TabsTrigger value="mailserver" className="flex items-center">
+              <Mail />
+              {t('settings.tab.mailserver')}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="appearance">
@@ -256,15 +291,37 @@ export function SettingsDialog() {
                         <SelectValue placeholder="Select Webhook" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="webhook1">Webhook 1</SelectItem>
-                        <SelectItem value="webhook2">Webhook 2</SelectItem>
-                        <SelectItem value="webhook3">Webhook 3</SelectItem>
+                        {webhookList.map(webhook => (
+                          <SelectItem key={webhook.url} value={webhook.url}>
+                            {webhook.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                    <Button variant={buttonVariant} onClick={handleOpenDialog}>
-                      Add New Webhook
-                    </Button>
+
+                    <div className="flex gap-2">
+                      <Button variant={buttonVariant} onClick={() => setNestedDialogOpen(true)}>
+                        Add New Webhook
+                      </Button>
+
+                      {webhookMS && (
+                        <Button variant="destructive" onClick={() => handleDeleteWebhook(webhookMS)}>
+                          Delete
+                        </Button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* AddWebhookDialog Dialog */}
+                  <AddWebhookDialog
+                    open={nestedDialogOpen}
+                    onOpenChange={setNestedDialogOpen}
+                    webhookName={webhookName}
+                    webhookUrl={webhookUrl}
+                    setWebhookName={setWebhookName}
+                    setWebhookUrl={setWebhookUrl}
+                    onAdd={handleAddWebhook}
+                  />
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center pt-2">
