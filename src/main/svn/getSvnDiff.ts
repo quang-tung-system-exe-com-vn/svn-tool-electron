@@ -93,6 +93,7 @@ export async function getSvnDiff(selectedFiles: SelectedFile[]) {
       })
     } catch (err) {
       console.error('❌ SVN status error:', err)
+      resolve({ status: 'error', message: err })
     }
   })
 }
