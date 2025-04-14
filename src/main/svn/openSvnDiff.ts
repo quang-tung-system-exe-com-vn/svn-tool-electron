@@ -8,31 +8,29 @@ export function isTextFile(filePath: string, status: string, sourceFolder: strin
   const fileName = path.basename(filePath)
   if (status === '!') return false
   if (status === '?') {
-    return isText(fileName)
+    const absolutePath = path.resolve(sourceFolder, filePath.replace(/\\\\/g, '\\'))
+    const buffer = fs.readFileSync(absolutePath)
+    return isText(fileName, buffer)
   }
 }
 
-export async function openSvnDiff(file: string, status: string): Promise<void> {
+export async function openSvnDiff(file: string, status: string): Promise<SVNResponse> {
   const { svnFolder, sourceFolder } = configurationStore.store
-
   if (!fs.existsSync(svnFolder)) {
-    console.log('Error', 'Invalid path to svn.exe.')
-    return
+    return { status: 'error', message: 'Invalid path to svn.exe.' }
   }
-
   if (!fs.existsSync(sourceFolder)) {
-    console.log('Error', 'Invalid source folder.')
-    return
+    return { status: 'error', message: 'Invalid source folder.' }
   }
 
   const filePath = path.join(sourceFolder, file)
   const tortoiseBinPath = path.join(svnFolder, 'bin')
 
   console.log(`Open file: [${status}] ${filePath}`)
-  if (status === '?' || status === '!') {
-    try {
+
+  try {
+    if (status === '?' || status === '!') {
       const isTextResult = isTextFile(filePath, status, sourceFolder)
-      console.log(isTextResult)
       const tool = isTextResult ? 'TortoiseMerge.exe' : 'TortoiseIDiff.exe'
       const args = isTextResult ? [`/base:${filePath}`, `/mine:${filePath}`] : [`/left:${filePath}`, `/right:${filePath}`]
       const child = spawn(path.join(tortoiseBinPath, tool), args, {
@@ -40,26 +38,20 @@ export async function openSvnDiff(file: string, status: string): Promise<void> {
         stdio: 'ignore',
         windowsHide: true,
       })
+
       child.unref()
-      if (child.stderr) {
-        console.log(`Error opening ${tool}: ${child.stderr}`, 'error')
-      }
-    } catch (error: any) {
-      console.log(`Exception running diff: ${error.message}`, 'error')
+      return { status: 'success', message: `${tool} opened successfully.` }
     }
-  } else {
-    try {
-      const result = spawn(path.join(tortoiseBinPath, 'TortoiseProc.exe'), ['/command:diff', `/path:${filePath}`], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-      })
-      result.unref()
-      if (result.stderr) {
-        console.log('Error', `Error opening TortoiseSVN: ${result.stderr}`)
-      }
-    } catch (error: any) {
-      console.log('Error', `Unexpected error: ${error.message}`)
-    }
+    const result = spawn(path.join(tortoiseBinPath, 'TortoiseProc.exe'), ['/command:diff', `/path:${filePath}`], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+    })
+
+    result.unref()
+    return { status: 'success', message: 'TortoiseProc diff opened successfully.' }
+  } catch (error: any) {
+    console.log(`Exception running diff: ${error.message}`, 'error')
+    return { status: 'error', message: `Exception: ${error.message}` }
   }
 }

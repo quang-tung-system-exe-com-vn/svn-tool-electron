@@ -23,16 +23,16 @@ export function MainPage() {
   const tableRef = useRef<any>(null)
   const isAnyLoading = isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit
   const commitMessageRef = useRef<HTMLTextAreaElement>(null)
-  // const codingRuleRef = useRef<HTMLTextAreaElement>(null)
+  const codingRuleRef = useRef<HTMLTextAreaElement>(null)
   const commitMessage = useRef('')
-  // const codingRule = useRef('')
+  const codingRule = useRef('')
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
   }
-  // const handleCheckCodingRule = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  //   codingRule.current = e.target.value
-  // }
+  const handleCheckCodingRule = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    codingRule.current = e.target.value
+  }
 
   const generateCommitMessage = async () => {
     setProgress(0)
@@ -70,7 +70,7 @@ export function MainPage() {
     } else {
       toast.error(message)
       if (commitMessageRef.current) {
-        commitMessageRef.current.value = message
+        commitMessageRef.current.value = message ?? ''
       }
       setLoadingGenerate(false)
     }
@@ -103,13 +103,18 @@ export function MainPage() {
         },
       }
       const openai_result = await window.api.openai.send_message(params)
+      if (codingRuleRef.current) {
+        codingRuleRef.current.value = openai_result
+      }
       await updateProgress(50, 100, 1000)
       setProgress(100)
       setLoadingCheckCodingRule(false)
       toast.success(t('toast.checkViolationsSuccess'))
     } else {
       toast.error(message)
-      // setCheckCodingRule(message)
+      if (codingRuleRef.current) {
+        codingRuleRef.current.value = message ?? ''
+      }
       setLoadingCheckCodingRule(false)
     }
   }
@@ -131,21 +136,24 @@ export function MainPage() {
     }
     setLoadingCommit(true)
     await updateProgress(0, 20, 1000)
-    // const result = await window.api.svn.commit(commitMessage.current, codingRule.current, selectedFiles)
-    // const { status, message, data } = result
-    // console.log(result)
-
-    // if (status === 'success') {
+    console.log(commitMessage.current)
+    console.log(codingRule.current)
+    console.log(selectedFiles)
+    const result = await window.api.svn.commit(commitMessage.current, codingRule.current, selectedFiles)
+    console.log(result)
+    const { status, message } = result
     await updateProgress(20, 50, 1000)
-    await updateProgress(50, 100, 1000)
-    setProgress(100)
-    setLoadingCommit(false)
-    toast.success(t('toast.commitSuccess'))
-    // } else {
-    // toast.error(message)
-    // setCheckCodingRule(message)
-    // setLoadingCommit(false)
-    // }
+
+    if (status === 'success') {
+      await updateProgress(50, 100, 1000)
+      setProgress(100)
+      setLoadingCommit(false)
+      toast.success(t('toast.commitSuccess'))
+    } else {
+      toast.error(message)
+      setLoadingCommit(false)
+    }
+    window.location.reload() // Or use any custom refresh logic
   }
 
   const updateProgress = (from: number, to: number, duration: number) => {
@@ -198,7 +206,7 @@ export function MainPage() {
           {/* Footer Buttons */}
           <div className="flex justify-center gap-2">
             <Button
-              className={`relative w-50 ${isLoadingGenerate ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-55 ${isLoadingGenerate ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -210,7 +218,7 @@ export function MainPage() {
             </Button>
 
             <Button
-              className={`relative w-50 ${isLoadingCheckCodingRule ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-55 ${isLoadingCheckCodingRule ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -221,7 +229,7 @@ export function MainPage() {
               {isLoadingCheckCodingRule ? <GlowLoader /> : null} {t('action.check')}
             </Button>
             <Button
-              className={`relative w-50 ${isLoadingCommit ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-55 ${isLoadingCommit ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {

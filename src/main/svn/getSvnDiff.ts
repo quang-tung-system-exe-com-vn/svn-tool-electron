@@ -1,19 +1,16 @@
 import { execFile } from 'node:child_process'
-import { log } from 'node:console'
 import fs from 'node:fs'
 import path from 'node:path'
 import { isText } from 'main/utils/istextorbinary'
 import configurationStore from '../store/ConfigurationStore'
 
-export function isTextFile(filePath: string, status: string) {
+export function isTextFile(filePath: string, status: string, sourceFolder: string) {
   const fileName = path.basename(filePath)
   if (status === '!') return false
   if (status === '?') {
-    try {
-      isText(fileName)
-    } catch {
-      return false
-    }
+    const absolutePath = path.resolve(sourceFolder, filePath.replace(/\\\\/g, '\\'))
+    const buffer = fs.readFileSync(absolutePath)
+    return isText(fileName, buffer)
   }
 }
 
@@ -33,8 +30,8 @@ export async function getSvnDiff(selectedFiles: SelectedFile[]) {
       for (const file of unversionedFiles) {
         const status = file.status
         const filePath = path.join(sourceFolder, file.filePath)
-        const isText = isTextFile(file.filePath, status)
-        if (isText && fs.existsSync(filePath)) {
+        const isText = isTextFile(file.filePath, status, sourceFolder)
+        if (isText) {
           try {
             const fileContent = fs.readFileSync(filePath, 'utf-8')
             diffResult += `\nFile: ${file}\n`
@@ -45,7 +42,7 @@ export async function getSvnDiff(selectedFiles: SelectedFile[]) {
               diffResult += 'This file is empty. No content available.\n\n'
             }
           } catch (e: any) {
-            log(`⚠️ Error reading ${file}: ${e.message}`, 'error')
+            console.log(`⚠️ Error reading ${file}: ${e.message}`, 'error')
           }
         }
       }

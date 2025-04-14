@@ -28,9 +28,13 @@ function listAllFilesRecursive(dirPath: string): string[] {
 
 export async function getSvnChangedFiles() {
   const { svnFolder, sourceFolder } = configurationStore.store
+  if (!fs.existsSync(svnFolder)) {
+    return Promise.resolve({ status: 'error', message: 'Invalid path to svn.exe.' })
+  }
+  if (!fs.existsSync(sourceFolder)) {
+    return Promise.resolve({ status: 'error', message: 'Invalid source folder.' })
+  }
 
-  if (!fs.existsSync(svnFolder)) return { status: 'error', message: 'Invalid path to svn.exe.' }
-  if (!fs.existsSync(sourceFolder)) return { status: 'error', message: 'Invalid source folder.' }
   const svnExecutable = path.join(svnFolder, 'bin', 'svn.exe')
   try {
     const { stdout } = await execFileAsync(svnExecutable, ['status'], {
@@ -106,7 +110,6 @@ export async function getSvnChangedFiles() {
         })
       }
     }
-    // console.log(changedFiles)
     console.log('✅ SVN status successfully retrieved with all files and folders')
     return { status: 'success', data: changedFiles }
   } catch (error) {

@@ -1,15 +1,6 @@
-export function GlowLoader({ className = 'w-6 h-6' }: { className?: string }) {
+export function RoundIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
-    <svg
-      className={`${className} animate-spin`}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="url(#gradient)"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      filter="url(#glow)"
-    >
+    <svg className={`${className}`} viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)">
       <defs>
         <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#f43f5e" />
@@ -22,7 +13,7 @@ export function GlowLoader({ className = 'w-6 h-6' }: { className?: string }) {
         </filter>
       </defs>
 
-      <circle cx="12" cy="12" r="10" strokeDasharray="60" strokeDashoffset="20" />
+      <circle cx="12" cy="12" r="10" />
     </svg>
   )
 }

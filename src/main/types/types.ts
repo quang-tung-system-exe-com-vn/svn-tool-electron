@@ -27,6 +27,6 @@ type MailServerConfig = {
 // SVN Response type
 type SVNResponse = {
   status: string
-  message: string
-  data: any
+  message?: string
+  data?: any
 }

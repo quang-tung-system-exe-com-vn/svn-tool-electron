@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Menubar, MenubarContent, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
 import { t } from 'i18next'
-import { Minus, Sparkles, Square, X } from 'lucide-react'
+import { Minus, Square, X } from 'lucide-react'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
 import { GlowLoader } from '../shared/GlowLoader'
+import { RoundIcon } from '../shared/RoundIcon'
 
 interface TitleBarProps {
   isLoading: boolean
@@ -29,7 +30,7 @@ export const TitleBar = ({ isLoading, progress }: TitleBarProps) => {
     >
       {/* Left Section (Menu) */}
       <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        {isLoading ? <GlowLoader className="w-8 h-6 p-1" /> : <Sparkles className="w-8 h-4" />}
+        <div className="w-10 h-6 flex justify-center">{isLoading ? <GlowLoader className="w-8 h-6 py-1" /> : <RoundIcon className="w-8 h-6 py-1" />}</div>
         <div className="flex items-center h-full">
           <Menubar className="bg-transparent h-full border-none rounded-none shadow-none">
             <MenubarMenu>

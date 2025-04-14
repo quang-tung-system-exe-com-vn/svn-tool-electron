@@ -3,7 +3,7 @@ import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilt
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
@@ -215,7 +215,6 @@ export const DataTable = forwardRef((props, ref) => {
 
   function handleFilePathDoubleClick(row: any) {
     const { filePath, status } = row.original
-    console.log('Double clicked row:', { filePath, status })
     window.api.svn.open_svn_dif(filePath, status)
   }
 
@@ -231,7 +230,7 @@ export const DataTable = forwardRef((props, ref) => {
                   <TableHead
                     key={header.id}
                     style={{ width: header.getSize() }}
-                    className={cn('relative group h-9 p-0', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
+                    className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
                   >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
@@ -246,11 +245,7 @@ export const DataTable = forwardRef((props, ref) => {
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell
                       key={cell.id}
-                      className={cn(
-                        'p-0 h-6',
-                        index === 0 && 'text-center',
-                        cell.column.id === 'filePath' && 'cursor-pointer' // 👈 Thêm class 'cursor-pointer' cho cột filePath
-                      )}
+                      className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}
                       onDoubleClick={cell.column.id === 'filePath' ? () => handleFilePathDoubleClick(row) : undefined}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -267,6 +262,8 @@ export const DataTable = forwardRef((props, ref) => {
             )}
           </TableBody>
         </Table>
+        <ScrollBar orientation="vertical" />
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
       <div className="absolute flex items-center justify-end space-x-2 pt-4 px-4 right-4">
         <div className="flex-1 text-sm text-muted-foreground">

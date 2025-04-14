@@ -102,35 +102,28 @@ export function getEncoding(buffer: Buffer | null, opts?: EncodingOpts): 'utf8' 
 
     // Return
     return encoding
-  } else {
-    // Extract
-    chunkBegin = getChunkBegin(buffer, chunkBegin)
-    if (chunkBegin === -1) {
-      return binaryEncoding
-    }
-
-    const chunkEnd = getChunkEnd(buffer, Math.min(buffer.length, chunkBegin + chunkLength))
-
-    if (chunkEnd > buffer.length) {
-      return binaryEncoding
-    }
-
-    const contentChunkUTF8 = buffer.toString(textEncoding, chunkBegin, chunkEnd)
-
-    // Detect encoding
-    for (let i = 0; i < contentChunkUTF8.length; ++i) {
-      const charCode = contentChunkUTF8.charCodeAt(i)
-      if (charCode === 65533 || charCode <= 8) {
-        // 8 and below are control characters (e.g. backspace, null, eof, etc.)
-        // 65533 is the unknown character
-        // console.log(charCode, contentChunkUTF8[i])
-        return binaryEncoding
-      }
-    }
-
-    // Return
-    return textEncoding
   }
+  // Extract
+  chunkBegin = getChunkBegin(buffer, chunkBegin)
+  if (chunkBegin === -1) {
+    return binaryEncoding
+  }
+
+  const chunkEnd = getChunkEnd(buffer, Math.min(buffer.length, chunkBegin + chunkLength))
+  if (chunkEnd > buffer.length) {
+    return binaryEncoding
+  }
+  const contentChunkUTF8 = buffer.toString(textEncoding, chunkBegin, chunkEnd)
+  // Detect encoding
+  for (let i = 0; i < contentChunkUTF8.length; ++i) {
+    const charCode = contentChunkUTF8.charCodeAt(i)
+    if (charCode === 65533 || charCode <= 8) {
+      // 8 and below are control characters (e.g. backspace, null, eof, etc.)
+      // 65533 is the unknown character
+      return binaryEncoding
+    }
+  }
+  return textEncoding
 }
 
 // ====================================

@@ -27,8 +27,10 @@ export async function MainWindow() {
     center: true,
     movable: true,
     resizable: true,
+    roundedCorners: true,
     // alwaysOnTop: true,
     autoHideMenuBar: true,
+    icon: '../../resources/build/icons/icon.ico',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -38,7 +40,7 @@ export async function MainWindow() {
 
   window.webContents.on('did-finish-load', () => {
     if (ENVIRONMENT.IS_DEV) {
-      window.webContents.openDevTools({ mode: 'right' })
+      window.webContents.openDevTools({ mode: 'detach' })
     }
     window.show()
   })
