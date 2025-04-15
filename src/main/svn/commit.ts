@@ -56,9 +56,12 @@ export async function commit(commitMessage: string, violations: string, selected
 
   // Handle commit for modified, added, and deleted files
   const allFiles = [...modifiedFiles, ...addedFiles, ...deletedFiles]
+  console.log(allFiles);
   if (allFiles.length > 0) {
     try {
-      const commitResult = await runSVNCommand('commit', ['-m', commitMessage, ...allFiles])
+      const escapedMessage = `"${commitMessage.replace(/"/g, '\\"')}"`;
+      const commitResult = await runSVNCommand('commit', ['-m', escapedMessage, ...allFiles])
+      console.log(commitResult)
       if (commitResult.status === 'error') {
         console.error('❌ Commit failed:', commitResult.message)
         return Promise.resolve({ status: 'error', message: `❌ Commit failed: ${commitResult.message}` })
@@ -116,9 +119,9 @@ function runSVNCommand(command: string, selectedFiles?: string[]): Promise<SVNRe
       return new Promise((batchResolve, batchReject) => {
         const svnExePath = `"${path.join(svnFolder, 'bin', 'svn.exe')}"`
         const fullCommand = `${svnExePath} ${command} ${args.join(' ')}`.trim()
-
         exec(fullCommand, { cwd: sourceFolder }, (error, stdout, stderr) => {
           if (error) {
+            console.error(`Error: ${stderr || error.message}`);
             batchReject({ status: 'error', message: stderr || error.message })
           } else {
             console.log(stdout)
@@ -136,26 +139,26 @@ function runSVNCommand(command: string, selectedFiles?: string[]): Promise<SVNRe
     const batchedFiles = chunkArray(selectedFiles, batchSize)
     const pattern = /^[AD]\s+(?:\(bin\)\s+)?([^\r\n]+)/gm
     const filePaths: string[] = []
-    ;(async () => {
-      for (const batch of batchedFiles) {
-        try {
-          const result = await runBatch(batch)
-          let match: RegExpExecArray | null
-          while (true) {
-            match = pattern.exec(result.message)
-            if (match === null) {
-              break
+      ; (async () => {
+        for (const batch of batchedFiles) {
+          try {
+            const result = await runBatch(batch)
+            let match: RegExpExecArray | null
+            while (true) {
+              match = pattern.exec(result.message)
+              if (match === null) {
+                break
+              }
+              filePaths.push(match[1].replace(/\\\\/g, '\\'))
             }
-            filePaths.push(match[1].replace(/\\\\/g, '\\'))
+          } catch (error) {
+            reject(error)
+            return
           }
-        } catch (error) {
-          reject(error)
-          return
         }
-      }
-      console.log('Batch processed successfully:', filePaths)
-      resolve({ status: 'success', message: filePaths.toString() })
-    })()
+        console.log('Batch processed successfully:', filePaths)
+        resolve({ status: 'success', message: filePaths.toString() })
+      })()
   })
 }
 

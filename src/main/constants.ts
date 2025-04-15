@@ -40,7 +40,6 @@ export const IPC = {
 
 export const PROMPT = {
   CHECK_VIOLATIONS: `
-Formatting re-enabled.
 You are a source code management expert. Please apply the relevant coding rules for each line of code, such as Java rules for Java code, SQL rules for SQL code, and TypeScript rules for TypeScript code.
 Here is the code. Lines starting with minus(-) are ignored.
 
@@ -53,7 +52,6 @@ Provide the final conclusion starting with the symbol =>
 `,
 
   GENERATE_COMMIT: `
-Formatting re-enabled.
 You are a source code management expert. Generate a professional commit message using the Conventional Commit Specification with Emoji.
 Split the message into Frontend and Backend sections. If any part is missing, then there is no need to mention Frontend or Backend.
 Based on this diff:
