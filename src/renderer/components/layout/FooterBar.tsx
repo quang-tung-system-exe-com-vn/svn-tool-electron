@@ -1,4 +1,4 @@
-import { ProgressBar } from './ProgressBar'
+import { ProgressBar } from '../ui-elements/ProgressBar'
 
 interface FooterBarProps {
   isLoading: boolean

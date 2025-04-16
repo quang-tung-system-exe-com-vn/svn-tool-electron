@@ -7,7 +7,7 @@ import configurationStore from '../store/ConfigurationStore'
 
 const execFileAsync = promisify(execFile)
 
-export async function getSvnRepositoryRoot() {
+export async function getRepositoryRoot() {
   try {
     const { svnFolder, sourceFolder } = configurationStore.store
     if (!fs.existsSync(svnFolder)) return null
@@ -21,7 +21,7 @@ export async function getSvnRepositoryRoot() {
   }
 }
 
-export async function getSvnLocalUser(): Promise<[string, string][] | null> {
+export async function getLocalUser(): Promise<[string, string][] | null> {
   try {
     const { svnFolder, sourceFolder } = configurationStore.store
     if (!fs.existsSync(svnFolder)) return null
@@ -50,10 +50,10 @@ export async function getSvnLocalUser(): Promise<[string, string][] | null> {
   }
 }
 
-export async function findSvnUser(): Promise<string | null> {
-  const repoRoot = await getSvnRepositoryRoot()
+export async function findUser(): Promise<string | null> {
+  const repoRoot = await getRepositoryRoot()
   if (!repoRoot) return null
-  const credentials = await getSvnLocalUser()
+  const credentials = await getLocalUser()
   if (!credentials) return null
   console.log(repoRoot)
   console.log(credentials)

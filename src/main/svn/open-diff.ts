@@ -1,20 +1,10 @@
 import { spawn } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { isText } from 'main/utils/istextorbinary'
+import { isTextFile } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
 
-export function isTextFile(filePath: string, status: string, sourceFolder: string) {
-  const fileName = path.basename(filePath)
-  if (status === '!') return false
-  if (status === '?') {
-    const absolutePath = path.resolve(sourceFolder, filePath.replace(/\\\\/g, '\\'))
-    const buffer = fs.readFileSync(absolutePath)
-    return isText(fileName, buffer)
-  }
-}
-
-export async function openSvnDiff(file: string, status: string): Promise<SVNResponse> {
+export async function openDiff(file: string, status: string): Promise<SVNResponse> {
   const { svnFolder, sourceFolder } = configurationStore.store
   if (!fs.existsSync(svnFolder)) {
     return { status: 'error', message: 'Invalid path to svn.exe.' }

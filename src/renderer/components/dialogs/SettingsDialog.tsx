@@ -251,7 +251,7 @@ export function SettingsDialog() {
                     <Button
                       variant={buttonVariant}
                       onClick={async () => {
-                        const folder = await window.api.select_folder()
+                        const folder = await window.api.system.select_folder()
                         if (folder) setFieldConfiguration('svnFolder', folder)
                       }}
                     >
@@ -267,7 +267,7 @@ export function SettingsDialog() {
                     <Button
                       variant={buttonVariant}
                       onClick={async () => {
-                        const folder = await window.api.select_folder()
+                        const folder = await window.api.system.select_folder()
                         if (folder) setFieldConfiguration('sourceFolder', folder)
                       }}
                     >

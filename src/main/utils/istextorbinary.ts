@@ -1,5 +1,3 @@
-/* eslint no-use-before-define:0 */
-
 import type Buffer from 'node:buffer'
 import * as pathUtil from 'node:path'
 // Import

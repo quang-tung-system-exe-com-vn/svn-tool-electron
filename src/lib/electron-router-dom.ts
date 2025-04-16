@@ -1,9 +1,8 @@
 import { createElectronRouter } from 'electron-router-dom'
-
+// Tạo router
 export const { Router, registerRoute, settings } = createElectronRouter({
   port: 4927,
-
   types: {
-    ids: ['main', 'about'],
+    ids: ['main', 'code-diff-viewer'],
   },
 })

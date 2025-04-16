@@ -1,24 +1,13 @@
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { isText } from 'main/utils/istextorbinary'
+import { isTextFile } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
-
-export function isTextFile(filePath: string, status: string, sourceFolder: string) {
-  const fileName = path.basename(filePath)
-  if (status === '!') return false
-  if (status === '?') {
-    const absolutePath = path.resolve(sourceFolder, filePath.replace(/\\\\/g, '\\'))
-    const buffer = fs.readFileSync(absolutePath)
-    return isText(fileName, buffer)
-  }
-}
-
 interface SelectedFile {
   status: string
   filePath: string
 }
-export async function getSvnDiff(selectedFiles: SelectedFile[]) {
+export async function getDiff(selectedFiles: SelectedFile[]) {
   const { svnFolder, sourceFolder } = configurationStore.store
   return new Promise(resolve => {
     try {
@@ -98,4 +87,4 @@ export async function getSvnDiff(selectedFiles: SelectedFile[]) {
   })
 }
 
-module.exports = { getSvnDiff }
+module.exports = { getDiff }

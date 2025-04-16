@@ -26,13 +26,13 @@ function listAllFilesRecursive(dirPath: string): string[] {
   return result
 }
 
-export async function getSvnChangedFiles() {
+export async function changedFiles() {
   const { svnFolder, sourceFolder } = configurationStore.store
   if (!fs.existsSync(svnFolder)) {
-    return Promise.resolve({ status: 'error', message: 'Invalid path to svn.exe.' })
+    return { status: 'error', message: 'Invalid path to svn.exe.' }
   }
   if (!fs.existsSync(sourceFolder)) {
-    return Promise.resolve({ status: 'error', message: 'Invalid source folder.' })
+    return { status: 'error', message: 'Invalid source folder.' }
   }
 
   const svnExecutable = path.join(svnFolder, 'bin', 'svn.exe')
@@ -64,8 +64,9 @@ export async function getSvnChangedFiles() {
 
       const fileType = path.extname(filePath).toLowerCase()
       const isFile = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()
-
-      if (status === '?' && fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()) {
+      const isDirectory = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()
+      console.log(absolutePath)
+      if ((status === '?' || status === 'D') && isDirectory) {
         changedFiles.push({
           status,
           propStatus,
@@ -78,12 +79,11 @@ export async function getSvnChangedFiles() {
           fileType,
           isFile: false,
         })
-
         const untrackedFiles = listAllFilesRecursive(absolutePath)
         for (const file of untrackedFiles) {
           const relative = path.relative(sourceFolder, file)
           changedFiles.push({
-            status: '?',
+            status,
             propStatus: '',
             lockStatus: '',
             historyStatus: '',

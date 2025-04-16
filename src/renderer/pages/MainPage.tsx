@@ -1,14 +1,15 @@
 import { DataTable } from '@/components/common/DataTable'
-import { FooterBar } from '@/components/common/FooterBar'
-import { OverlayLoader } from '@/components/common/OverlayLoader'
-import { TitleBar } from '@/components/common/TitleBar'
-import { GlowLoader } from '@/components/shared/GlowLoader'
+import { FooterBar } from '@/components/layout/FooterBar'
+import { TitleBar } from '@/components/layout/TitleBar'
 import { LANGUAGES } from '@/components/shared/constants'
 import { useAppearanceStore, useButtonVariant } from '@/components/stores/useAppearanceStore'
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
+import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -36,7 +37,7 @@ export function MainPage() {
 
   const generateCommitMessage = async () => {
     setProgress(0)
-    const selectedRows = tableRef.current?.getSelectedRowModel().rows ?? []
+    const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
     const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
       filePath: row.original.filePath,
       status: row.original.status,
@@ -48,7 +49,7 @@ export function MainPage() {
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
     setLoadingGenerate(true)
     await updateProgress(0, 20, 1000)
-    const result = await window.api.svn.get_svn_diff(selectedFiles)
+    const result = await window.api.svn.get_diff(selectedFiles)
     const { status, message, data } = result
     console.log(result)
     if (status === 'success') {
@@ -78,19 +79,19 @@ export function MainPage() {
 
   const checkViolations = async () => {
     setProgress(0)
-    const selectedRows = tableRef.current?.getSelectedRowModel().rows ?? []
+    const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
     const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
       filePath: row.original.filePath,
       status: row.original.status,
     }))
     if (selectedFiles.length === 0) {
-      toast.warning(t('message.noFilesWarning'))
+      ToastMessageFunctions.warning(t('message.noFilesWarning'))
       return
     }
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
     setLoadingCheckCodingRule(true)
     await updateProgress(0, 20, 1000)
-    const result = await window.api.svn.get_svn_diff(selectedFiles)
+    const result = await window.api.svn.get_diff(selectedFiles)
     const { status, message, data } = result
     console.log(result)
     if (status === 'success') {
@@ -109,9 +110,9 @@ export function MainPage() {
       await updateProgress(50, 100, 1000)
       setProgress(100)
       setLoadingCheckCodingRule(false)
-      toast.success(t('toast.checkViolationsSuccess'))
+      ToastMessageFunctions.success(t('toast.checkViolationsSuccess'))
     } else {
-      toast.error(message)
+      ToastMessageFunctions.error(message)
       if (codingRuleRef.current) {
         codingRuleRef.current.value = message ?? ''
       }
@@ -122,23 +123,20 @@ export function MainPage() {
   const commitCode = async () => {
     setProgress(0)
     if (!commitMessage.current) {
-      toast.warning(t('message.commitMessageWarning'))
+      ToastMessageFunctions.warning(t('message.commitMessageWarning'))
       return
     }
-    const selectedRows = tableRef.current?.getSelectedRowModel().rows ?? []
+    const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
     const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
       filePath: row.original.filePath,
       status: row.original.status,
     }))
     if (selectedFiles.length === 0) {
-      toast.warning(t('message.noFilesWarning'))
+      ToastMessageFunctions.warning(t('message.noFilesWarning'))
       return
     }
     setLoadingCommit(true)
     await updateProgress(0, 20, 1000)
-    console.log(commitMessage.current)
-    console.log(codingRule.current)
-    console.log(selectedFiles)
     const result = await window.api.svn.commit(commitMessage.current, codingRule.current, selectedFiles)
     console.log(result)
     const { status, message } = result
@@ -146,15 +144,27 @@ export function MainPage() {
 
     if (status === 'success') {
       await updateProgress(50, 100, 1000)
-      setProgress(100)
       setLoadingCommit(false)
-      toast.success(t('toast.commitSuccess'))
+      ToastMessageFunctions.success(t('toast.commitSuccess'))
+      if (tableRef.current) {
+        tableRef.current.reloadData()
+        setTimeout(() => {
+          tableRef.current.table.toggleAllPageRowsSelected(false)
+        }, 0)
+      }
     } else {
-      toast.error(message)
+      ToastMessageFunctions.error(message)
       setLoadingCommit(false)
     }
-    window.location.reload() // Or use any custom refresh logic
   }
+
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const updateProgress = (from: number, to: number, duration: number) => {
     return new Promise<void>(resolve => {
@@ -162,16 +172,22 @@ export function MainPage() {
       const easeInOut = (t: number) => {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       }
+
       const step = () => {
         const currentTime = performance.now() - startTime
         const progress = Math.min(from + (to - from) * easeInOut(currentTime / duration), to)
-        setProgress(progress)
-        if (currentTime < duration) {
+
+        if (isMountedRef.current) {
+          setProgress(progress)
+        }
+
+        if (currentTime < duration && isMountedRef.current) {
           requestAnimationFrame(step)
         } else {
           resolve()
         }
       }
+
       requestAnimationFrame(step)
     })
   }
@@ -199,6 +215,7 @@ export function MainPage() {
                   ref={commitMessageRef}
                   spellCheck={false}
                 />
+                <Textarea placeholder={t('placeholder.commitMessage')} className="hidden" onChange={handleCheckCodingRule} ref={codingRuleRef} spellCheck={false} />
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>

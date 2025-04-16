@@ -4,8 +4,8 @@ import { t } from 'i18next'
 import { Minus, Square, X } from 'lucide-react'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
-import { GlowLoader } from '../shared/GlowLoader'
-import { RoundIcon } from '../shared/RoundIcon'
+import { GlowLoader } from '../ui-elements/GlowLoader'
+import { RoundIcon } from '../ui-elements/RoundIcon'
 
 interface TitleBarProps {
   isLoading: boolean
@@ -44,7 +44,7 @@ export const TitleBar = ({ isLoading, progress }: TitleBarProps) => {
         </div>
       </div>
       {/* Center Section (Title) */}
-      <Button variant="ghost" className="font-medium text-xs text-gray-500">
+      <Button variant="ghost" className="font-medium text-xs text-gray-200">
         {t('SVN Tool')}
       </Button>
       {/* Right Section (Window Controls) */}

@@ -4,7 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --app-font-size: 1rem;
@@ -143,6 +144,7 @@
 
   body {
     @apply bg-background text-foreground;
+    height: 100vh !important;
   }
 
   html,
@@ -158,7 +160,17 @@
   kbd,
   pre,
   samp {
-    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+    font-family: var(
+      --default-mono-font-family,
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace
+    );
     font-feature-settings: var(--default-mono-font-feature-settings, normal);
     font-variation-settings: var(--default-mono-font-variation-settings, normal);
     font-size: 1em;
@@ -283,5 +295,53 @@
       background-size: 200% 100%;
       background-position: 100% 0;
     }
+  }
+
+  /* === INFO === */
+  .toast-info {
+    font-size: 0.85rem !important;
+    background-color: oklch(0.932 0.032 255.585) !important;
+    color: oklch(0.424 0.199 265.638) !important;
+  }
+  .dark .toast-info {
+    background-color: oklch(0.379 0.146 265.522) !important;
+    color: oklch(0.882 0.059 254.128) !important;
+  }
+
+  /* === SUCCESS === */
+  .toast-success {
+    font-size: 0.85rem !important;
+    background-color: oklch(0.962 0.044 156.743) !important;
+    color: oklch(0.448 0.119 151.328) !important;
+  }
+  .dark .toast-success {
+    background-color: oklch(0.393 0.095 152.535) !important;
+    color: oklch(0.962 0.044 156.743) !important;
+  }
+
+  /* === WARNING === */
+  .toast-warning {
+    font-size: 0.85rem !important;
+    background-color: oklch(0.973 0.071 103.193) !important;
+    color: oklch(0.476 0.114 61.907) !important;
+  }
+  .dark .toast-warning {
+    background-color: oklch(0.476 0.114 61.907) !important;
+    color: oklch(0.973 0.071 103.193) !important;
+  }
+
+  /* === ERROR === */
+  .toast-error {
+    font-size: 0.85rem !important;
+    background-color: oklch(0.936 0.032 17.717) !important;
+    color: oklch(0.444 0.177 26.899) !important;
+  }
+  .dark .toast-error {
+    background-color: oklch(0.396 0.141 25.723) !important;
+    color: oklch(0.936 0.032 17.717) !important;
+  }
+
+  [data-radix-scroll-area-viewport] > div {
+    height: 100%;
   }
 }

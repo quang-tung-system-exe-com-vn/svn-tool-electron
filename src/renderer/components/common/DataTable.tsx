@@ -1,144 +1,149 @@
 'use client'
-import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
-import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-
 import { Button } from '@/components/ui/button'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import 'ldrs/react/Quantum.css'
-import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder } from 'lucide-react'
+import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
+import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
-import { OverlayLoader } from './OverlayLoader'
+import { OverlayLoader } from '../ui-elements/OverlayLoader'
 
 export type SvnFile = {
   filePath: string
   status: SvnStatusCode
   isFile: boolean
 }
-export const columns: ColumnDef<SvnFile>[] = [
-  {
-    id: 'select',
-    size: 30,
-    header: ({ table }) => (
-      <IndeterminateCheckbox
-        {...{
-          checked: table.getIsAllRowsSelected(),
-          indeterminate: table.getIsSomeRowsSelected(),
-          onChange: table.getToggleAllRowsSelectedHandler(),
-        }}
-      />
-    ),
-    cell: ({ row }) => (
-      <IndeterminateCheckbox
-        {...{
-          checked: row.getIsSelected(),
-          disabled: !row.getCanSelect(),
-          indeterminate: row.getIsSomeSelected(),
-          onChange: row.getToggleSelectedHandler(),
-        }}
-      />
-    ),
-  },
-  {
-    accessorKey: 'filePath',
-    minSize: 500,
-    header: ({ column }) => {
-      return (
-        <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-          File Path
-          {!column.getIsSorted() && <ArrowUpDown />}
-          {column.getIsSorted() === 'asc' && <ArrowUp />}
-          {column.getIsSorted() === 'desc' && <ArrowDown />}
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const statusCode = row.getValue('status') as SvnStatusCode
-      const className = STATUS_COLOR_CLASS_MAP[statusCode]
-      return (
-        <div className={cn('flex items-center gap-2', className)}>
-          {row.getValue('isFile') ? <File strokeWidth={1.25} className={cn('w-4 h-4', className)} /> : <Folder strokeWidth={1.25} className={cn('w-4 h-4', className)} />}
-          {row.getValue('filePath')}
-        </div>
-      )
-    },
-  },
 
-  {
-    accessorKey: 'isFile',
-    header: ({ column }) => {
-      return (
-        <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-          Status
-          {!column.getIsSorted() && <ArrowUpDown />}
-          {column.getIsSorted() === 'asc' && <ArrowUp />}
-          {column.getIsSorted() === 'desc' && <ArrowDown />}
-        </Button>
-      )
+export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (row: any) => void }): ColumnDef<SvnFile>[] {
+  return [
+    {
+      id: 'select',
+      size: 30,
+      header: ({ table }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: table.getIsAllRowsSelected(),
+            indeterminate: table.getIsSomeRowsSelected(),
+            onChange: table.getToggleAllRowsSelectedHandler(),
+          }}
+        />
+      ),
+      cell: ({ row }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: row.getIsSelected(),
+            disabled: !row.getCanSelect(),
+            indeterminate: row.getIsSomeSelected(),
+            // onChange: row.getToggleSelectedHandler(),
+            onChange: () => {
+              handleCheckboxChange(row)
+            },
+          }}
+        />
+      ),
     },
-    cell: ({ row }) => {
-      const statusCode = row.getValue('status') as SvnStatusCode
-      const className = STATUS_COLOR_CLASS_MAP[statusCode]
-      return (
-        <div className={className}>
-          <div>{row.getValue('isFile') ? 'Yes' : 'No'}</div>
-        </div>
-      )
+    {
+      accessorKey: 'filePath',
+      minSize: 500,
+      header: ({ column }) => {
+        return (
+          <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
+            File Path
+            {!column.getIsSorted() && <ArrowUpDown />}
+            {column.getIsSorted() === 'asc' && <ArrowUp />}
+            {column.getIsSorted() === 'desc' && <ArrowDown />}
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const statusCode = row.getValue('status') as SvnStatusCode
+        const className = STATUS_COLOR_CLASS_MAP[statusCode]
+        return (
+          <div className={cn('flex items-center gap-2', className)}>
+            {row.getValue('isFile') ? <File strokeWidth={1.25} className={cn('w-4 h-4', className)} /> : <Folder strokeWidth={1.25} className={cn('w-4 h-4', className)} />}
+            {row.getValue('filePath')}
+          </div>
+        )
+      },
     },
-  },
-  {
-    accessorKey: 'fileType',
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-          Extension
-          {!column.getIsSorted() && <ArrowUpDown />}
-          {column.getIsSorted() === 'asc' && <ArrowUp />}
-          {column.getIsSorted() === 'desc' && <ArrowDown />}
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const statusCode = row.getValue('status') as SvnStatusCode
-      const className = STATUS_COLOR_CLASS_MAP[statusCode]
-      return <div className={className}>{row.getValue('fileType')}</div>
-    },
-  },
-  {
-    accessorKey: 'status',
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-          Status
-          {!column.getIsSorted() && <ArrowUpDown />}
-          {column.getIsSorted() === 'asc' && <ArrowUp />}
-          {column.getIsSorted() === 'desc' && <ArrowDown />}
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const statusCode = row.getValue('status') as SvnStatusCode
-      const status = STATUS_TEXT[statusCode]
-      const className = STATUS_COLOR_CLASS_MAP[statusCode]
-      return <div className={className}>{status}</div>
-    },
-  },
-]
 
-async function getSvnChangedFiles(): Promise<SvnFile[]> {
-  const result = await window.api.svn.get_changed_files()
+    {
+      accessorKey: 'isFile',
+      header: ({ column }) => {
+        return (
+          <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
+            Status
+            {!column.getIsSorted() && <ArrowUpDown />}
+            {column.getIsSorted() === 'asc' && <ArrowUp />}
+            {column.getIsSorted() === 'desc' && <ArrowDown />}
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const statusCode = row.getValue('status') as SvnStatusCode
+        const className = STATUS_COLOR_CLASS_MAP[statusCode]
+        return (
+          <div className={className}>
+            <div>{row.getValue('isFile') ? 'Yes' : 'No'}</div>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'fileType',
+      size: 80,
+      header: ({ column }) => {
+        return (
+          <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
+            Extension
+            {!column.getIsSorted() && <ArrowUpDown />}
+            {column.getIsSorted() === 'asc' && <ArrowUp />}
+            {column.getIsSorted() === 'desc' && <ArrowDown />}
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const statusCode = row.getValue('status') as SvnStatusCode
+        const className = STATUS_COLOR_CLASS_MAP[statusCode]
+        return <div className={className}>{row.getValue('fileType')}</div>
+      },
+    },
+    {
+      accessorKey: 'status',
+      size: 80,
+      header: ({ column }) => {
+        return (
+          <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
+            Status
+            {!column.getIsSorted() && <ArrowUpDown />}
+            {column.getIsSorted() === 'asc' && <ArrowUp />}
+            {column.getIsSorted() === 'desc' && <ArrowDown />}
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const statusCode = row.getValue('status') as SvnStatusCode
+        const status = STATUS_TEXT[statusCode]
+        const className = STATUS_COLOR_CLASS_MAP[statusCode]
+        return <div className={className}>{status}</div>
+      },
+    },
+  ]
+}
 
+async function changedFiles(): Promise<SvnFile[]> {
+  const result = await window.api.svn.changed_files()
   const { status, message, data } = result
   if (status === 'error') {
     toast.error(message)
     return [] as SvnFile[]
   }
-  // toast.success(t('toast.getSvnChangedFilesSuccess'))
   return data as SvnFile[]
 }
 
@@ -147,33 +152,20 @@ export const DataTable = forwardRef((props, ref) => {
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<SvnFile[]>([])
   const [isLoading, setIsLoading] = useState(false)
-
   const hasLoaded = useRef(false)
+
+  useImperativeHandle(ref, () => ({
+    reloadData,
+    table,
+  }))
 
   useEffect(() => {
     if (!hasLoaded.current) {
       reloadData()
       hasLoaded.current = true
     }
-  }, [])
 
-  useImperativeHandle(ref, () => table)
-
-  const reloadData = async () => {
-    try {
-      setIsLoading(true)
-      const result = await getSvnChangedFiles()
-      setData(result)
-    } catch (err) {
-      console.error('Error reloading SVN files:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Kiểm tra tổ hợp phím F5 hoặc Ctrl+R
       if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
         event.preventDefault()
         reloadData()
@@ -182,13 +174,109 @@ export const DataTable = forwardRef((props, ref) => {
         }, 0)
       }
     }
-
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, []) // Thêm dependency table để cập nhật khi bảng thay đổi
+  }, [])
 
+  const reloadData = async () => {
+    try {
+      setIsLoading(true)
+      const result = await changedFiles()
+      setData(result)
+    } catch (err) {
+      console.error('Error reloading SVN files:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const getStatusOfPath = (filePath: string) => {
+    const file = data.find(f => f.filePath === filePath)
+    return file?.status || null
+  }
+
+  const getParentDirectory = (filePath: string) => {
+    const parts = filePath.split('\\')
+    parts.pop()
+    const parentDirectory = parts.join('\\')
+    return parentDirectory
+  }
+
+  const handleCheckboxChange = (row: any) => {
+    const { filePath, status } = row.original
+    const willBeSelected = !row.getIsSelected()
+    const normalizedFolder = filePath.replaceAll('\\', '/')
+    const rows = table.getRowModel().rows
+
+    if (willBeSelected) {
+      if (status === '?') {
+        let currentPath = filePath
+        while (true) {
+          const parentPath = getParentDirectory(currentPath)
+          if (!parentPath) break
+          const parentStatus = getStatusOfPath(parentPath)
+          if (parentStatus !== '?') break
+          const parentRow = rows.find(r => r.original.filePath === parentPath)
+          if (parentRow) {
+            parentRow.toggleSelected(true)
+          }
+          currentPath = parentPath
+          console.log(`parentDirectory: [${currentPath}]`)
+        }
+        for (const r of rows) {
+          const childPath = r.original.filePath.replaceAll('\\', '/')
+          if (childPath.startsWith(`${normalizedFolder}/`)) {
+            r.toggleSelected(true)
+          }
+        }
+      } else if (status === '!') {
+        for (const r of rows) {
+          const childPath = r.original.filePath.replaceAll('\\', '/')
+          if (childPath.startsWith(`${normalizedFolder}/`)) {
+            r.toggleSelected(true)
+          }
+        }
+      }
+    } else {
+      for (const r of rows) {
+        const childPath = r.original.filePath.replaceAll('\\', '/')
+        if (childPath !== normalizedFolder && childPath.startsWith(`${normalizedFolder}/`)) {
+          r.toggleSelected(false)
+        }
+      }
+    }
+
+    row.toggleSelected(willBeSelected)
+  }
+
+  const handleFilePathDoubleClick = async (row: any) => {
+    const { filePath } = row.original
+    try {
+      const originalCode = await window.api.svn.cat(filePath)
+      const modifiedCode = await window.api.system.read_file(filePath)
+      window.api.new_window.open_diff({ originalCode, modifiedCode })
+    } catch (error) {
+      console.error('Error loading file for diff:', error)
+    }
+  }
+
+  const revealInFileExplorer = (filePath: string) => {
+    window.api.system.reveal_in_file_explorer(filePath)
+  }
+
+  const info = async (filePath: string) => {
+    const result = await window.api.svn.info(filePath)
+    const { status, message, data } = result
+    console.log(result)
+    if (status === 'success') {
+      return ToastMessageFunctions.info(data)
+    }
+    ToastMessageFunctions.error(message)
+  }
+
+  const columns = useMemo(() => buildColumns({ handleCheckboxChange }), [data])
   const table = useReactTable({
     data,
     columns,
@@ -208,21 +296,16 @@ export const DataTable = forwardRef((props, ref) => {
   })
   const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => (
     <div className={cn('relative w-full overflow-auto', wrapperClassName)}>
-      <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
+      <table ref={ref} className={cn('w-full caption-bottom text-sm', table.getRowModel().rows.length === 0 && 'h-full', className)} {...props} />
     </div>
   ))
   Table.displayName = 'Table'
-
-  function handleFilePathDoubleClick(row: any) {
-    const { filePath, status } = row.original
-    window.api.svn.open_svn_dif(filePath, status)
-  }
 
   return (
     <div className="h-full p-2">
       <ScrollArea className="h-full border-1 rounded-md">
         <OverlayLoader isLoading={isLoading} />
-        <Table wrapperClassName="overflow-clip">
+        <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
           <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
             {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
@@ -238,25 +321,49 @@ export const DataTable = forwardRef((props, ref) => {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell, index) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}
-                      onDoubleClick={cell.column.id === 'filePath' ? () => handleFilePathDoubleClick(row) : undefined}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <ContextMenu key={row.id}>
+                  <ContextMenuTrigger asChild>
+                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                      {row.getVisibleCells().map((cell, index) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}
+                          onDoubleClick={cell.column.id === 'filePath' ? () => handleFilePathDoubleClick(row) : undefined}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
+                      Reveal in File Explorer
+                      <ContextMenuShortcut>
+                        <FolderOpen strokeWidth={1} className="ml-3 h-4 w-4" />
+                      </ContextMenuShortcut>
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onClick={() => info(row.original.filePath)}>
+                      File Info
+                      <ContextMenuShortcut>
+                        <Info strokeWidth={1} className="ml-3 h-4 w-4" />
+                      </ContextMenuShortcut>
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={table.getAllColumns().length} className="text-center">
-                  No results.
+              <TableRow className="h-full">
+                <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
+                  <div className="flex flex-col items-center justify-center gap-4 h-full">
+                    <p className="text-muted-foreground">No files were changed or added since the last commit.</p>
+                    <Button variant="outline" onClick={reloadData}>
+                      Reload
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -274,15 +381,15 @@ export const DataTable = forwardRef((props, ref) => {
   )
 })
 
-function IndeterminateCheckbox({ indeterminate, className = '', ...rest }: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
-  const ref = useRef<HTMLInputElement | null>(null)
-  useEffect(() => {
-    if (typeof indeterminate === 'boolean') {
-      if (ref.current) {
-        ref.current.indeterminate = !rest.checked && indeterminate
+const IndeterminateCheckbox = forwardRef<HTMLInputElement, { indeterminate?: boolean } & HTMLProps<HTMLInputElement>>(
+  ({ indeterminate = false, className = '', ...rest }, forwardedRef) => {
+    const localRef = useRef<HTMLInputElement>(null)
+    useImperativeHandle(forwardedRef, () => localRef.current as HTMLInputElement)
+    useEffect(() => {
+      if (localRef.current) {
+        localRef.current.indeterminate = !rest.checked && indeterminate
       }
-    }
-  }, [ref, indeterminate])
-
-  return <input type="checkbox" ref={ref} className={`${className} accent-[var(--primary)] translate-y-[2px] cursor-pointer`} {...rest} />
-}
+    }, [indeterminate, rest.checked])
+    return <input type="checkbox" ref={localRef} className={`${className} accent-[var(--primary)] translate-y-[2px] cursor-pointer`} {...rest} />
+  }
+)

@@ -9,6 +9,10 @@ declare global {
         send: (channel: string, data: any) => void
       }
 
+      new_window: {
+        open_diff: ({ originalCode, modifiedCode }: any) => void
+      }
+
       appearance: {
         set: (key: string, value: any) => Promise<void>
       }
@@ -24,10 +28,16 @@ declare global {
       }
 
       svn: {
-        get_changed_files: () => Promise<SVNResponse>
-        get_svn_diff: (selectedFiles: any[]) => Promise<SVNResponse>
-        open_svn_dif: (filePath: string, status: string) => Promise<SVNResponse>
+        changed_files: () => Promise<SVNResponse>
+        get_diff: (selectedFiles: any[]) => Promise<SVNResponse>
+        open_dif: (filePath: string, status: string) => Promise<SVNResponse>
         commit: (commitMessage: string, violations: string, selectedFiles: any[]) => Promise<SVNResponse>
+        info: (filePath: string) => Promise<any>
+        cat: (filePath: string) => Promise<any>
+        blame: (filePath: string) => Promise<any>
+        revert: (filePath: string) => Promise<any>
+        cleanup: (filePath: string) => Promise<any>
+        log_xml: (filePath: string) => Promise<any>
       }
 
       openai: {
@@ -46,7 +56,12 @@ declare global {
         set: (...args: any[]) => Promise<void>
       }
 
-      select_folder: () => Promise<string>
+      system: {
+        select_folder: () => Promise<string>
+        reveal_in_file_explorer: (filePath: string) => Promise<void>
+        read_file: (filePath: string) => Promise<string>
+      }
+      on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => void
     }
   }
 }
@@ -55,6 +70,12 @@ declare global {
 contextBridge.exposeInMainWorld('api', {
   electron: {
     send: (channel: string, data: any) => ipcRenderer.send(channel, data),
+  },
+
+  new_window: {
+    open_diff: ({ originalCode, modifiedCode }: any) => {
+      ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { originalCode, modifiedCode })
+    },
   },
 
   appearance: {
@@ -88,10 +109,16 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   svn: {
-    get_changed_files: () => ipcRenderer.invoke(IPC.SVN.GET_CHANGED_FILES),
-    get_svn_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_SVN_DIFF, selectedFiles),
-    open_svn_dif: (filePath: string, status: string) => ipcRenderer.invoke(IPC.SVN.OPEN_SVN_DIFF, filePath, status),
+    changed_files: () => ipcRenderer.invoke(IPC.SVN.CHANGED_FILES),
+    get_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_DIFF, selectedFiles),
+    open_dif: (filePath: string, status: string) => ipcRenderer.invoke(IPC.SVN.OPEN_DIFF, filePath, status),
     commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
+    info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
+    cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
+    blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
+    revert: (filePath: string) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
+    cleanup: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CLEANUP, filePath),
+    log_xml: (filePath: string) => ipcRenderer.invoke(IPC.SVN.LOG_XML, filePath),
   },
 
   webhook: {
@@ -99,7 +126,14 @@ contextBridge.exposeInMainWorld('api', {
     set: (webhook: string) => ipcRenderer.invoke(IPC.SETTING.WEBHOOK.SET, webhook),
   },
 
-  select_folder: () => ipcRenderer.invoke(IPC.DIALOG.OPEN_FOLDER),
+  system: {
+    select_folder: () => ipcRenderer.invoke(IPC.SYSTEM.OPEN_FOLDER),
+    reveal_in_file_explorer: (filePath: string) => ipcRenderer.invoke(IPC.SYSTEM.REVEAL_IN_FILE_EXPLORER, filePath),
+    read_file: (filePath: string) => ipcRenderer.invoke(IPC.SYSTEM.READ_FILE, filePath),
+  },
+  on: (channel: string, listener: (event: any, ...args: any[]) => void) => {
+    ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
+  },
 })
 
 console.log('✅ Preload script loaded')

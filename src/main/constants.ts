@@ -1,6 +1,7 @@
 export const IPC = {
   WINDOW: {
     ACTION: 'window-action',
+    DIFF_WINDOWS: 'open-diff-in-new-window',
   },
   SETTING: {
     APPEARANCE: {
@@ -20,21 +21,29 @@ export const IPC = {
     },
   },
   SVN: {
-    GET_CHANGED_FILES: 'svn:get-changed-files',
-    GET_SVN_DIFF: 'svn:get-svn-diff',
-    OPEN_SVN_DIFF: 'svn:open-svn-diff',
-    GET_USER_SVN: 'svn:get_user_svn',
+    CHANGED_FILES: 'svn:changed-files',
+    GET_DIFF: 'svn:get-diff',
+    OPEN_DIFF: 'svn:open-diff',
+    FIND_USER: 'svn:find-user',
     COMMIT: 'svn:commit',
+    INFO: 'svn:info',
+    CAT: 'svn:cat',
+    BLAME: 'svn:blame',
+    REVERT: 'svn:revert',
+    CLEANUP: 'svn:cleanup',
+    LOG_XML: 'svn:log-xml',
   },
   OPENAI: {
     SEND_MESSAGE: 'openai:send-message',
   },
   NOTIFICATIONS: {
-    SEND_MAIL: 'notification:send_mail',
-    SEND_TEAMS: 'notification:send_teams',
+    SEND_MAIL: 'notification:send-mail',
+    SEND_TEAMS: 'notification:send-teams',
   },
-  DIALOG: {
-    OPEN_FOLDER: 'dialog:open-folder',
+  SYSTEM: {
+    OPEN_FOLDER: 'system:open-folder',
+    REVEAL_IN_FILE_EXPLORER: 'system:reveal-in-file-explorer',
+    READ_FILE: 'system:read-file',
   },
 }
 
