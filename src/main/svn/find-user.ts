@@ -55,8 +55,6 @@ export async function findUser(): Promise<string | null> {
   if (!repoRoot) return null
   const credentials = await getLocalUser()
   if (!credentials) return null
-  console.log(repoRoot)
-  console.log(credentials)
   const repoAuthRealm = repoRoot.includes('/svn/') ? `<${repoRoot.split('/svn/')[0]}:443> Subversion` : `<${repoRoot}:443> Subversion`
   for (const [realm, username] of credentials) {
     if (realm === repoAuthRealm) {

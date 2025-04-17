@@ -56,7 +56,6 @@ export async function changedFiles() {
       const filePath = line.substring(8).trim()
 
       if (filePath.includes('ignore-on-commit')) {
-        console.log(`🛑 Ignored file detected: ${filePath} — stopping parsing.`)
         break
       }
 

@@ -60,10 +60,10 @@ export function CodeDiffViewer() {
         'editor.background': '#202020',
         'editorLineNumber.foreground': '#6c7086',
         'editorCursor.foreground': '#f38ba8',
-        'diffEditor.insertedTextBackground': '#00ff0010',
-        'diffEditor.removedTextBackground': '#ff000010',
-        'diffEditor.insertedLineBackground': '#00aa0010',
-        'diffEditor.removedLineBackground': '#aa000010',
+        'diffEditor.insertedTextBackground': '#00ff0038',
+        'diffEditor.removedTextBackground': '#ff000038',
+        'diffEditor.insertedLineBackground': '#00aa0038',
+        'diffEditor.removedLineBackground': '#aa000038',
       },
     })
 
@@ -75,10 +75,10 @@ export function CodeDiffViewer() {
         'editor.background': '#f9f9f9',
         'editorLineNumber.foreground': '#9aa2b1',
         'editorCursor.foreground': '#931845',
-        'diffEditor.insertedTextBackground': '#b5f7c280',
-        'diffEditor.removedTextBackground': '#f4bfbf80',
-        'diffEditor.insertedLineBackground': '#d4faddaa',
-        'diffEditor.removedLineBackground': '#f9d5d5aa',
+        'diffEditor.insertedTextBackground': '#a2f3bdcc',
+        'diffEditor.removedTextBackground': '#f19999cc',
+        'diffEditor.insertedLineBackground': '#b7f5c6cc',
+        'diffEditor.removedLineBackground': '#f2a8a8cc',
       },
     })
 
@@ -127,11 +127,11 @@ export function CodeDiffViewer() {
             readOnly: true,
             fontSize: 12,
             fontFamily: 'Fira Code, JetBrains Mono, monospace',
-            minimap: { enabled: false },
+            minimap: { enabled: true },
             automaticLayout: true,
             padding: { top: 12, bottom: 12 },
             lineNumbers: 'on',
-            wordWrap: 'on',
+            // wordWrap: 'on',
             scrollBeyondLastLine: false,
             contextmenu: true,
             renderIndicators: true,
@@ -142,7 +142,7 @@ export function CodeDiffViewer() {
               verticalScrollbarSize: 8,
               horizontalScrollbarSize: 8,
             },
-            diffAlgorithm: 'advanced',
+            // diffAlgorithm: 'advanced',
           }}
         />
       </div>

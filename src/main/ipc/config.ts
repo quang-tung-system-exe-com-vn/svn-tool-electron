@@ -102,7 +102,7 @@ export function registerConfigIpcHandlers() {
       const response = await openai.chat.completions.create({
         model: 'o3-mini-2025-01-31',
         messages: [{ role: 'user', content: prompt }],
-        reasoning_effort: 'low',
+        reasoning_effort: 'high',
         max_completion_tokens: 100000,
       })
       return response.choices[0].message.content

@@ -138,7 +138,6 @@ export function MainPage() {
     setLoadingCommit(true)
     await updateProgress(0, 20, 1000)
     const result = await window.api.svn.commit(commitMessage.current, codingRule.current, selectedFiles)
-    console.log(result)
     const { status, message } = result
     await updateProgress(20, 50, 1000)
 
@@ -151,6 +150,9 @@ export function MainPage() {
         setTimeout(() => {
           tableRef.current.table.toggleAllPageRowsSelected(false)
         }, 0)
+      }
+      if (commitMessageRef.current) {
+        commitMessageRef.current.value = ''
       }
     } else {
       ToastMessageFunctions.error(message)

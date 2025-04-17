@@ -25,7 +25,7 @@ export function DiffFooterBar({
   indent?: number
 }) {
   return (
-    <div className="w-full h-8 px-4 text-xs flex items-center justify-between bg-muted text-muted-foreground border-t">
+    <div className="w-full h-10 px-4 text-xs flex items-center justify-between bg-muted text-muted-foreground border-t">
       <div className="flex items-center gap-2">
         <span>
           Ln {cursorPosition?.line ?? 1}, Col {cursorPosition?.column ?? 1}

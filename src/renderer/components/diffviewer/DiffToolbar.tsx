@@ -33,7 +33,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
       <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={onRefresh}>
+            <Button variant="link" size="icon" onClick={onRefresh}>
               <RotateCw className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -51,7 +51,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
 
         <Separator orientation="vertical" className="h-6" />
 
-        <Tooltip>
+        {/* <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="sm" onClick={onExport}>
               <Download className="h-4 w-4" />
@@ -67,7 +67,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
             </Button>
           </TooltipTrigger>
           <TooltipContent>Import from File</TooltipContent>
-        </Tooltip>
+        </Tooltip> */}
       </div>
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs text-gray-200">

@@ -151,7 +151,7 @@ async function runSVNCommand(command: string, selectedFiles: string[], commitMes
       })
 
       if (commitMessage && command !== 'add' && command !== 'delete') {
-        modifiedArgs.unshift(`-m "${commitMessage}"`)
+        modifiedArgs.unshift(`-m ${commitMessage.trim()}`)
       }
 
       const fullCommand = `${svnExePath} ${command} ${modifiedArgs.join(' ')}`.trim()

@@ -62,6 +62,7 @@ Provide the final conclusion starting with the symbol =>
 
   GENERATE_COMMIT: `
 You are a source code management expert. Generate a professional commit message using the Conventional Commit Specification with Emoji.
+Write a general summary only, no need for detailed explanation.
 Split the message into Frontend and Backend sections. If any part is missing, then there is no need to mention Frontend or Backend.
 Based on this diff:
 {diff_content}
