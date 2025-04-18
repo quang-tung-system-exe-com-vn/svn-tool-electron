@@ -2,6 +2,10 @@ export const IPC = {
   WINDOW: {
     ACTION: 'window-action',
     DIFF_WINDOWS: 'open-diff-in-new-window',
+    SHOW_LOG: 'show-log',
+    CHECK_CODING_RULES: 'check-coding-rules',
+    SPOTBUGS: 'spotbugs',
+    CLEAN_DIALOG: 'clean-dialog'
   },
   SETTING: {
     APPEARANCE: {
@@ -32,6 +36,7 @@ export const IPC = {
     REVERT: 'svn:revert',
     CLEANUP: 'svn:cleanup',
     LOG_XML: 'svn:log-xml',
+    UPDATE: 'svn:update',
   },
   OPENAI: {
     SEND_MESSAGE: 'openai:send-message',
@@ -44,6 +49,11 @@ export const IPC = {
     OPEN_FOLDER: 'system:open-folder',
     REVEAL_IN_FILE_EXPLORER: 'system:reveal-in-file-explorer',
     READ_FILE: 'system:read-file',
+  },
+  UPDATER: {
+    CHECK_FOR_UPDATES: 'updater:check-for-updates',
+    DOWNLOAD_UPDATE: 'updater:download-update',
+    INSTALL_UPDATE: 'updater:install-update',
   },
 }
 

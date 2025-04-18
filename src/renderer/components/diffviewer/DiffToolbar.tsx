@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { t } from 'i18next'
-import { Columns, Download, Minus, RotateCw, Square, Upload, X } from 'lucide-react'
+import { Columns, Minus, RotateCw, Square, X } from 'lucide-react'
 import type React from 'react'
 
 interface DiffToolbarProps {
@@ -33,7 +33,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
       <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="link" size="icon" onClick={onRefresh}>
+            <Button variant="link" size="sm" onClick={onRefresh} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
               <RotateCw className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -42,7 +42,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={onSwapSides}>
+            <Button variant="ghost" size="sm" onClick={onSwapSides} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
               <Columns className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

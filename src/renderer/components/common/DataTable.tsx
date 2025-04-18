@@ -5,11 +5,12 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
+import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import 'ldrs/react/Quantum.css'
-import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
-import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, Info } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, Info, RotateCcw, RefreshCw, History } from 'lucide-react'
+import { IPC } from 'main/constants'
 import { toast } from 'sonner'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
@@ -254,9 +255,7 @@ export const DataTable = forwardRef((props, ref) => {
   const handleFilePathDoubleClick = async (row: any) => {
     const { filePath } = row.original
     try {
-      const originalCode = await window.api.svn.cat(filePath)
-      const modifiedCode = await window.api.system.read_file(filePath)
-      window.api.new_window.open_diff({ originalCode, modifiedCode })
+      window.api.new_window.open_diff(filePath)
     } catch (error) {
       console.error('Error loading file for diff:', error)
     }
@@ -274,6 +273,41 @@ export const DataTable = forwardRef((props, ref) => {
       return ToastMessageFunctions.info(data)
     }
     ToastMessageFunctions.error(message)
+  }
+
+  const showLog = (filePath: string) => {
+    window.api.electron.send(IPC.WINDOW.SHOW_LOG, filePath)
+  }
+
+  const revertFile = async (filePath: string) => {
+    try {
+      const result = await window.api.svn.revert(filePath)
+      if (result.status === 'success') {
+        ToastMessageFunctions.success(`Reverted: ${filePath}`)
+        reloadData()
+      } else {
+        ToastMessageFunctions.error(result.message)
+      }
+    } catch (error) {
+      console.error('Error reverting file:', error)
+      ToastMessageFunctions.error(`Error reverting file: ${error}`)
+    }
+  }
+
+  const updateFile = async (filePath: string) => {
+    try {
+      ToastMessageFunctions.info(`Updating: ${filePath}`)
+      const result = await window.api.svn.update(filePath)
+      if (result.status === 'success') {
+        ToastMessageFunctions.success(`Updated: ${filePath}`)
+        reloadData()
+      } else {
+        ToastMessageFunctions.error(result.message)
+      }
+    } catch (error) {
+      console.error('Error updating file:', error)
+      ToastMessageFunctions.error(`Error updating file: ${error}`)
+    }
   }
 
   const columns = useMemo(() => buildColumns({ handleCheckboxChange }), [data])
@@ -350,6 +384,28 @@ export const DataTable = forwardRef((props, ref) => {
                       File Info
                       <ContextMenuShortcut>
                         <Info strokeWidth={1} className="ml-3 h-4 w-4" />
+                      </ContextMenuShortcut>
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onClick={() => showLog(row.original.filePath)}>
+                      Show Log
+                      <ContextMenuShortcut>
+                        <History strokeWidth={1} className="ml-3 h-4 w-4" />
+                      </ContextMenuShortcut>
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      disabled={row.original.status === '?'}
+                      onClick={() => revertFile(row.original.filePath)}
+                    >
+                      Revert
+                      <ContextMenuShortcut>
+                        <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />
+                      </ContextMenuShortcut>
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={() => updateFile(row.original.filePath)}>
+                      Update
+                      <ContextMenuShortcut>
+                        <RefreshCw strokeWidth={1} className="ml-3 h-4 w-4" />
                       </ContextMenuShortcut>
                     </ContextMenuItem>
                   </ContextMenuContent>

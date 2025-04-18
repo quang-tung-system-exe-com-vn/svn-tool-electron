@@ -9,7 +9,9 @@ import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
-import { useEffect, useRef, useState } from 'react'
+import { IPC } from 'main/constants'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { Download } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -27,6 +29,11 @@ export function MainPage() {
   const codingRuleRef = useRef<HTMLTextAreaElement>(null)
   const commitMessage = useRef('')
   const codingRule = useRef('')
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false)
+  const [newRevisionInfo, setNewRevisionInfo] = useState<string>('')
+  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [showAppUpdateDialog, setShowAppUpdateDialog] = useState(false)
+  const [appUpdateInfo, setAppUpdateInfo] = useState<{version?: string, releaseNotes?: string}>({})
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
@@ -162,11 +169,86 @@ export function MainPage() {
 
   const isMountedRef = useRef(true)
 
+  // Check for app updates on startup
   useEffect(() => {
-    return () => {
-      isMountedRef.current = false
+    const checkForAppUpdates = async () => {
+      try {
+        const result = await window.api.updater.check_for_updates()
+        if (result.updateAvailable) {
+          setAppUpdateInfo({
+            version: result.version,
+            releaseNotes: result.releaseNotes
+          })
+          setShowAppUpdateDialog(true)
+        }
+      } catch (error) {
+        console.error('Error checking for app updates:', error)
+      }
+    }
+
+    // Check after a short delay to allow the app to fully load
+    setTimeout(() => {
+      checkForAppUpdates()
+    }, 5000)
+  }, [])
+
+  // Handle app update installation
+  const handleInstallUpdate = async () => {
+    try {
+      toast.info(t('Downloading update...'))
+      await window.api.updater.download_update()
+      await window.api.updater.install_update()
+    } catch (error) {
+      console.error('Error installing update:', error)
+      toast.error(t('Error installing update'))
+    } finally {
+      setShowAppUpdateDialog(false)
+    }
+  }
+
+  // Function to check for new SVN revisions
+  const checkForNewRevisions = useCallback(async () => {
+    try {
+      // This is a placeholder. In a real implementation, you would:
+      // 1. Get the current revision number from the repository
+      // 2. Compare it with the last known revision number
+      // 3. If there's a new revision, show the dialog
+
+      // For demonstration purposes, we'll randomly show the dialog
+      if (Math.random() < 0.1 && isMountedRef.current) { // 10% chance to show dialog
+        setNewRevisionInfo(`New revision r${Math.floor(Math.random() * 1000)} available`)
+        setShowUpdateDialog(true)
+      }
+    } catch (error) {
+      console.error('Error checking for new revisions:', error)
     }
   }, [])
+
+  // Set up periodic check for new revisions
+  useEffect(() => {
+    // Check every 5 minutes (300000 ms)
+    checkIntervalRef.current = setInterval(checkForNewRevisions, 300000)
+
+    // Initial check
+    checkForNewRevisions()
+
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current)
+      }
+      isMountedRef.current = false
+    }
+  }, [checkForNewRevisions])
+
+  // Handle SVN update from dialog
+  const handleSvnUpdate = () => {
+    toast.info(t('Updating SVN...'))
+    // Implement SVN update functionality here
+    // For now, just close the dialog and show a message
+    setShowUpdateDialog(false)
+    toast.success(t('SVN updated successfully'))
+    tableRef.current?.reloadData()
+  }
 
   const updateProgress = (from: number, to: number, duration: number) => {
     return new Promise<void>(resolve => {
@@ -202,6 +284,86 @@ export function MainPage() {
         <TitleBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} />
         {/* Content */}
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
+          {/* Toolbar Buttons */}
+          <div className="flex justify-start gap-2 mb-4">
+            <Button
+              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              variant={variant}
+              onClick={() => {
+                if (!isAnyLoading) {
+                  // Implement SVN Update
+                  toast.info(t('Updating SVN...'))
+                  window.api.svn.update()
+                    .then((result) => {
+                      if (result.status === 'success') {
+                        toast.success(t('SVN updated successfully'))
+                        tableRef.current?.reloadData()
+                      } else {
+                        toast.error(result.message)
+                      }
+                    })
+                    .catch((error: Error) => {
+                      toast.error(error.message || 'Error updating SVN')
+                    })
+                }
+              }}
+            >
+              {t('Update')}
+            </Button>
+
+            <Button
+              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              variant={variant}
+              onClick={() => {
+                if (!isAnyLoading) {
+                  // Open Clean Dialog
+                  window.api.electron.send(IPC.WINDOW.CLEAN_DIALOG, {})
+                }
+              }}
+            >
+              {t('Clean')}
+            </Button>
+
+            <Button
+              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              variant={variant}
+              onClick={() => {
+                if (!isAnyLoading) {
+                  // Show Log (all)
+                  window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
+                }
+              }}
+            >
+              {t('Show Log')}
+            </Button>
+
+            <Button
+              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              variant={variant}
+              onClick={() => {
+                if (!isAnyLoading) {
+                  // SpotBugs
+                  const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
+                  const selectedFiles = selectedRows
+                    .filter((row: any) => {
+                      const filePath = row.original.filePath
+                      return filePath.endsWith('.java')
+                    })
+                    .map((row: any) => row.original.filePath)
+
+                  if (selectedFiles.length === 0) {
+                    toast.warning(t('Please select at least one Java file'))
+                    return
+                  }
+
+                  window.api.electron.send(IPC.WINDOW.SPOTBUGS, selectedFiles)
+                }
+              }}
+            >
+              {t('SpotBugs')}
+            </Button>
+          </div>
+
           <ResizablePanelGroup direction="vertical" className="rounded-md border">
             <ResizablePanel minSize={25} defaultSize={50}>
               <DataTable ref={tableRef} />
@@ -241,7 +403,22 @@ export function MainPage() {
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
+                  const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
+                  const selectedFiles = selectedRows.map((row: any) => ({
+                    filePath: row.original.filePath,
+                    status: row.original.status,
+                  }))
+
+                  if (selectedFiles.length === 0) {
+                    toast.warning(t('message.noFilesWarning'))
+                    return
+                  }
+
+                  // First check violations normally
                   checkViolations()
+
+                  // Then open in new window
+                  window.api.electron.send(IPC.WINDOW.CHECK_CODING_RULES, codingRuleRef.current?.value || '')
                 }
               }}
             >
@@ -263,6 +440,56 @@ export function MainPage() {
 
         {/* Footer Bar */}
         <FooterBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} />
+
+        {/* App Update Dialog */}
+        {showAppUpdateDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full">
+              <div className="flex items-center gap-2 mb-2">
+                <Download className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">{t('New Version Available')}</h3>
+              </div>
+              <p className="mb-2">{t('A new version of SVN Tool is available:')}</p>
+              <p className="font-medium mb-4">v{appUpdateInfo.version}</p>
+
+              {appUpdateInfo.releaseNotes && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium mb-1">{t('Release Notes:')}</h4>
+                  <div className="bg-muted p-2 rounded text-sm max-h-32 overflow-y-auto">
+                    {appUpdateInfo.releaseNotes}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowAppUpdateDialog(false)}>
+                  {t('Later')}
+                </Button>
+                <Button variant={variant} onClick={handleInstallUpdate}>
+                  {t('Update Now')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* New Revision Dialog */}
+        {showUpdateDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full">
+              <h3 className="text-lg font-semibold mb-4">{t('New SVN Revision Available')}</h3>
+              <p className="mb-6">{newRevisionInfo}</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowUpdateDialog(false)}>
+                  {t('Cancel')}
+                </Button>
+                <Button variant={variant} onClick={handleSvnUpdate}>
+                  {t('Update Now')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

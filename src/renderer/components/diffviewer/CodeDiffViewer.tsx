@@ -1,50 +1,158 @@
-// src/renderer/components/DiffViewer/CodeDiffViewer.tsx
-
-import { DiffEditor, useMonaco } from '@monaco-editor/react'
+import { DiffEditor, type DiffOnMount, useMonaco } from '@monaco-editor/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { OverlayLoader } from '../ui-elements/OverlayLoader'
 import { DiffFooterBar } from './DiffFooterBar'
 import { DiffToolbar } from './DiffToolbar'
 
 export function CodeDiffViewer() {
-  const { resolvedTheme } = useTheme()
   const monaco = useMonaco()
-  const [originalCode, setOriginalCode] = useState('aaa')
-  const [modifiedCode, setModifiedCode] = useState('aabb')
+  const { resolvedTheme } = useTheme()
+  const [originalCode, setOriginalCode] = useState('')
+  const [modifiedCode, setModifiedCode] = useState('')
+  const [filePath, setFilePath] = useState('')
   const [language, setLanguage] = useState('javascript')
-  const [cursorPosition, setCursorPosition] = useState({ lineNumber: 1, column: 1 })
+  const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
+  const [isLoading, setIsLoading] = useState(false)
 
-  const detectLanguage = (filename: string): string => {
-    const ext = filename.split('.').pop()
+  const getExtension = (filePath: string): string => {
+    const fileName = filePath.split('/').pop() || ''
+    const lastDotIndex = fileName.lastIndexOf('.')
+    if (lastDotIndex === -1) return ''
+    return fileName.slice(lastDotIndex + 1).toLowerCase()
+  }
+
+  const detectLanguage = (filePath: string): string => {
+    const ext = getExtension(filePath)
     switch (ext) {
-      case 'ts':
-        return 'typescript'
-      case 'tsx':
-        return 'typescript'
-      case 'js':
-        return 'javascript'
-      case 'py':
-        return 'python'
+      case 'abap':
+        return 'abap'
+      case 'apex':
+        return 'apex'
+      case 'azcli':
+        return 'azcli'
+      case 'bat':
+      case 'cmd':
+        return 'bat'
+      case 'c':
+      case 'h':
+        return 'c'
       case 'cpp':
       case 'cc':
-      case 'c':
+      case 'cxx':
+      case 'hpp':
+      case 'hxx':
         return 'cpp'
-      case 'html':
-        return 'html'
+      case 'csharp':
+      case 'cs':
+        return 'csharp'
       case 'css':
         return 'css'
+      case 'dart':
+        return 'dart'
+      case 'dockerfile':
+      case 'docker':
+        return 'dockerfile'
+      case 'fsharp':
+      case 'fs':
+      case 'fsi':
+      case 'fsx':
+        return 'fsharp'
+      case 'go':
+        return 'go'
+      case 'graphql':
+      case 'gql':
+        return 'graphql'
+      case 'handlebars':
+      case 'hbs':
+        return 'handlebars'
+      case 'html':
+      case 'htm':
+        return 'html'
+      case 'ini':
+        return 'ini'
+      case 'java':
+        return 'java'
+      case 'javascript':
+      case 'js':
+        return 'javascript'
+      case 'typescript':
+      case 'ts':
+        return 'typescript'
       case 'json':
+      case 'jsonc':
         return 'json'
+      case 'jsx':
+        return 'javascript'
+      case 'tsx':
+        return 'typescript'
+      case 'kotlin':
+      case 'kt':
+        return 'kotlin'
+      case 'less':
+        return 'less'
+      case 'lua':
+        return 'lua'
+      case 'markdown':
+      case 'md':
+        return 'markdown'
+      case 'mysql':
+        return 'mysql'
+      case 'objective-c':
+      case 'm':
+        return 'objective-c'
+      case 'perl':
+      case 'pl':
+        return 'perl'
+      case 'pgsql':
+        return 'pgsql'
+      case 'php':
+        return 'php'
+      case 'plaintext':
+      case 'txt':
+        return 'plaintext'
+      case 'powershell':
+      case 'ps1':
+        return 'powershell'
+      case 'python':
+      case 'py':
+        return 'python'
+      case 'r':
+        return 'r'
+      case 'ruby':
+      case 'rb':
+        return 'ruby'
+      case 'rust':
+      case 'rs':
+        return 'rust'
+      case 'scss':
+        return 'scss'
+      case 'shell':
+      case 'sh':
+      case 'bash':
+        return 'shell'
+      case 'sql':
+        return 'sql'
+      case 'swift':
+        return 'swift'
+      case 'vb':
+        return 'vb'
+      case 'xml':
+      case 'xsd':
+      case 'svg':
+        return 'xml'
+      case 'yaml':
+      case 'yml':
+        return 'yaml'
       default:
         return 'plaintext'
     }
   }
 
   useEffect(() => {
-    const handler = (_event: any, { originalCode, modifiedCode, filename }: any) => {
-      setOriginalCode(originalCode.data)
-      setModifiedCode(modifiedCode)
-      if (filename) setLanguage(detectLanguage(filename))
+    const handler = (_event: any, { filePath }: any) => {
+      setFilePath(filePath)
+      setLanguage(detectLanguage(filePath))
     }
     window.api.on('load-diff-data', handler)
   }, [])
@@ -84,17 +192,35 @@ export function CodeDiffViewer() {
 
     const selectedTheme = resolvedTheme === 'dark' ? 'custom-dark' : 'custom-light'
     monaco.editor.setTheme(selectedTheme)
+    handleRefresh()
   }, [monaco, resolvedTheme])
 
-  const handleEditorMount = (editor: any) => {
-    // editor.onDidChangeCursorPosition((e: any) => {
-    //   setCursorPosition(e.position)
-    // })
+  const handleEditorMount: DiffOnMount = (editor, monaco) => {
+    const modifiedEditor = editor.getModifiedEditor()
+    const originalEditor = editor.getOriginalEditor()
+    modifiedEditor.onDidChangeCursorPosition(event => {
+      const { lineNumber, column } = event.position
+      setCursorPosition({ line: lineNumber, column })
+    })
+    originalEditor.onDidChangeCursorPosition(event => {
+      const { lineNumber, column } = event.position
+      setCursorPosition({ line: lineNumber, column })
+    })
   }
 
   // Toolbar actions
-  const handleRefresh = () => {
-    // window.api.send('request-latest-diff')
+  const handleRefresh = async () => {
+    try {
+      setIsLoading(true)
+      const originalCode = await window.api.svn.cat(filePath)
+      const modifiedCode = await window.api.system.read_file(filePath)
+      setOriginalCode(originalCode.data)
+      setModifiedCode(modifiedCode)
+    } catch (error) {
+      console.error('Error loading file for diff:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSwap = () => {
@@ -114,6 +240,7 @@ export function CodeDiffViewer() {
 
   return (
     <div className="flex flex-col w-full h-full">
+      <OverlayLoader isLoading={isLoading} />
       <DiffToolbar onRefresh={handleRefresh} onSwapSides={handleSwap} onExport={handleExport} onImport={handleImport} />
       <div className="flex-1 overflow-hidden">
         <DiffEditor
@@ -124,14 +251,12 @@ export function CodeDiffViewer() {
           theme={resolvedTheme === 'dark' ? 'custom-dark' : 'custom-light'}
           onMount={handleEditorMount}
           options={{
-            readOnly: true,
+            readOnly: false,
             fontSize: 12,
             fontFamily: 'Fira Code, JetBrains Mono, monospace',
-            minimap: { enabled: true },
             automaticLayout: true,
             padding: { top: 12, bottom: 12 },
             lineNumbers: 'on',
-            // wordWrap: 'on',
             scrollBeyondLastLine: false,
             contextmenu: true,
             renderIndicators: true,
@@ -142,11 +267,11 @@ export function CodeDiffViewer() {
               verticalScrollbarSize: 8,
               horizontalScrollbarSize: 8,
             },
-            // diffAlgorithm: 'advanced',
+            diffAlgorithm: 'advanced',
           }}
         />
       </div>
-      <DiffFooterBar language={language} setLanguage={setLanguage} />
+      <DiffFooterBar language={language} setLanguage={setLanguage} cursorPosition={cursorPosition} />
     </div>
   )
 }

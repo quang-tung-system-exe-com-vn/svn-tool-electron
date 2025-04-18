@@ -10,7 +10,7 @@ declare global {
       }
 
       new_window: {
-        open_diff: ({ originalCode, modifiedCode }: any) => void
+        open_diff: (filePath: string) => void
       }
 
       appearance: {
@@ -36,12 +36,30 @@ declare global {
         cat: (filePath: string) => Promise<any>
         blame: (filePath: string) => Promise<any>
         revert: (filePath: string) => Promise<any>
-        cleanup: (filePath: string) => Promise<any>
+        cleanup: (options?: string[]) => Promise<any>
         log_xml: (filePath: string) => Promise<any>
+        update: (filePath?: string) => Promise<any>
       }
 
       openai: {
         send_message: (params: any) => Promise<string>
+      }
+
+      updater: {
+        check_for_updates: () => Promise<{
+          updateAvailable: boolean
+          version?: string
+          releaseNotes?: string
+          error?: string
+        }>
+        download_update: () => Promise<{
+          status: 'success' | 'error'
+          error?: string
+        }>
+        install_update: () => Promise<{
+          status: 'success' | 'error'
+          error?: string
+        }>
       }
 
       webhook: {
@@ -73,8 +91,8 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   new_window: {
-    open_diff: ({ originalCode, modifiedCode }: any) => {
-      ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { originalCode, modifiedCode })
+    open_diff: (filePath: string) => {
+      ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, filePath)
     },
   },
 
@@ -117,8 +135,15 @@ contextBridge.exposeInMainWorld('api', {
     cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
     blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
     revert: (filePath: string) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
-    cleanup: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CLEANUP, filePath),
+    cleanup: (options?: string[]) => ipcRenderer.invoke(IPC.SVN.CLEANUP, options),
     log_xml: (filePath: string) => ipcRenderer.invoke(IPC.SVN.LOG_XML, filePath),
+    update: (filePath?: string) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
+  },
+
+  updater: {
+    check_for_updates: () => ipcRenderer.invoke(IPC.UPDATER.CHECK_FOR_UPDATES),
+    download_update: () => ipcRenderer.invoke(IPC.UPDATER.DOWNLOAD_UPDATE),
+    install_update: () => ipcRenderer.invoke(IPC.UPDATER.INSTALL_UPDATE),
   },
 
   webhook: {

@@ -1,4 +1,3 @@
-import path, { join, resolve } from 'node:path'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { IPC } from 'main/constants'
 import { blame } from 'main/svn/blame'
@@ -11,22 +10,27 @@ import { info } from 'main/svn/info'
 import { logXML } from 'main/svn/log-xml'
 import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
+import { update } from 'main/svn/update'
+import { readFile } from 'node:fs/promises'
+import path, { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import OpenAI from 'openai'
+import { ENVIRONMENT } from 'shared/constants'
 import appearanceStore from '../store/AppearanceStore'
 import configurationStore from '../store/ConfigurationStore'
 import mailServerStore from '../store/MailServerStore'
 import webhookStore from '../store/WebhookStore'
+import { checkForUpdates, downloadUpdate, installUpdate } from '../updater'
+import { parseSpotBugsResult, runSpotBugs } from '../utils/spotbugs'
 const { sourceFolder } = configurationStore.store
-import { readFile } from 'node:fs/promises'
-import { format } from 'node:url'
-import { ENVIRONMENT } from 'shared/constants'
 
 export function registerConfigIpcHandlers() {
   console.log('✅ Config ipc handlers registered')
 
-  ipcMain.on(IPC.WINDOW.ACTION, (event, action) => {
+  ipcMain.on(IPC.WINDOW.ACTION, async (event, action, data) => {
     const win = BrowserWindow.getFocusedWindow()
     if (!win) return
+
     switch (action) {
       case 'minimize':
         win.minimize()
@@ -37,10 +41,46 @@ export function registerConfigIpcHandlers() {
       case 'close':
         win.close()
         break
+      case 'refresh-spotbugs':
+        // Re-run SpotBugs analysis on the current files
+        try {
+          // Get the filePaths from the window's properties
+          const filePaths = win.webContents.getTitle().includes('Spotbugs')
+            ? (win as any).filePaths || []
+            : []
+
+          if (filePaths.length > 0) {
+            // Run SpotBugs analysis
+            const result = await runSpotBugs(filePaths)
+
+            if (result.status === 'success') {
+              // Parse the XML result
+              const parsedResult = parseSpotBugsResult(result.data)
+
+              // Send the result to the renderer
+              win.webContents.send('load-diff-data', {
+                filePaths,
+                spotbugsResult: parsedResult
+              })
+            } else {
+              win.webContents.send('load-diff-data', {
+                filePaths,
+                error: result.message
+              })
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing SpotBugs:', error)
+          win.webContents.send('load-diff-data', {
+            filePaths: [],
+            error: error instanceof Error ? error.message : String(error)
+          })
+        }
+        break
     }
   })
 
-  ipcMain.on(IPC.WINDOW.DIFF_WINDOWS, (event, { originalCode, modifiedCode }) => {
+  ipcMain.on(IPC.WINDOW.DIFF_WINDOWS, (event, filePath) => {
     const window = new BrowserWindow({
       width: 1365,
       height: 768,
@@ -58,7 +98,6 @@ export function registerConfigIpcHandlers() {
       },
     })
 
-    // Load trang tương ứng:
     if (ENVIRONMENT.IS_DEV) {
       window.loadURL('http://localhost:4927/#/code-diff-viewer')
     } else {
@@ -73,8 +112,205 @@ export function registerConfigIpcHandlers() {
     }
 
     window.webContents.on('did-finish-load', () => {
-      window.webContents.send('load-diff-data', { originalCode, modifiedCode })
+      window.webContents.send('load-diff-data', { filePath })
     })
+    window.webContents.on('did-finish-load', () => {
+      if (ENVIRONMENT.IS_DEV) {
+        window.webContents.openDevTools({ mode: 'bottom' })
+      }
+      window.show()
+    })
+  })
+
+  ipcMain.on(IPC.WINDOW.SHOW_LOG, (event, filePath) => {
+    const window = new BrowserWindow({
+      width: 1365,
+      height: 768,
+      minWidth: 1000,
+      minHeight: 800,
+      center: true,
+      frame: false,
+      autoHideMenuBar: true,
+      title: 'Logs',
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    if (ENVIRONMENT.IS_DEV) {
+      window.loadURL('http://localhost:4927/#/show-log')
+    } else {
+      window.loadURL(
+        format({
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/show-log',
+        })
+      )
+    }
+
+    window.webContents.on('did-finish-load', () => {
+      window.webContents.send('load-diff-data', { filePath })
+    })
+    window.webContents.on('did-finish-load', () => {
+      if (ENVIRONMENT.IS_DEV) {
+        window.webContents.openDevTools({ mode: 'bottom' })
+      }
+      window.show()
+    })
+  })
+
+  ipcMain.on(IPC.WINDOW.CHECK_CODING_RULES, (event, text) => {
+    const window = new BrowserWindow({
+      width: 1365,
+      height: 768,
+      minWidth: 1000,
+      minHeight: 800,
+      center: true,
+      frame: false,
+      autoHideMenuBar: true,
+      title: 'Check Coding Rules',
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    if (ENVIRONMENT.IS_DEV) {
+      window.loadURL('http://localhost:4927/#/check-coding-rules')
+    } else {
+      window.loadURL(
+        format({
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/check-coding-rules',
+        })
+      )
+    }
+
+    window.webContents.on('did-finish-load', () => {
+      window.webContents.send('load-diff-data', { text })
+    })
+    window.webContents.on('did-finish-load', () => {
+      if (ENVIRONMENT.IS_DEV) {
+        window.webContents.openDevTools({ mode: 'bottom' })
+      }
+      window.show()
+    })
+  })
+
+  ipcMain.on(IPC.WINDOW.SPOTBUGS, (event, filePaths) => {
+    // Create a new browser window
+    const spotbugsWindow = new BrowserWindow({
+      width: 1365,
+      height: 768,
+      minWidth: 1000,
+      minHeight: 800,
+      center: true,
+      frame: false,
+      autoHideMenuBar: true,
+      title: 'Spotbugs',
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    // Store the filePaths on the window object for later use
+    Object.defineProperty(spotbugsWindow, 'filePaths', {
+      value: filePaths,
+      writable: true,
+      configurable: true
+    })
+
+    if (ENVIRONMENT.IS_DEV) {
+      spotbugsWindow.loadURL('http://localhost:4927/#/spotbugs')
+    } else {
+      spotbugsWindow.loadURL(
+        format({
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/spotbugs',
+        })
+      )
+    }
+
+    spotbugsWindow.webContents.on('did-finish-load', async () => {
+      try {
+        // Run SpotBugs analysis
+        const result = await runSpotBugs(filePaths)
+
+        if (result.status === 'success') {
+          // Parse the XML result
+          const parsedResult = parseSpotBugsResult(result.data)
+
+          // Send the result to the renderer
+          spotbugsWindow.webContents.send('load-diff-data', {
+            filePaths,
+            spotbugsResult: parsedResult
+          })
+        } else {
+          spotbugsWindow.webContents.send('load-diff-data', {
+            filePaths,
+            error: result.message
+          })
+        }
+      } catch (error) {
+        console.error('Error running SpotBugs:', error)
+        spotbugsWindow.webContents.send('load-diff-data', {
+          filePaths,
+          error: error instanceof Error ? error.message : String(error)
+        })
+      }
+
+      if (ENVIRONMENT.IS_DEV) {
+        spotbugsWindow.webContents.openDevTools({ mode: 'bottom' })
+      }
+      spotbugsWindow.show()
+    })
+  })
+
+  ipcMain.on(IPC.WINDOW.CLEAN_DIALOG, (event) => {
+    const window = new BrowserWindow({
+      width: 600,
+      height: 700,
+      minWidth: 500,
+      minHeight: 600,
+      center: true,
+      frame: false,
+      autoHideMenuBar: true,
+      title: 'SVN Cleanup',
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    if (ENVIRONMENT.IS_DEV) {
+      window.loadURL('http://localhost:4927/#/clean-dialog')
+    } else {
+      window.loadURL(
+        format({
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/clean-dialog',
+        })
+      )
+    }
+
     window.webContents.on('did-finish-load', () => {
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })
@@ -102,8 +338,9 @@ export function registerConfigIpcHandlers() {
   ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string) => await cat(filePath))
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
   ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string) => await revert(filePath))
-  ipcMain.handle(IPC.SVN.CLEANUP, async _event => await cleanup())
+  ipcMain.handle(IPC.SVN.CLEANUP, async (_event, options?: string[]) => await cleanup(options))
   ipcMain.handle(IPC.SVN.LOG_XML, async (_event, filePath: string) => await logXML(filePath))
+  ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string) => await update(filePath))
 
   ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, { prompt }) => {
     try {
@@ -111,14 +348,42 @@ export function registerConfigIpcHandlers() {
       const { openaiApiKey } = configurationStore.store
       const openai = new OpenAI({ apiKey: openaiApiKey })
       const response = await openai.chat.completions.create({
-        model: 'o3-mini-2025-01-31',
+        model: 'gpt-4.1-nano-2025-04-14',
         messages: [{ role: 'user', content: prompt }],
-        reasoning_effort: 'high',
-        max_completion_tokens: 100000,
       })
       return response.choices[0].message.content
     } catch (err) {
       return `Error generating message: ${err}`
+    }
+  })
+
+  // Updater handlers
+  ipcMain.handle(IPC.UPDATER.CHECK_FOR_UPDATES, async () => {
+    try {
+      return await checkForUpdates()
+    } catch (error) {
+      console.error('Error checking for updates:', error)
+      return { updateAvailable: false, error: error instanceof Error ? error.message : String(error) }
+    }
+  })
+
+  ipcMain.handle(IPC.UPDATER.DOWNLOAD_UPDATE, async () => {
+    try {
+      downloadUpdate()
+      return { status: 'success' }
+    } catch (error) {
+      console.error('Error downloading update:', error)
+      return { status: 'error', error: error instanceof Error ? error.message : String(error) }
+    }
+  })
+
+  ipcMain.handle(IPC.UPDATER.INSTALL_UPDATE, async () => {
+    try {
+      installUpdate()
+      return { status: 'success' }
+    } catch (error) {
+      console.error('Error installing update:', error)
+      return { status: 'error', error: error instanceof Error ? error.message : String(error) }
     }
   })
 

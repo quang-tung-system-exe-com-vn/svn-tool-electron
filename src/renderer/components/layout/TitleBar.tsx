@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button'
-import { Menubar, MenubarContent, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from '@/components/ui/menubar'
 import { t } from 'i18next'
-import { Minus, Square, X } from 'lucide-react'
+import { Download, Minus, RefreshCw, Square, X } from 'lucide-react'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { RoundIcon } from '../ui-elements/RoundIcon'
+import { toast } from 'sonner'
+import { useState } from 'react'
 
 interface TitleBarProps {
   isLoading: boolean
@@ -13,8 +15,31 @@ interface TitleBarProps {
 }
 
 export const TitleBar = ({ isLoading, progress }: TitleBarProps) => {
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
+
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
+  }
+
+  const checkForUpdates = async () => {
+    try {
+      setCheckingUpdate(true)
+      toast.info(t('Checking for updates...'))
+
+      // Call the electron-updater API
+      const result = await window.api.updater.check_for_updates()
+
+      if (result.updateAvailable) {
+        toast.success(t('New version available!'))
+      } else {
+        toast.info(t('No updates available. You are using the latest version.'))
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error)
+      toast.error(t('Failed to check for updates'))
+    } finally {
+      setCheckingUpdate(false)
+    }
   }
 
   return (
@@ -38,6 +63,19 @@ export const TitleBar = ({ isLoading, progress }: TitleBarProps) => {
               <MenubarContent>
                 <SettingsDialog />
                 <InfoDialog />
+              </MenubarContent>
+            </MenubarMenu>
+            <MenubarMenu>
+              <MenubarTrigger className="px-2 hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)] font-normal h-full flex items-center">{t('menu.update')}</MenubarTrigger>
+              <MenubarContent>
+                <MenubarItem
+                  onClick={checkForUpdates}
+                  disabled={checkingUpdate}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  {t('Check for Updates')}
+                </MenubarItem>
               </MenubarContent>
             </MenubarMenu>
           </Menubar>
