@@ -30,7 +30,7 @@ export async function MainWindow() {
     roundedCorners: true,
     // alwaysOnTop: true,
     autoHideMenuBar: true,
-    icon: '../../resources/build/icons/icon.ico',
+    icon: join(__dirname, '../../resources/build/icons/icon.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,

@@ -1,4 +1,4 @@
-import path, { join } from 'node:path'
+import path, { join, resolve } from 'node:path'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { IPC } from 'main/constants'
 import { blame } from 'main/svn/blame'
@@ -18,6 +18,7 @@ import mailServerStore from '../store/MailServerStore'
 import webhookStore from '../store/WebhookStore'
 const { sourceFolder } = configurationStore.store
 import { readFile } from 'node:fs/promises'
+import { format } from 'node:url'
 import { ENVIRONMENT } from 'shared/constants'
 
 export function registerConfigIpcHandlers() {
@@ -50,17 +51,27 @@ export function registerConfigIpcHandlers() {
       autoHideMenuBar: true,
       title: 'Diff Viewer',
       webPreferences: {
-        contextIsolation: true, // ✅ Bắt buộc phải có
-        nodeIntegration: false, // ✅ An toàn và đúng cho contextBridge
+        contextIsolation: true,
+        nodeIntegration: false,
         preload: join(__dirname, '../preload/index.js'),
-        sandbox: false, // Disable sandbox for Electron 12+ when using Monaco Editor
+        sandbox: false,
       },
     })
 
-    // Gửi dữ liệu đến cửa sổ mới
-    window.loadURL('http://localhost:4927/#/code-diff-viewer')
+    // Load trang tương ứng:
+    if (ENVIRONMENT.IS_DEV) {
+      window.loadURL('http://localhost:4927/#/code-diff-viewer')
+    } else {
+      window.loadURL(
+        format({
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/code-diff-viewer',
+        })
+      )
+    }
 
-    // Gửi dữ liệu qua IPC cho cửa sổ mới để hiển thị diff
     window.webContents.on('did-finish-load', () => {
       window.webContents.send('load-diff-data', { originalCode, modifiedCode })
     })

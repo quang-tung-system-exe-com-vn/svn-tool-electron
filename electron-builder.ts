@@ -16,6 +16,14 @@ export default {
   productName: displayName,
   copyright: `Copyright © ${currentYear} — ${author}`,
 
+  publish: [
+    {
+      provider: 'github',
+      owner: 'quang-tung-system-exe-com-vn',
+      repo: 'svn-tool-electron',
+    },
+  ],
+
   directories: {
     app: getDevFolder(main),
     output: `dist/v${version}`,
@@ -38,6 +46,6 @@ export default {
   win: {
     artifactName,
     icon: `${resources}/build/icons/icon.ico`,
-    target: ['zip', 'portable'],
+    target: ['nsis'],
   },
 } satisfies Configuration
