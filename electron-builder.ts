@@ -21,7 +21,7 @@ export default {
       provider: 'github',
       owner: 'quang-tung-system-exe-com-vn',
       repo: 'svn-tool-electron',
-      // releaseType: 'release',
+      releaseType: 'release',
     },
   ],
 

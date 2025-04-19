@@ -33,6 +33,7 @@ export function MainPage() {
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const [showAppUpdateDialog, setShowAppUpdateDialog] = useState(false)
   const [appUpdateInfo, setAppUpdateInfo] = useState<{ version?: string; releaseNotes?: string }>({})
+  const [resetSvnUpdateIndicator, setResetSvnUpdateIndicator] = useState(false)
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
@@ -172,6 +173,7 @@ export function MainPage() {
         ToastMessageFunctions.info(t('Downloading update...'))
         window.api.updater.dialog_response('available', 'accept')
       } else {
+        ToastMessageFunctions.info(t('Installing update...'))
         window.api.updater.dialog_response('downloaded', 'accept')
       }
     } catch (error) {
@@ -218,10 +220,22 @@ export function MainPage() {
   // Handle SVN update from dialog
   const handleSvnUpdate = () => {
     ToastMessageFunctions.info(t('Updating SVN...'))
-    window.api.svn.update()
-    setShowUpdateDialog(false)
-    ToastMessageFunctions.success(t('SVN updated successfully'))
-    tableRef.current?.reloadData()
+    window.api.svn
+      .update()
+      .then(result => {
+        if (result.status === 'success') {
+          setShowUpdateDialog(false)
+          setResetSvnUpdateIndicator(prev => !prev) // Toggle to trigger useEffect in TitleBar
+          setNewRevisionInfo('') // Clear revision info
+          ToastMessageFunctions.success(t('SVN updated successfully'))
+          tableRef.current?.reloadData()
+        } else {
+          ToastMessageFunctions.error(result.message)
+        }
+      })
+      .catch((error: Error) => {
+        ToastMessageFunctions.error(error.message || 'Error updating SVN')
+      })
   }
 
   const updateProgress = (from: number, to: number, duration: number) => {
@@ -258,6 +272,8 @@ export function MainPage() {
         .then(result => {
           if (result.status === 'success') {
             ToastMessageFunctions.success(t('SVN updated successfully'))
+            // Reset the SVN update indicator
+            setResetSvnUpdateIndicator(prev => !prev) // Toggle to trigger useEffect in TitleBar
             tableRef.current?.reloadData()
           } else {
             ToastMessageFunctions.error(result.message)
@@ -280,7 +296,13 @@ export function MainPage() {
       {/* Main Content */}
       <div className="flex flex-col flex-1 w-full">
         {/* Title Bar */}
-        <TitleBar isLoading={isLoadingGenerate || isLoadingCommit} progress={progress} onUpdate={handleUpdateClick} onShowLog={handleShowLogClick} />
+        <TitleBar
+          isLoading={isLoadingGenerate || isLoadingCommit}
+          progress={progress}
+          onUpdate={handleUpdateClick}
+          onShowLog={handleShowLogClick}
+          resetSvnUpdateIndicator={resetSvnUpdateIndicator}
+        />
         {/* Content */}
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
           <ResizablePanelGroup direction="vertical" className="rounded-md border">

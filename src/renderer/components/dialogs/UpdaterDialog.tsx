@@ -20,21 +20,29 @@ export function UpdaterDialog({ type, version, releaseNotes, onAction, onCancel 
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isUpdateDownloaded, setIsUpdateDownloaded] = useState(false)
+  const [downloadStarted, setDownloadStarted] = useState(false)
 
   const handleAction = async () => {
     if (type === 'available') {
       if (!isDownloading && !isUpdateDownloaded) {
         // Start download
         setIsDownloading(true)
+        setDownloadStarted(true)
         try {
           await window.api.updater.download_update()
+          // Don't close dialog, let progress tracking handle the state change
         } catch (error) {
           console.error('Error downloading update:', error)
+          setIsDownloading(false)
         }
       } else if (isUpdateDownloaded) {
-        // Install update
-        onAction()
-        setOpen(false)
+        // Restart to install update
+        try {
+          await window.api.updater.install_update()
+          // Dialog will close automatically when app restarts
+        } catch (error) {
+          console.error('Error installing update:', error)
+        }
       }
     } else {
       // For 'downloaded' type, just call the original action handler
@@ -65,7 +73,7 @@ export function UpdaterDialog({ type, version, releaseNotes, onAction, onCancel 
 
   // Set up progress tracking
   useEffect(() => {
-    if (type === 'available' && isDownloading && !isUpdateDownloaded) {
+    if (type === 'available' && (isDownloading || downloadStarted) && !isUpdateDownloaded) {
       const progressInterval = setInterval(async () => {
         try {
           const progress = await window.api.updater.get_download_progress()
@@ -85,7 +93,7 @@ export function UpdaterDialog({ type, version, releaseNotes, onAction, onCancel 
 
       return () => clearInterval(progressInterval)
     }
-  }, [type, isDownloading, isUpdateDownloaded])
+  }, [type, isDownloading, downloadStarted, isUpdateDownloaded])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -101,11 +109,26 @@ export function UpdaterDialog({ type, version, releaseNotes, onAction, onCancel 
 
         {releaseNotes && (
           <div className="max-h-[200px] overflow-y-auto border rounded p-2 text-sm prose dark:prose-invert">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{releaseNotes}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                a: ({ node, ...props }) => <a {...props} className="text-blue-500 hover:underline" />,
+                h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold my-2" />,
+                h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-bold my-2" />,
+                h3: ({ node, ...props }) => <h3 {...props} className="text-md font-bold my-1" />,
+                ul: ({ node, ...props }) => <ul {...props} className="list-disc pl-4 my-2" />,
+                ol: ({ node, ...props }) => <ol {...props} className="list-decimal pl-4 my-2" />,
+                li: ({ node, ...props }) => <li {...props} className="my-1" />,
+                p: ({ node, ...props }) => <p {...props} className="my-2" />,
+                code: ({ node, ...props }) => <code {...props} className="bg-gray-100 dark:bg-gray-800 px-1 rounded" />,
+              }}
+            >
+              {releaseNotes}
+            </ReactMarkdown>
           </div>
         )}
 
-        {type === 'available' && isDownloading && !isUpdateDownloaded && (
+        {type === 'available' && (isDownloading || (downloadStarted && !isUpdateDownloaded)) && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>{t('Downloading update...')}</span>
@@ -119,7 +142,7 @@ export function UpdaterDialog({ type, version, releaseNotes, onAction, onCancel 
           <Button variant="outline" onClick={handleCancel}>
             {t('Later')}
           </Button>
-          <Button onClick={handleAction}>{type === 'available' ? (isUpdateDownloaded ? t('Install') : isDownloading ? t('Downloading...') : t('Download')) : t('Restart')}</Button>
+          <Button onClick={handleAction}>{type === 'available' ? (isUpdateDownloaded ? t('Restart') : isDownloading ? t('Downloading...') : t('Download')) : t('Restart')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

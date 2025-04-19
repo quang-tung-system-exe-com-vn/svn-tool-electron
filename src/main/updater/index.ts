@@ -7,6 +7,7 @@ import { IPC } from '../constants'
 // Configure logging
 log.transports.file.level = 'info'
 autoUpdater.logger = log
+autoUpdater.forceDevUpdateConfig = true
 
 // Set update check interval (in milliseconds)
 const UPDATE_CHECK_INTERVAL = 1000 * 60 * 60 * 24 // 24 hours
@@ -143,7 +144,7 @@ export function downloadUpdate() {
  * Install the downloaded update
  */
 export function installUpdate() {
-  autoUpdater.quitAndInstall(false, true)
+  autoUpdater.quitAndInstall(true, true)
 }
 
 /**

@@ -15,9 +15,10 @@ interface TitleBarProps {
   progress: number
   onUpdate?: () => void
   onShowLog?: () => void
+  resetSvnUpdateIndicator?: boolean
 }
 
-export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog }: TitleBarProps) => {
+export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog, resetSvnUpdateIndicator }: TitleBarProps) => {
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
@@ -97,6 +98,13 @@ export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog }: TitleBarP
 
     return () => clearInterval(interval)
   }, [])
+
+  // Reset SVN update indicator when requested
+  useEffect(() => {
+    if (resetSvnUpdateIndicator) {
+      setHasSvnUpdate(false)
+    }
+  }, [resetSvnUpdateIndicator])
 
   return (
     <>
