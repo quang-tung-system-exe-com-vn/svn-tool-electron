@@ -19,12 +19,11 @@ export function MainPage() {
   const variant = useButtonVariant()
   const { t } = useTranslation()
   const [isLoadingGenerate, setLoadingGenerate] = useState(false)
-  const [isLoadingCheckCodingRule, setLoadingCheckCodingRule] = useState(false)
   const [isLoadingCommit, setLoadingCommit] = useState(false)
   const [progress, setProgress] = useState(0)
   const { language } = useAppearanceStore()
   const tableRef = useRef<any>(null)
-  const isAnyLoading = isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit
+  const isAnyLoading = isLoadingGenerate || isLoadingCommit
   const commitMessageRef = useRef<HTMLTextAreaElement>(null)
   const codingRuleRef = useRef<HTMLTextAreaElement>(null)
   const commitMessage = useRef('')
@@ -143,9 +142,7 @@ export function MainPage() {
       })
       setShowAppUpdateDialog(true)
     }
-
     window.api.on(IPC.UPDATER.SHOW_DIALOG, handleUpdaterDialog)
-
     return () => {
       // No need to remove listener as it's automatically cleaned up when component unmounts
     }
@@ -283,7 +280,7 @@ export function MainPage() {
       {/* Main Content */}
       <div className="flex flex-col flex-1 w-full">
         {/* Title Bar */}
-        <TitleBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} onUpdate={handleUpdateClick} onShowLog={handleShowLogClick} />
+        <TitleBar isLoading={isLoadingGenerate || isLoadingCommit} progress={progress} onUpdate={handleUpdateClick} onShowLog={handleShowLogClick} />
         {/* Content */}
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
           <ResizablePanelGroup direction="vertical" className="rounded-md border">
@@ -321,7 +318,7 @@ export function MainPage() {
             </Button>
 
             <Button
-              className={`relative w-50 ${isLoadingCheckCodingRule ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-50 ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -329,7 +326,7 @@ export function MainPage() {
                 }
               }}
             >
-              {isLoadingCheckCodingRule ? <GlowLoader /> : null} {t('action.check')}
+              {t('action.check')}
             </Button>
             <Button
               className={`relative w-50 ${isAnyLoading ? 'cursor-progress' : ''}`}
@@ -369,7 +366,7 @@ export function MainPage() {
         </div>
 
         {/* Footer Bar */}
-        <FooterBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} />
+        <FooterBar isLoading={isLoadingGenerate || isLoadingCommit} progress={progress} />
 
         {/* App Update Dialog using Shadcn UI */}
         {showAppUpdateDialog && (

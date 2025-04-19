@@ -55,6 +55,10 @@ export const IPC = {
     INSTALL_UPDATE: 'updater:install-update',
     SHOW_DIALOG: 'updater:show-dialog',
     DIALOG_RESPONSE: 'updater:dialog-response',
+    GET_VERSION: 'updater:get-version',
+    GET_DOWNLOAD_PROGRESS: 'updater:get-download-progress',
+    DOWNLOAD_PROGRESS: 'updater:download-progress',
+    IS_UPDATE_DOWNLOADED: 'updater:is-update-downloaded',
   },
 }
 

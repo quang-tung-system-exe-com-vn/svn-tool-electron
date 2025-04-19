@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { t } from 'i18next'
 import { Eraser, FileText, Info, Minus, RefreshCw, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { CleanDialog } from '../dialogs/CleanDialog'
@@ -22,6 +22,8 @@ export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog }: TitleBarP
   const [showSettings, setShowSettings] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const [showClean, setShowClean] = useState(false)
+  const [hasAppUpdate, setHasAppUpdate] = useState(false)
+  const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
 
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
@@ -56,6 +58,45 @@ export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog }: TitleBarP
   const openCleanDialog = () => {
     setShowClean(true)
   }
+
+  // Check for app updates on component mount
+  useEffect(() => {
+    const checkAppUpdates = async () => {
+      try {
+        const result = await window.api.updater.check_for_updates()
+        setHasAppUpdate(result.updateAvailable)
+      } catch (error) {
+        console.error('Error checking for app updates:', error)
+      }
+    }
+
+    // Check for SVN updates
+    const checkSvnUpdates = async () => {
+      try {
+        const localInfo = await window.api.svn.info('.', 'BASE')
+        const remoteInfo = await window.api.svn.info('.', 'HEAD')
+        if (localInfo?.data < remoteInfo?.data) {
+          setHasSvnUpdate(true)
+        } else {
+          setHasSvnUpdate(false)
+        }
+      } catch (error) {
+        console.error('Error checking for SVN updates:', error)
+      }
+    }
+
+    // Initial check
+    checkAppUpdates()
+    checkSvnUpdates()
+
+    // Set up interval for periodic checks
+    const interval = setInterval(() => {
+      checkAppUpdates()
+      checkSvnUpdates()
+    }, 300000) // Check every 5 minutes
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <>
@@ -113,12 +154,13 @@ export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog }: TitleBarP
                     size="sm"
                     onClick={checkForUpdates}
                     disabled={checkingUpdate}
-                    className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                    className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                   >
                     <RefreshCw strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    {hasAppUpdate && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{t('Check for Updates')}</TooltipContent>
+                <TooltipContent>{hasAppUpdate ? t('New update available!') : t('Check for Updates')}</TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -136,12 +178,13 @@ export const TitleBar = ({ isLoading, progress, onUpdate, onShowLog }: TitleBarP
                   variant="link"
                   size="sm"
                   onClick={onUpdate}
-                  className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                  className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                 >
                   <SquareArrowDown strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                  {hasSvnUpdate && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Update SVN</TooltipContent>
+              <TooltipContent>{hasSvnUpdate ? t('New SVN revision available!') : t('Update SVN')}</TooltipContent>
             </Tooltip>
 
             <Tooltip>

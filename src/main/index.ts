@@ -4,11 +4,13 @@ import { registerConfigIpcHandlers } from './ipc/config'
 import { makeAppWithSingleInstanceLock } from 'lib/electron-app/factories/app/instance'
 import { makeAppSetup } from 'lib/electron-app/factories/app/setup'
 import { initAutoUpdater } from './updater'
+import { setupIpcHandlers } from './updater'
 import { MainWindow } from './windows/main'
 
 makeAppWithSingleInstanceLock(async () => {
   await app.whenReady()
   registerConfigIpcHandlers()
+  setupIpcHandlers()
   const mainWindow = await makeAppSetup(MainWindow)
 
   // Initialize auto updater

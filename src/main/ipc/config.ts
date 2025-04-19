@@ -20,7 +20,6 @@ import appearanceStore from '../store/AppearanceStore'
 import configurationStore from '../store/ConfigurationStore'
 import mailServerStore from '../store/MailServerStore'
 import webhookStore from '../store/WebhookStore'
-import { checkForUpdates, downloadUpdate, installUpdate } from '../updater'
 import { parseSpotBugsResult, runSpotBugs } from '../utils/spotbugs'
 const { sourceFolder } = configurationStore.store
 
@@ -317,34 +316,34 @@ export function registerConfigIpcHandlers() {
   })
 
   // Updater handlers
-  ipcMain.handle(IPC.UPDATER.CHECK_FOR_UPDATES, async () => {
-    try {
-      return await checkForUpdates()
-    } catch (error) {
-      console.error('Error checking for updates:', error)
-      return { updateAvailable: false, error: error instanceof Error ? error.message : String(error) }
-    }
-  })
+  // ipcMain.handle(IPC.UPDATER.CHECK_FOR_UPDATES, async () => {
+  //   try {
+  //     return await checkForUpdates()
+  //   } catch (error) {
+  //     console.error('Error checking for updates:', error)
+  //     return { updateAvailable: false, error: error instanceof Error ? error.message : String(error) }
+  //   }
+  // })
 
-  ipcMain.handle(IPC.UPDATER.DOWNLOAD_UPDATE, async () => {
-    try {
-      downloadUpdate()
-      return { status: 'success' }
-    } catch (error) {
-      console.error('Error downloading update:', error)
-      return { status: 'error', error: error instanceof Error ? error.message : String(error) }
-    }
-  })
+  // ipcMain.handle(IPC.UPDATER.DOWNLOAD_UPDATE, async () => {
+  //   try {
+  //     downloadUpdate()
+  //     return { status: 'success' }
+  //   } catch (error) {
+  //     console.error('Error downloading update:', error)
+  //     return { status: 'error', error: error instanceof Error ? error.message : String(error) }
+  //   }
+  // })
 
-  ipcMain.handle(IPC.UPDATER.INSTALL_UPDATE, async () => {
-    try {
-      installUpdate()
-      return { status: 'success' }
-    } catch (error) {
-      console.error('Error installing update:', error)
-      return { status: 'error', error: error instanceof Error ? error.message : String(error) }
-    }
-  })
+  // ipcMain.handle(IPC.UPDATER.INSTALL_UPDATE, async () => {
+  //   try {
+  //     installUpdate()
+  //     return { status: 'success' }
+  //   } catch (error) {
+  //     console.error('Error installing update:', error)
+  //     return { status: 'error', error: error instanceof Error ? error.message : String(error) }
+  //   }
+  // })
 
   ipcMain.handle(IPC.SYSTEM.OPEN_FOLDER, async () => {
     console.log('Open folder...')

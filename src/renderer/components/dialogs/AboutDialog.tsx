@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 interface InfoDialogProps {
   open?: boolean
@@ -8,6 +9,23 @@ interface InfoDialogProps {
 
 export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
   const { t } = useTranslation()
+  const [appVersion, setAppVersion] = useState('1.0.0')
+
+  // Get app version when dialog opens
+  useEffect(() => {
+    if (open) {
+      const getAppVersion = async () => {
+        try {
+          const version = await window.api.updater.get_version()
+          setAppVersion(version)
+        } catch (error) {
+          console.error('Error getting app version:', error)
+        }
+      }
+
+      getAppVersion()
+    }
+  }, [open])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -21,7 +39,7 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
             <strong>{t('aboutDialog.developer')}:</strong> Nguyễn Quang Tùng
           </p>
           <p>
-            <strong>{t('aboutDialog.version')}:</strong> 1.0.0
+            <strong>{t('aboutDialog.version')}:</strong> {appVersion}
           </p>
           <p>
             <strong>{t('aboutDialog.email')}:</strong> quang-tung@system-exe.com.vn

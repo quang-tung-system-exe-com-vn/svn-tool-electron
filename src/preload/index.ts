@@ -61,6 +61,9 @@ declare global {
           error?: string
         }>
         dialog_response: (type: 'available' | 'downloaded', action: 'accept' | 'cancel') => void
+        get_version: () => Promise<string>
+        get_download_progress: () => Promise<number>
+        is_update_downloaded: () => Promise<boolean>
       }
 
       webhook: {
@@ -146,6 +149,9 @@ contextBridge.exposeInMainWorld('api', {
     download_update: () => ipcRenderer.invoke(IPC.UPDATER.DOWNLOAD_UPDATE),
     install_update: () => ipcRenderer.invoke(IPC.UPDATER.INSTALL_UPDATE),
     dialog_response: (type: 'available' | 'downloaded', action: 'accept' | 'cancel') => ipcRenderer.send(IPC.UPDATER.DIALOG_RESPONSE, { type, action }),
+    get_version: () => ipcRenderer.invoke(IPC.UPDATER.GET_VERSION),
+    get_download_progress: () => ipcRenderer.invoke(IPC.UPDATER.GET_DOWNLOAD_PROGRESS),
+    is_update_downloaded: () => ipcRenderer.invoke(IPC.UPDATER.IS_UPDATE_DOWNLOADED),
   },
 
   webhook: {

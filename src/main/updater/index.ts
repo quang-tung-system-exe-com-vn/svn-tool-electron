@@ -11,6 +11,10 @@ autoUpdater.logger = log
 // Set update check interval (in milliseconds)
 const UPDATE_CHECK_INTERVAL = 1000 * 60 * 60 * 24 // 24 hours
 
+// Track download progress
+let downloadProgress = 0
+let isUpdateDownloaded = false
+
 export interface UpdateInfo {
   updateAvailable: boolean
   version?: string
@@ -55,16 +59,19 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
   })
 
   autoUpdater.on('download-progress', progressObj => {
-    const progress = Math.round(progressObj.percent)
-    log.info(`Download progress: ${progress}%`)
+    downloadProgress = Math.round(progressObj.percent)
+    log.info(`Download progress: ${downloadProgress}%`)
     mainWindow.webContents.send('updater-status', {
       status: 'downloading',
-      progress,
+      progress: downloadProgress,
     })
+    // Send download progress to renderer
+    mainWindow.webContents.send(IPC.UPDATER.DOWNLOAD_PROGRESS, downloadProgress)
   })
 
   autoUpdater.on('update-downloaded', info => {
     log.info('Update downloaded:', info)
+    isUpdateDownloaded = true
     mainWindow.webContents.send('updater-status', { status: 'downloaded' })
 
     // Show dialog using Shadcn UI in renderer process
@@ -137,4 +144,84 @@ export function downloadUpdate() {
  */
 export function installUpdate() {
   autoUpdater.quitAndInstall(false, true)
+}
+
+/**
+ * Get the current app version
+ * @returns The current app version
+ */
+export function getAppVersion(): string {
+  return app.getVersion()
+}
+
+/**
+ * Get the current download progress
+ * @returns The download progress (0-100)
+ */
+export function getDownloadProgress(): number {
+  return downloadProgress
+}
+
+/**
+ * Check if an update has been downloaded
+ * @returns True if an update has been downloaded
+ */
+export function isUpdateAlreadyDownloaded(): boolean {
+  return isUpdateDownloaded
+}
+
+// Set up IPC handlers
+export function setupIpcHandlers() {
+  // Get app version
+  ipcMain.handle(IPC.UPDATER.GET_VERSION, () => {
+    return getAppVersion()
+  })
+
+  // Get download progress
+  ipcMain.handle(IPC.UPDATER.GET_DOWNLOAD_PROGRESS, () => {
+    return getDownloadProgress()
+  })
+
+  // Check if update is downloaded
+  ipcMain.handle(IPC.UPDATER.IS_UPDATE_DOWNLOADED, () => {
+    return isUpdateAlreadyDownloaded()
+  })
+
+  // Check for updates
+  ipcMain.handle(IPC.UPDATER.CHECK_FOR_UPDATES, async () => {
+    try {
+      return await checkForUpdates()
+    } catch (error: any) {
+      return {
+        updateAvailable: false,
+        error: error?.message || 'Unknown error',
+      }
+    }
+  })
+
+  // Download update
+  ipcMain.handle(IPC.UPDATER.DOWNLOAD_UPDATE, async () => {
+    try {
+      downloadUpdate()
+      return { status: 'success' }
+    } catch (error: any) {
+      return {
+        status: 'error',
+        error: error?.message || 'Unknown error',
+      }
+    }
+  })
+
+  // Install update
+  ipcMain.handle(IPC.UPDATER.INSTALL_UPDATE, async () => {
+    try {
+      installUpdate()
+      return { status: 'success' }
+    } catch (error: any) {
+      return {
+        status: 'error',
+        error: error?.message || 'Unknown error',
+      }
+    }
+  })
 }
