@@ -144,6 +144,10 @@ export function ShowLog() {
   }, [])
   const loadLogData = async (path: string) => {
     try {
+      setCommitMessage('')
+      setChangedFiles([])
+      setStatusSummary({} as Record<SvnStatusCode, number>)
+      table.resetRowSelection()
       setIsLoading(true)
       const result = await window.api.svn.log(path)
 
@@ -209,7 +213,6 @@ export function ShowLog() {
           // Initialize status summary with the first entry
           const firstEntry = parsedEntries[0]
           const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
-
           // Initialize all status codes with 0
           for (const code of Object.keys(STATUS_TEXT)) {
             summary[code as SvnStatusCode] = 0
@@ -220,8 +223,12 @@ export function ShowLog() {
             summary[file.action] = (summary[file.action] || 0) + 1
           }
 
+          setCommitMessage(firstEntry.message)
+          setChangedFiles(firstEntry.changedFiles)
           setStatusSummary(summary)
-          selectRevision(firstEntry.revision)
+          table.setRowSelection({ '0': true })
+          console.log('FirstEntry: ', firstEntry)
+          console.log('Summary: ', summary)
         }
       } else {
         toast.error(result.message)
@@ -316,7 +323,13 @@ export function ShowLog() {
                           <TableRow
                             key={row.id}
                             data-state={row.getIsSelected() && 'selected'}
-                            onClick={() => selectRevision(row.original.revision)}
+                            onClick={() => {
+                              if (!row.getIsSelected()) {
+                                table.resetRowSelection()
+                                row.toggleSelected(true)
+                                selectRevision(row.original.revision)
+                              }
+                            }}
                             className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900/40"
                           >
                             {row.getVisibleCells().map((cell, index) => (
