@@ -133,6 +133,7 @@ export function ShowLog() {
   const [selectedRevision, setSelectedRevision] = useState<string | null>(null)
   const [commitMessage, setCommitMessage] = useState('')
   const [changedFiles, setChangedFiles] = useState<LogFile[]>([])
+  const [statusSummary, setStatusSummary] = useState<Record<SvnStatusCode, number>>({} as Record<SvnStatusCode, number>)
 
   useEffect(() => {
     const handler = (_event: any, { filePath }: any) => {
@@ -205,7 +206,22 @@ export function ShowLog() {
         setData(parsedEntries)
 
         if (parsedEntries.length > 0) {
-          selectRevision(parsedEntries[0].revision)
+          // Initialize status summary with the first entry
+          const firstEntry = parsedEntries[0]
+          const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
+
+          // Initialize all status codes with 0
+          for (const code of Object.keys(STATUS_TEXT)) {
+            summary[code as SvnStatusCode] = 0
+          }
+
+          // Count files by status
+          for (const file of firstEntry.changedFiles) {
+            summary[file.action] = (summary[file.action] || 0) + 1
+          }
+
+          setStatusSummary(summary)
+          selectRevision(firstEntry.revision)
         }
       } else {
         toast.error(result.message)
@@ -224,6 +240,21 @@ export function ShowLog() {
     if (entry) {
       setCommitMessage(entry.message)
       setChangedFiles(entry.changedFiles)
+
+      // Calculate status summary
+      const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
+
+      // Initialize all status codes with 0
+      for (const code of Object.keys(STATUS_TEXT)) {
+        summary[code as SvnStatusCode] = 0
+      }
+
+      // Count files by status
+      for (const file of entry.changedFiles) {
+        summary[file.action] = (summary[file.action] || 0) + 1
+      }
+
+      setStatusSummary(summary)
     }
   }
 
@@ -336,7 +367,19 @@ export function ShowLog() {
 
                 {/* Changed Files */}
                 <ResizablePanel defaultSize={60} minSize={20} className="flex flex-col">
-                  <div className="p-2 font-medium">Changed Files</div>
+                  <div className="p-2 font-medium flex justify-between items-center">
+                    <span>Changed Files</span>
+                    <div className="flex gap-2">
+                      {Object.entries(statusSummary).map(([code, count]) =>
+                        count > 0 ? (
+                          <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
+                            <StatusIcon code={code as SvnStatusCode} />
+                            <span>{count}</span>
+                          </div>
+                        ) : null
+                      )}
+                    </div>
+                  </div>
                   <div className="h-full">
                     <ScrollArea className="h-full border-1 rounded-md">
                       <Table wrapperClassName={cn('overflow-clip', changedFiles.length === 0 && 'h-full')}>

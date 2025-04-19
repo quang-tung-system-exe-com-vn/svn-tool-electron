@@ -60,6 +60,7 @@ declare global {
           status: 'success' | 'error'
           error?: string
         }>
+        dialog_response: (type: 'available' | 'downloaded', action: 'accept' | 'cancel') => void
       }
 
       webhook: {
@@ -144,6 +145,7 @@ contextBridge.exposeInMainWorld('api', {
     check_for_updates: () => ipcRenderer.invoke(IPC.UPDATER.CHECK_FOR_UPDATES),
     download_update: () => ipcRenderer.invoke(IPC.UPDATER.DOWNLOAD_UPDATE),
     install_update: () => ipcRenderer.invoke(IPC.UPDATER.INSTALL_UPDATE),
+    dialog_response: (type: 'available' | 'downloaded', action: 'accept' | 'cancel') => ipcRenderer.send(IPC.UPDATER.DIALOG_RESPONSE, { type, action }),
   },
 
   webhook: {

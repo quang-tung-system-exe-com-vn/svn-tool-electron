@@ -1,8 +1,8 @@
-import { dialog } from 'electron'
 import type { BrowserWindow } from 'electron'
-import { app } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import { app, ipcMain } from 'electron'
 import log from 'electron-log'
+import { autoUpdater } from 'electron-updater'
+import { IPC } from '../constants'
 
 // Configure logging
 log.transports.file.level = 'info'
@@ -28,65 +28,60 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
     mainWindow.webContents.send('updater-status', { status: 'checking' })
   })
 
-  autoUpdater.on('update-available', (info) => {
+  autoUpdater.on('update-available', info => {
     log.info('Update available:', info)
     mainWindow.webContents.send('updater-status', {
       status: 'available',
       version: info.version,
-      releaseNotes: info.releaseNotes
+      releaseNotes: info.releaseNotes,
     })
 
-    // Show dialog to user
-    dialog.showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Update Available',
-      message: `A new version (${info.version}) is available!`,
-      detail: 'Would you like to download and install it now?',
-      buttons: ['Download', 'Later'],
-      defaultId: 0
-    }).then(({ response }) => {
-      if (response === 0) {
-        autoUpdater.downloadUpdate()
-      }
+    // Show dialog using Shadcn UI in renderer process
+    mainWindow.webContents.send(IPC.UPDATER.SHOW_DIALOG, {
+      type: 'available',
+      version: info.version,
+      releaseNotes: info.releaseNotes,
     })
   })
 
-  autoUpdater.on('update-not-available', (info) => {
+  autoUpdater.on('update-not-available', info => {
     log.info('No updates available:', info)
     mainWindow.webContents.send('updater-status', { status: 'not-available' })
   })
 
-  autoUpdater.on('error', (err) => {
+  autoUpdater.on('error', err => {
     log.error('Error in auto-updater:', err)
     mainWindow.webContents.send('updater-status', { status: 'error', error: err.message })
   })
 
-  autoUpdater.on('download-progress', (progressObj) => {
+  autoUpdater.on('download-progress', progressObj => {
     const progress = Math.round(progressObj.percent)
     log.info(`Download progress: ${progress}%`)
     mainWindow.webContents.send('updater-status', {
       status: 'downloading',
-      progress
+      progress,
     })
   })
 
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on('update-downloaded', info => {
     log.info('Update downloaded:', info)
     mainWindow.webContents.send('updater-status', { status: 'downloaded' })
 
-    // Show dialog to user
-    dialog.showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Update Ready',
-      message: 'Update downloaded',
-      detail: 'The update has been downloaded. Restart the application to apply the updates.',
-      buttons: ['Restart', 'Later'],
-      defaultId: 0
-    }).then(({ response }) => {
-      if (response === 0) {
-        autoUpdater.quitAndInstall(false, true)
-      }
+    // Show dialog using Shadcn UI in renderer process
+    mainWindow.webContents.send(IPC.UPDATER.SHOW_DIALOG, {
+      type: 'downloaded',
+      version: info.version,
+      releaseNotes: info.releaseNotes,
     })
+  })
+
+  // Listen for dialog responses from renderer
+  ipcMain.on(IPC.UPDATER.DIALOG_RESPONSE, (_event, { type, action }) => {
+    if (type === 'available' && action === 'accept') {
+      autoUpdater.downloadUpdate()
+    } else if (type === 'downloaded' && action === 'accept') {
+      autoUpdater.quitAndInstall(false, true)
+    }
   })
 
   // Check for updates on startup
@@ -119,9 +114,7 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
       return {
         updateAvailable,
         version: latestVersion,
-        releaseNotes: typeof updateCheckResult.updateInfo.releaseNotes === 'string'
-          ? updateCheckResult.updateInfo.releaseNotes
-          : undefined
+        releaseNotes: typeof updateCheckResult.updateInfo.releaseNotes === 'string' ? updateCheckResult.updateInfo.releaseNotes : undefined,
       }
     }
 

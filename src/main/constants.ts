@@ -53,6 +53,8 @@ export const IPC = {
     CHECK_FOR_UPDATES: 'updater:check-for-updates',
     DOWNLOAD_UPDATE: 'updater:download-update',
     INSTALL_UPDATE: 'updater:install-update',
+    SHOW_DIALOG: 'updater:show-dialog',
+    DIALOG_RESPONSE: 'updater:dialog-response',
   },
 }
 

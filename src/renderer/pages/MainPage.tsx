@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
 import chalk from 'chalk'
-import { Download } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { UpdaterDialog } from '../components/dialogs/UpdaterDialog'
 
 export function MainPage() {
   const variant = useButtonVariant()
@@ -134,18 +134,29 @@ export function MainPage() {
 
   const isMountedRef = useRef(true)
 
+  // Listen for updater dialog events from main process
+  useEffect(() => {
+    const handleUpdaterDialog = (_event: any, data: any) => {
+      setAppUpdateInfo({
+        version: data.version,
+        releaseNotes: data.releaseNotes,
+      })
+      setShowAppUpdateDialog(true)
+    }
+
+    window.api.on(IPC.UPDATER.SHOW_DIALOG, handleUpdaterDialog)
+
+    return () => {
+      // No need to remove listener as it's automatically cleaned up when component unmounts
+    }
+  }, [])
+
   // Check for app updates on startup
   useEffect(() => {
     const checkForAppUpdates = async () => {
       try {
-        const result = await window.api.updater.check_for_updates()
-        if (result.updateAvailable) {
-          setAppUpdateInfo({
-            version: result.version,
-            releaseNotes: result.releaseNotes,
-          })
-          setShowAppUpdateDialog(true)
-        }
+        await window.api.updater.check_for_updates()
+        // Dialog will be shown via IPC if update is available
       } catch (error) {
         ToastMessageFunctions.error(error)
       }
@@ -157,17 +168,26 @@ export function MainPage() {
     }, 5000)
   }, [])
 
-  // Handle app update installation
-  const handleInstallUpdate = async () => {
+  // Handle app update actions
+  const handleUpdateAction = (type: 'available' | 'downloaded') => {
     try {
-      ToastMessageFunctions.info(t('Downloading update...'))
-      await window.api.updater.download_update()
-      await window.api.updater.install_update()
+      if (type === 'available') {
+        ToastMessageFunctions.info(t('Downloading update...'))
+        window.api.updater.dialog_response('available', 'accept')
+      } else {
+        window.api.updater.dialog_response('downloaded', 'accept')
+      }
     } catch (error) {
-      ToastMessageFunctions.error(t('Error installing update'))
+      ToastMessageFunctions.error(t('Error handling update'))
     } finally {
       setShowAppUpdateDialog(false)
     }
+  }
+
+  // Handle app update cancellation
+  const handleUpdateCancel = (type: 'available' | 'downloaded') => {
+    window.api.updater.dialog_response(type, 'cancel')
+    setShowAppUpdateDialog(false)
   }
 
   // Function to check for new SVN revisions
@@ -351,34 +371,15 @@ export function MainPage() {
         {/* Footer Bar */}
         <FooterBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} />
 
-        {/* App Update Dialog */}
+        {/* App Update Dialog using Shadcn UI */}
         {showAppUpdateDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full">
-              <div className="flex items-center gap-2 mb-2">
-                <Download className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold">{t('New Version Available')}</h3>
-              </div>
-              <p className="mb-2">{t('A new version of SVN Tool is available:')}</p>
-              <p className="font-medium mb-4">v{appUpdateInfo.version}</p>
-
-              {appUpdateInfo.releaseNotes && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium mb-1">{t('Release Notes:')}</h4>
-                  <div className="bg-muted p-2 rounded text-sm max-h-32 overflow-y-auto">{appUpdateInfo.releaseNotes}</div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowAppUpdateDialog(false)}>
-                  {t('Later')}
-                </Button>
-                <Button variant={variant} onClick={handleInstallUpdate}>
-                  {t('Update Now')}
-                </Button>
-              </div>
-            </div>
-          </div>
+          <UpdaterDialog
+            type="available"
+            version={appUpdateInfo.version}
+            releaseNotes={appUpdateInfo.releaseNotes}
+            onAction={() => handleUpdateAction('available')}
+            onCancel={() => handleUpdateCancel('available')}
+          />
         )}
 
         {/* New Revision Dialog */}
