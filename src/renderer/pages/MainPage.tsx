@@ -9,11 +9,11 @@ import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
-import { IPC } from 'main/constants'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import chalk from 'chalk'
 import { Download } from 'lucide-react'
+import { IPC } from 'main/constants'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 
 export function MainPage() {
   const variant = useButtonVariant()
@@ -33,7 +33,7 @@ export function MainPage() {
   const [newRevisionInfo, setNewRevisionInfo] = useState<string>('')
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const [showAppUpdateDialog, setShowAppUpdateDialog] = useState(false)
-  const [appUpdateInfo, setAppUpdateInfo] = useState<{version?: string, releaseNotes?: string}>({})
+  const [appUpdateInfo, setAppUpdateInfo] = useState<{ version?: string; releaseNotes?: string }>({})
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
@@ -50,7 +50,7 @@ export function MainPage() {
       status: row.original.status,
     }))
     if (selectedFiles.length === 0) {
-      toast.warning(t('message.noFilesWarning'))
+      ToastMessageFunctions.warning(t('message.noFilesWarning'))
       return
     }
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
@@ -58,7 +58,6 @@ export function MainPage() {
     await updateProgress(0, 20, 1000)
     const result = await window.api.svn.get_diff(selectedFiles)
     const { status, message, data } = result
-    console.log(result)
     if (status === 'success') {
       await updateProgress(20, 50, 1000)
       const params = {
@@ -72,11 +71,11 @@ export function MainPage() {
       if (commitMessageRef.current) {
         commitMessageRef.current.value = openai_result
       }
-      toast.success(t('toast.commitMessageGenerated'))
+      ToastMessageFunctions.success(t('toast.commitMessageGenerated'))
       await updateProgress(50, 100, 1000)
       setLoadingGenerate(false)
     } else {
-      toast.error(message)
+      ToastMessageFunctions.error(message)
       if (commitMessageRef.current) {
         commitMessageRef.current.value = message ?? ''
       }
@@ -85,46 +84,12 @@ export function MainPage() {
   }
 
   const checkViolations = async () => {
-    setProgress(0)
     const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
     const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
       filePath: row.original.filePath,
       status: row.original.status,
     }))
-    if (selectedFiles.length === 0) {
-      ToastMessageFunctions.warning(t('message.noFilesWarning'))
-      return
-    }
-    const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
-    setLoadingCheckCodingRule(true)
-    await updateProgress(0, 20, 1000)
-    const result = await window.api.svn.get_diff(selectedFiles)
-    const { status, message, data } = result
-    console.log(result)
-    if (status === 'success') {
-      await updateProgress(20, 50, 1000)
-      const params = {
-        type: 'CHECK_VIOLATIONS',
-        values: {
-          diff_content: data,
-          language: languageName,
-        },
-      }
-      const openai_result = await window.api.openai.send_message(params)
-      if (codingRuleRef.current) {
-        codingRuleRef.current.value = openai_result
-      }
-      await updateProgress(50, 100, 1000)
-      setProgress(100)
-      setLoadingCheckCodingRule(false)
-      ToastMessageFunctions.success(t('toast.checkViolationsSuccess'))
-    } else {
-      ToastMessageFunctions.error(message)
-      if (codingRuleRef.current) {
-        codingRuleRef.current.value = message ?? ''
-      }
-      setLoadingCheckCodingRule(false)
-    }
+    window.api.electron.send(IPC.WINDOW.CHECK_CODING_RULES, selectedFiles)
   }
 
   const commitCode = async () => {
@@ -177,12 +142,12 @@ export function MainPage() {
         if (result.updateAvailable) {
           setAppUpdateInfo({
             version: result.version,
-            releaseNotes: result.releaseNotes
+            releaseNotes: result.releaseNotes,
           })
           setShowAppUpdateDialog(true)
         }
       } catch (error) {
-        console.error('Error checking for app updates:', error)
+        ToastMessageFunctions.error(error)
       }
     }
 
@@ -195,12 +160,11 @@ export function MainPage() {
   // Handle app update installation
   const handleInstallUpdate = async () => {
     try {
-      toast.info(t('Downloading update...'))
+      ToastMessageFunctions.info(t('Downloading update...'))
       await window.api.updater.download_update()
       await window.api.updater.install_update()
     } catch (error) {
-      console.error('Error installing update:', error)
-      toast.error(t('Error installing update'))
+      ToastMessageFunctions.error(t('Error installing update'))
     } finally {
       setShowAppUpdateDialog(false)
     }
@@ -209,27 +173,21 @@ export function MainPage() {
   // Function to check for new SVN revisions
   const checkForNewRevisions = useCallback(async () => {
     try {
-      // This is a placeholder. In a real implementation, you would:
-      // 1. Get the current revision number from the repository
-      // 2. Compare it with the last known revision number
-      // 3. If there's a new revision, show the dialog
-
-      // For demonstration purposes, we'll randomly show the dialog
-      if (Math.random() < 0.1 && isMountedRef.current) { // 10% chance to show dialog
-        setNewRevisionInfo(`New revision r${Math.floor(Math.random() * 1000)} available`)
+      console.log(chalk.green('[SUCCESS]'), 'Begin check for new SVN revisions...')
+      const localInfo = await window.api.svn.info('.', 'BASE')
+      const remoteInfo = await window.api.svn.info('.', 'HEAD')
+      if (localInfo?.data < remoteInfo?.data) {
+        setNewRevisionInfo(`New revision r${remoteInfo.data} available`)
         setShowUpdateDialog(true)
       }
     } catch (error) {
-      console.error('Error checking for new revisions:', error)
+      ToastMessageFunctions.error(error)
     }
   }, [])
 
   // Set up periodic check for new revisions
   useEffect(() => {
-    // Check every 5 minutes (300000 ms)
     checkIntervalRef.current = setInterval(checkForNewRevisions, 300000)
-
-    // Initial check
     checkForNewRevisions()
 
     return () => {
@@ -242,11 +200,10 @@ export function MainPage() {
 
   // Handle SVN update from dialog
   const handleSvnUpdate = () => {
-    toast.info(t('Updating SVN...'))
-    // Implement SVN update functionality here
-    // For now, just close the dialog and show a message
+    ToastMessageFunctions.info(t('Updating SVN...'))
+    window.api.svn.update()
     setShowUpdateDialog(false)
-    toast.success(t('SVN updated successfully'))
+    ToastMessageFunctions.success(t('SVN updated successfully'))
     tableRef.current?.reloadData()
   }
 
@@ -276,94 +233,39 @@ export function MainPage() {
     })
   }
 
+  const handleUpdateClick = () => {
+    if (!isAnyLoading) {
+      ToastMessageFunctions.info(t('Updating SVN...'))
+      window.api.svn
+        .update()
+        .then(result => {
+          if (result.status === 'success') {
+            ToastMessageFunctions.success(t('SVN updated successfully'))
+            tableRef.current?.reloadData()
+          } else {
+            ToastMessageFunctions.error(result.message)
+          }
+        })
+        .catch((error: Error) => {
+          ToastMessageFunctions.error(error.message || 'Error updating SVN')
+        })
+    }
+  }
+
+  const handleShowLogClick = () => {
+    if (!isAnyLoading) {
+      window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
+    }
+  }
+
   return (
     <div className="flex h-screen w-full">
       {/* Main Content */}
       <div className="flex flex-col flex-1 w-full">
         {/* Title Bar */}
-        <TitleBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} />
+        <TitleBar isLoading={isLoadingGenerate || isLoadingCheckCodingRule || isLoadingCommit} progress={progress} onUpdate={handleUpdateClick} onShowLog={handleShowLogClick} />
         {/* Content */}
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
-          {/* Toolbar Buttons */}
-          <div className="flex justify-start gap-2 mb-4">
-            <Button
-              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
-              variant={variant}
-              onClick={() => {
-                if (!isAnyLoading) {
-                  // Implement SVN Update
-                  toast.info(t('Updating SVN...'))
-                  window.api.svn.update()
-                    .then((result) => {
-                      if (result.status === 'success') {
-                        toast.success(t('SVN updated successfully'))
-                        tableRef.current?.reloadData()
-                      } else {
-                        toast.error(result.message)
-                      }
-                    })
-                    .catch((error: Error) => {
-                      toast.error(error.message || 'Error updating SVN')
-                    })
-                }
-              }}
-            >
-              {t('Update')}
-            </Button>
-
-            <Button
-              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
-              variant={variant}
-              onClick={() => {
-                if (!isAnyLoading) {
-                  // Open Clean Dialog
-                  window.api.electron.send(IPC.WINDOW.CLEAN_DIALOG, {})
-                }
-              }}
-            >
-              {t('Clean')}
-            </Button>
-
-            <Button
-              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
-              variant={variant}
-              onClick={() => {
-                if (!isAnyLoading) {
-                  // Show Log (all)
-                  window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
-                }
-              }}
-            >
-              {t('Show Log')}
-            </Button>
-
-            <Button
-              className={`relative w-32 ${isAnyLoading ? 'cursor-progress' : ''}`}
-              variant={variant}
-              onClick={() => {
-                if (!isAnyLoading) {
-                  // SpotBugs
-                  const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
-                  const selectedFiles = selectedRows
-                    .filter((row: any) => {
-                      const filePath = row.original.filePath
-                      return filePath.endsWith('.java')
-                    })
-                    .map((row: any) => row.original.filePath)
-
-                  if (selectedFiles.length === 0) {
-                    toast.warning(t('Please select at least one Java file'))
-                    return
-                  }
-
-                  window.api.electron.send(IPC.WINDOW.SPOTBUGS, selectedFiles)
-                }
-              }}
-            >
-              {t('SpotBugs')}
-            </Button>
-          </div>
-
           <ResizablePanelGroup direction="vertical" className="rounded-md border">
             <ResizablePanel minSize={25} defaultSize={50}>
               <DataTable ref={tableRef} />
@@ -371,7 +273,7 @@ export function MainPage() {
             <ResizableHandle />
             <ResizablePanel className="p-2 pt-8" minSize={25} defaultSize={50}>
               <div className="relative overflow-hidden h-full">
-                <OverlayLoader isLoading={isAnyLoading} />
+                <OverlayLoader isLoading={isLoadingGenerate} />
                 <Textarea
                   placeholder={t('placeholder.commitMessage')}
                   className="w-full h-full resize-none"
@@ -387,7 +289,7 @@ export function MainPage() {
           {/* Footer Buttons */}
           <div className="flex justify-center gap-2">
             <Button
-              className={`relative w-55 ${isLoadingGenerate ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-50 ${isLoadingGenerate ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -399,33 +301,41 @@ export function MainPage() {
             </Button>
 
             <Button
-              className={`relative w-55 ${isLoadingCheckCodingRule ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-50 ${isLoadingCheckCodingRule ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
-                  const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
-                  const selectedFiles = selectedRows.map((row: any) => ({
-                    filePath: row.original.filePath,
-                    status: row.original.status,
-                  }))
-
-                  if (selectedFiles.length === 0) {
-                    toast.warning(t('message.noFilesWarning'))
-                    return
-                  }
-
-                  // First check violations normally
                   checkViolations()
-
-                  // Then open in new window
-                  window.api.electron.send(IPC.WINDOW.CHECK_CODING_RULES, codingRuleRef.current?.value || '')
                 }
               }}
             >
               {isLoadingCheckCodingRule ? <GlowLoader /> : null} {t('action.check')}
             </Button>
             <Button
-              className={`relative w-55 ${isLoadingCommit ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative w-50 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              variant={variant}
+              onClick={() => {
+                if (!isAnyLoading) {
+                  const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
+                  const selectedFiles = selectedRows
+                    .filter((row: any) => {
+                      const filePath = row.original.filePath
+                      return filePath.endsWith('.java')
+                    })
+                    .map((row: any) => row.original.filePath)
+
+                  if (selectedFiles.length === 0) {
+                    ToastMessageFunctions.warning(t('Please select at least one Java file'))
+                    return
+                  }
+                  window.api.electron.send(IPC.WINDOW.SPOTBUGS, selectedFiles)
+                }
+              }}
+            >
+              {t('SpotBugs')}
+            </Button>
+            <Button
+              className={`relative w-50 ${isLoadingCommit ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -455,9 +365,7 @@ export function MainPage() {
               {appUpdateInfo.releaseNotes && (
                 <div className="mb-4">
                   <h4 className="text-sm font-medium mb-1">{t('Release Notes:')}</h4>
-                  <div className="bg-muted p-2 rounded text-sm max-h-32 overflow-y-auto">
-                    {appUpdateInfo.releaseNotes}
-                  </div>
+                  <div className="bg-muted p-2 rounded text-sm max-h-32 overflow-y-auto">{appUpdateInfo.releaseNotes}</div>
                 </div>
               )}
 
@@ -476,7 +384,7 @@ export function MainPage() {
         {/* New Revision Dialog */}
         {showUpdateDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div className="bg-card p-6 rounded-lg shadow-lg w-100">
               <h3 className="text-lg font-semibold mb-4">{t('New SVN Revision Available')}</h3>
               <p className="mb-6">{newRevisionInfo}</p>
               <div className="flex justify-end gap-2">

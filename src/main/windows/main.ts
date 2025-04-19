@@ -55,19 +55,3 @@ export async function MainWindow() {
   window.setBounds(store.get('bounds') as Partial<Electron.Rectangle>)
   return window
 }
-
-// Sự kiện update
-autoUpdater.on('checking-for-update', () => log.info('Checking for update...'))
-autoUpdater.on('update-available', info => log.info('Update available.', info))
-autoUpdater.on('update-not-available', info => log.info('Update not available.', info))
-autoUpdater.on('error', err => log.error('Error in auto-updater:', err))
-autoUpdater.on('download-progress', progressObj => {
-  log.info(`Download speed: ${progressObj.bytesPerSecond}`)
-  log.info(`Downloaded: ${progressObj.percent}%`)
-})
-autoUpdater.on('update-downloaded', () => {
-  log.info('Update downloaded, quitting and installing...')
-  autoUpdater.quitAndInstall()
-})
-autoUpdater.forceDevUpdateConfig = true
-autoUpdater.checkForUpdatesAndNotify()

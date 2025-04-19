@@ -340,7 +340,9 @@
     background-color: oklch(0.396 0.141 25.723) !important;
     color: oklch(0.936 0.032 17.717) !important;
   }
-
+  [data-radix-scroll-area-viewport] {
+    position: absolute;
+  }
   [data-radix-scroll-area-viewport] > div {
     height: 100%;
   }

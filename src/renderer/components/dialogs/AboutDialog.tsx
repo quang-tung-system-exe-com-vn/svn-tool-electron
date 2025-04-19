@@ -1,18 +1,16 @@
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Info } from 'lucide-react'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslation } from 'react-i18next'
-export function InfoDialog() {
+interface InfoDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
   const { t } = useTranslation()
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start p-2 h-8 font-normal">
-          <Info />
-          {t('menu.about')}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('aboutDialog.title')}</DialogTitle>

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import chalk from 'chalk'
 import { Copy } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
@@ -16,7 +17,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ message, type }) => {
 
   return (
     <div className="flex justify-between items-center">
-      <div className="whitespace-pre-wrap break-words">{message}</div>
+      <div className="whitespace-pre-wrap">{message}</div>
       {type === 'error' && (
         <div className="flex justify-end mt-1">
           <CustomTooltip content="Copy to clipboard">
@@ -32,6 +33,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ message, type }) => {
 
 const ToastMessageFunctions = {
   success: (message: string) => {
+    console.log(chalk.green.bold('[SUCCESS]'), message)
     toast('SUCCESS', {
       description: <ToastMessage message={message} type="success" />,
       className: 'toast-success',
@@ -39,6 +41,7 @@ const ToastMessageFunctions = {
   },
 
   info: (message: string) => {
+    console.log(chalk.cyan.bold('[INFO]'), message)
     toast('INFO', {
       description: <ToastMessage message={message} type="info" />,
       className: 'toast-info',
@@ -46,6 +49,7 @@ const ToastMessageFunctions = {
   },
 
   warning: (message: string) => {
+    console.log(chalk.yellow.bold('[WARNING]'), message)
     toast('WARNING', {
       description: <ToastMessage message={message} type="warning" />,
       className: 'toast-warning',
@@ -53,6 +57,7 @@ const ToastMessageFunctions = {
   },
 
   error: (message: any) => {
+    console.log(chalk.red.bold('[ERROR]'), message)
     toast('ERROR', {
       description: <ToastMessage message={message} type="error" />,
       className: 'toast-error',

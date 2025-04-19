@@ -7,32 +7,53 @@ const { sourceFolder } = configurationStore.store
 
 export async function cleanup(options?: string[]): Promise<SVNResponse> {
   try {
-    let command = 'svn cleanup'
+    const command = 'svn cleanup'
+    const args: string[] = []
+    const customOps: string[] = []
 
-    // Add options if provided
-    if (options && options.length > 0) {
-      // Map option IDs to SVN cleanup options
-      const optionMap: Record<string, string> = {
-        'externals': '--include-externals',
-        'unversioned': '--remove-unversioned',
-        'ignored': '--remove-ignored',
-        'unused': '--vacuum-pristines',
-        'metadata': '--refresh',
-        'locks': '--break-locks',
-        'fixTimestamps': '--fix-timestamps'
-      }
+    const optionMap: Record<string, string> = {
+      externals: '--include-externals',
+      unversioned: '--remove-unversioned',
+      ignored: '--remove-ignored',
+      unused: '--vacuum-pristines',
+    }
 
-      // Add each option to the command
-      for (const option of options) {
-        if (optionMap[option]) {
-          command += ` ${optionMap[option]}`
+    if (options) {
+      for (const opt of options) {
+        if (optionMap[opt]) {
+          args.push(optionMap[opt])
+        } else {
+          customOps.push(opt)
         }
       }
     }
 
-    const { stdout, stderr } = await execPromise(command, { cwd: sourceFolder })
-    if (stderr) return { status: 'error', message: stderr }
-    return { status: 'success', data: stdout.trim() || 'Cleanup completed' }
+    // Gọi cleanup với args hợp lệ
+    const fullCommand = `${command} ${args.join(' ')}`.trim()
+    const result = await execPromise(fullCommand, { cwd: sourceFolder })
+    console.log(fullCommand)
+
+    // Xử lý logic bổ sung
+    if (customOps.includes('metadata')) {
+      await execPromise('svn status', { cwd: sourceFolder })
+    }
+
+    if (customOps.includes('locks')) {
+      await execPromise('svn cleanup', { cwd: sourceFolder })
+    }
+
+    if (customOps.includes('fixTimestamps')) {
+      const { stdout } = await execPromise('svn status', { cwd: sourceFolder })
+      const modifiedFiles = stdout
+        .split('\n')
+        .filter(line => line.startsWith('M '))
+        .map(line => line.slice(2).trim())
+      for (const file of modifiedFiles) {
+        await execPromise(`touch "${file}"`, { cwd: sourceFolder })
+      }
+    }
+
+    return { status: 'success', data: 'Cleanup completed successfully' }
   } catch (error) {
     return { status: 'error', message: error instanceof Error ? error.message : String(error) }
   }

@@ -9,9 +9,8 @@ import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import 'ldrs/react/Quantum.css'
-import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, Info, RotateCcw, RefreshCw, History } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
-import { toast } from 'sonner'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
 
@@ -142,7 +141,7 @@ async function changedFiles(): Promise<SvnFile[]> {
   const result = await window.api.svn.changed_files()
   const { status, message, data } = result
   if (status === 'error') {
-    toast.error(message)
+    ToastMessageFunctions.error(message)
     return [] as SvnFile[]
   }
   return data as SvnFile[]
@@ -187,7 +186,7 @@ export const DataTable = forwardRef((props, ref) => {
       const result = await changedFiles()
       setData(result)
     } catch (err) {
-      console.error('Error reloading SVN files:', err)
+      ToastMessageFunctions.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -224,7 +223,6 @@ export const DataTable = forwardRef((props, ref) => {
             parentRow.toggleSelected(true)
           }
           currentPath = parentPath
-          console.log(`parentDirectory: [${currentPath}]`)
         }
         for (const r of rows) {
           const childPath = r.original.filePath.replaceAll('\\', '/')
@@ -257,7 +255,7 @@ export const DataTable = forwardRef((props, ref) => {
     try {
       window.api.new_window.open_diff(filePath)
     } catch (error) {
-      console.error('Error loading file for diff:', error)
+      ToastMessageFunctions.error(error)
     }
   }
 
@@ -268,7 +266,6 @@ export const DataTable = forwardRef((props, ref) => {
   const info = async (filePath: string) => {
     const result = await window.api.svn.info(filePath)
     const { status, message, data } = result
-    console.log(result)
     if (status === 'success') {
       return ToastMessageFunctions.info(data)
     }
@@ -289,7 +286,6 @@ export const DataTable = forwardRef((props, ref) => {
         ToastMessageFunctions.error(result.message)
       }
     } catch (error) {
-      console.error('Error reverting file:', error)
       ToastMessageFunctions.error(`Error reverting file: ${error}`)
     }
   }
@@ -305,7 +301,6 @@ export const DataTable = forwardRef((props, ref) => {
         ToastMessageFunctions.error(result.message)
       }
     } catch (error) {
-      console.error('Error updating file:', error)
       ToastMessageFunctions.error(`Error updating file: ${error}`)
     }
   }
@@ -393,10 +388,7 @@ export const DataTable = forwardRef((props, ref) => {
                         <History strokeWidth={1} className="ml-3 h-4 w-4" />
                       </ContextMenuShortcut>
                     </ContextMenuItem>
-                    <ContextMenuItem
-                      disabled={row.original.status === '?'}
-                      onClick={() => revertFile(row.original.filePath)}
-                    >
+                    <ContextMenuItem disabled={row.original.status === '?'} onClick={() => revertFile(row.original.filePath)}>
                       Revert
                       <ContextMenuShortcut>
                         <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />

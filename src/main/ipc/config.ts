@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises'
+import path, { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { IPC } from 'main/constants'
 import { blame } from 'main/svn/blame'
@@ -7,13 +10,10 @@ import { cleanup } from 'main/svn/cleanup'
 import { commit } from 'main/svn/commit'
 import { getDiff } from 'main/svn/get-diff'
 import { info } from 'main/svn/info'
-import { logXML } from 'main/svn/log-xml'
+import { log } from 'main/svn/log'
 import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
 import { update } from 'main/svn/update'
-import { readFile } from 'node:fs/promises'
-import path, { join, resolve } from 'node:path'
-import { format } from 'node:url'
 import OpenAI from 'openai'
 import { ENVIRONMENT } from 'shared/constants'
 import appearanceStore from '../store/AppearanceStore'
@@ -45,9 +45,7 @@ export function registerConfigIpcHandlers() {
         // Re-run SpotBugs analysis on the current files
         try {
           // Get the filePaths from the window's properties
-          const filePaths = win.webContents.getTitle().includes('Spotbugs')
-            ? (win as any).filePaths || []
-            : []
+          const filePaths = win.webContents.getTitle().includes('Spotbugs') ? (win as any).filePaths || [] : []
 
           if (filePaths.length > 0) {
             // Run SpotBugs analysis
@@ -60,12 +58,12 @@ export function registerConfigIpcHandlers() {
               // Send the result to the renderer
               win.webContents.send('load-diff-data', {
                 filePaths,
-                spotbugsResult: parsedResult
+                spotbugsResult: parsedResult,
               })
             } else {
               win.webContents.send('load-diff-data', {
                 filePaths,
-                error: result.message
+                error: result.message,
               })
             }
           }
@@ -73,7 +71,7 @@ export function registerConfigIpcHandlers() {
           console.error('Error refreshing SpotBugs:', error)
           win.webContents.send('load-diff-data', {
             filePaths: [],
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? error.message : String(error),
           })
         }
         break
@@ -164,7 +162,7 @@ export function registerConfigIpcHandlers() {
     })
   })
 
-  ipcMain.on(IPC.WINDOW.CHECK_CODING_RULES, (event, text) => {
+  ipcMain.on(IPC.WINDOW.CHECK_CODING_RULES, (event, selectedFiles) => {
     const window = new BrowserWindow({
       width: 1365,
       height: 768,
@@ -196,7 +194,7 @@ export function registerConfigIpcHandlers() {
     }
 
     window.webContents.on('did-finish-load', () => {
-      window.webContents.send('load-diff-data', { text })
+      window.webContents.send('load-diff-data', { selectedFiles })
     })
     window.webContents.on('did-finish-load', () => {
       if (ENVIRONMENT.IS_DEV) {
@@ -229,7 +227,7 @@ export function registerConfigIpcHandlers() {
     Object.defineProperty(spotbugsWindow, 'filePaths', {
       value: filePaths,
       writable: true,
-      configurable: true
+      configurable: true,
     })
 
     if (ENVIRONMENT.IS_DEV) {
@@ -257,19 +255,19 @@ export function registerConfigIpcHandlers() {
           // Send the result to the renderer
           spotbugsWindow.webContents.send('load-diff-data', {
             filePaths,
-            spotbugsResult: parsedResult
+            spotbugsResult: parsedResult,
           })
         } else {
           spotbugsWindow.webContents.send('load-diff-data', {
             filePaths,
-            error: result.message
+            error: result.message,
           })
         }
       } catch (error) {
         console.error('Error running SpotBugs:', error)
         spotbugsWindow.webContents.send('load-diff-data', {
           filePaths,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         })
       }
 
@@ -277,45 +275,6 @@ export function registerConfigIpcHandlers() {
         spotbugsWindow.webContents.openDevTools({ mode: 'bottom' })
       }
       spotbugsWindow.show()
-    })
-  })
-
-  ipcMain.on(IPC.WINDOW.CLEAN_DIALOG, (event) => {
-    const window = new BrowserWindow({
-      width: 600,
-      height: 700,
-      minWidth: 500,
-      minHeight: 600,
-      center: true,
-      frame: false,
-      autoHideMenuBar: true,
-      title: 'SVN Cleanup',
-      webPreferences: {
-        contextIsolation: true,
-        nodeIntegration: false,
-        preload: join(__dirname, '../preload/index.js'),
-        sandbox: false,
-      },
-    })
-
-    if (ENVIRONMENT.IS_DEV) {
-      window.loadURL('http://localhost:4927/#/clean-dialog')
-    } else {
-      window.loadURL(
-        format({
-          pathname: resolve(__dirname, '../renderer/index.html'),
-          protocol: 'file:',
-          slashes: true,
-          hash: '/clean-dialog',
-        })
-      )
-    }
-
-    window.webContents.on('did-finish-load', () => {
-      if (ENVIRONMENT.IS_DEV) {
-        window.webContents.openDevTools({ mode: 'bottom' })
-      }
-      window.show()
     })
   })
 
@@ -334,12 +293,12 @@ export function registerConfigIpcHandlers() {
   ipcMain.handle(IPC.SVN.GET_DIFF, async (_event, selectedFiles: any[]) => await getDiff(selectedFiles))
   ipcMain.handle(IPC.SVN.OPEN_DIFF, async (_event, file: string, status: string) => await openDiff(file, status))
   ipcMain.handle(IPC.SVN.COMMIT, async (_event, commitMessage: string, violations: string, selectedFiles: any[]) => await commit(commitMessage, violations, selectedFiles))
-  ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string) => await info(filePath))
+  ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string, revision: string) => await info(filePath, revision))
   ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string) => await cat(filePath))
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
   ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string) => await revert(filePath))
   ipcMain.handle(IPC.SVN.CLEANUP, async (_event, options?: string[]) => await cleanup(options))
-  ipcMain.handle(IPC.SVN.LOG_XML, async (_event, filePath: string) => await logXML(filePath))
+  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string) => await log(filePath))
   ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string) => await update(filePath))
 
   ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, { prompt }) => {

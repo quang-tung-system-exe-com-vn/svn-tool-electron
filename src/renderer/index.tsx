@@ -12,7 +12,7 @@ ReactDom.createRoot(document.querySelector('app') as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <AppRoutes />
-      <Toaster position="top-center" />
+      <Toaster position="bottom-center" />
     </ThemeProvider>
   </React.StrictMode>
 )

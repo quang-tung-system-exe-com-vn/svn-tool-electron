@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -17,7 +17,12 @@ import { useMailServerStore } from '../stores/useMailServerStore'
 import { useWebhookStore } from '../stores/useWebhookStore'
 import { AddWebhookDialog } from './AddNewWebhookDialog'
 
-export function SettingsDialog() {
+interface SettingsDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { theme, setTheme, fontSize, setFontSize, fontFamily, setFontFamily, buttonVariant, setButtonVariant, language, setLanguage } = useAppearanceStore()
   const { t, i18n } = useTranslation()
   useEffect(() => {
@@ -75,20 +80,16 @@ export function SettingsDialog() {
 
   return (
     <Dialog
-      onOpenChange={open => {
-        if (open) {
+      open={open}
+      onOpenChange={value => {
+        if (value) {
           loadWebhookConfig()
           loadConfigurationConfig()
           loadMailServerConfig()
         }
+        onOpenChange?.(value)
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start p-2 h-8 font-normal">
-          <Settings />
-          {t('menu.settings')}
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('menu.settings')}</DialogTitle>

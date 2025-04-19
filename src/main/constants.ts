@@ -5,7 +5,6 @@ export const IPC = {
     SHOW_LOG: 'show-log',
     CHECK_CODING_RULES: 'check-coding-rules',
     SPOTBUGS: 'spotbugs',
-    CLEAN_DIALOG: 'clean-dialog'
   },
   SETTING: {
     APPEARANCE: {
@@ -35,7 +34,7 @@ export const IPC = {
     BLAME: 'svn:blame',
     REVERT: 'svn:revert',
     CLEANUP: 'svn:cleanup',
-    LOG_XML: 'svn:log-xml',
+    LOG: 'svn:log',
     UPDATE: 'svn:update',
   },
   OPENAI: {

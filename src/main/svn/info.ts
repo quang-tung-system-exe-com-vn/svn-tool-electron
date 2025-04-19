@@ -5,14 +5,22 @@ const { sourceFolder } = configurationStore.store
 
 const execPromise = promisify(exec)
 
-export async function info(filePath: string): Promise<SVNResponse> {
+export async function info(filePath: string, revision?: 'HEAD' | string): Promise<SVNResponse> {
   try {
-    const { stdout, stderr } = await execPromise(`svn info ${filePath}`, { cwd: sourceFolder })
-    if (stderr) {
-      return { status: 'error', message: 'Error executing svn info' }
+    const revArg = revision ? `--show-item revision -r ${revision}` : ''
+    const command = `svn info ${revArg} "${filePath}"`
+    const { stdout, stderr } = await execPromise(command, { cwd: sourceFolder })
+
+    if (stderr?.trim()) {
+      return { status: 'error', message: `SVN stderr: ${stderr.trim()}` }
     }
+
+    console.log(command)
     return { status: 'success', data: stdout.trim() }
   } catch (error) {
-    return { status: 'error', message: error instanceof Error ? error.message : String(error) }
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    }
   }
 }

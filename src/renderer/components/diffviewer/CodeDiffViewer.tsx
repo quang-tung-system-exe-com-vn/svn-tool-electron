@@ -5,6 +5,15 @@ import { OverlayLoader } from '../ui-elements/OverlayLoader'
 import { DiffFooterBar } from './DiffFooterBar'
 import { DiffToolbar } from './DiffToolbar'
 
+window.addEventListener('storage', event => {
+  if (event.key === 'ui-settings') {
+    const style = JSON.parse(event.newValue || '{}')
+    document.documentElement.setAttribute('data-font-size', style.state.fontSize)
+    document.documentElement.setAttribute('data-font-family', style.state.fontFamily)
+    document.documentElement.setAttribute('data-button-variant', style.state.buttonVariant)
+  }
+})
+
 export function CodeDiffViewer() {
   const monaco = useMonaco()
   const { resolvedTheme } = useTheme()
@@ -168,10 +177,10 @@ export function CodeDiffViewer() {
         'editor.background': '#202020',
         'editorLineNumber.foreground': '#6c7086',
         'editorCursor.foreground': '#f38ba8',
-        'diffEditor.insertedTextBackground': '#00ff0038',
-        'diffEditor.removedTextBackground': '#ff000038',
-        'diffEditor.insertedLineBackground': '#00aa0038',
-        'diffEditor.removedLineBackground': '#aa000038',
+        'diffEditor.insertedTextBackground': '#00fa5120',
+        'diffEditor.removedTextBackground': '#ff000220',
+        'diffEditor.insertedLineBackground': '#00aa5120',
+        'diffEditor.removedLineBackground': '#aa000220',
       },
     })
 
@@ -228,20 +237,10 @@ export function CodeDiffViewer() {
     setModifiedCode(originalCode)
   }
 
-  const handleExport = () => {
-    // TODO: add real logic
-    console.log('Exporting diff')
-  }
-
-  const handleImport = () => {
-    // TODO: add real logic
-    console.log('Importing diff')
-  }
-
   return (
     <div className="flex flex-col w-full h-full">
       <OverlayLoader isLoading={isLoading} />
-      <DiffToolbar onRefresh={handleRefresh} onSwapSides={handleSwap} onExport={handleExport} onImport={handleImport} />
+      <DiffToolbar onRefresh={handleRefresh} onSwapSides={handleSwap} isLoading={isLoading} />
       <div className="flex-1 overflow-hidden">
         <DiffEditor
           height="100%"

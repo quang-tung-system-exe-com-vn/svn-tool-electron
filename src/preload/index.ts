@@ -32,12 +32,12 @@ declare global {
         get_diff: (selectedFiles: any[]) => Promise<SVNResponse>
         open_dif: (filePath: string, status: string) => Promise<SVNResponse>
         commit: (commitMessage: string, violations: string, selectedFiles: any[]) => Promise<SVNResponse>
-        info: (filePath: string) => Promise<any>
+        info: (filePath: string, revision?: string) => Promise<any>
         cat: (filePath: string) => Promise<any>
         blame: (filePath: string) => Promise<any>
         revert: (filePath: string) => Promise<any>
         cleanup: (options?: string[]) => Promise<any>
-        log_xml: (filePath: string) => Promise<any>
+        log: (filePath: string) => Promise<any>
         update: (filePath?: string) => Promise<any>
       }
 
@@ -131,12 +131,12 @@ contextBridge.exposeInMainWorld('api', {
     get_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_DIFF, selectedFiles),
     open_dif: (filePath: string, status: string) => ipcRenderer.invoke(IPC.SVN.OPEN_DIFF, filePath, status),
     commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
-    info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
+    info: (filePath: string, revision: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath, revision),
     cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
     blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
     revert: (filePath: string) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
     cleanup: (options?: string[]) => ipcRenderer.invoke(IPC.SVN.CLEANUP, options),
-    log_xml: (filePath: string) => ipcRenderer.invoke(IPC.SVN.LOG_XML, filePath),
+    log: (filePath: string) => ipcRenderer.invoke(IPC.SVN.LOG, filePath),
     update: (filePath?: string) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
   },
 

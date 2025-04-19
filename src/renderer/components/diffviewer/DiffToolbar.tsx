@@ -1,20 +1,18 @@
-// src/renderer/components/DiffToolbar.tsx
-
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { t } from 'i18next'
-import { Columns, Minus, RotateCw, Square, X } from 'lucide-react'
+import { Columns, Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
+import { GlowLoader } from '../ui-elements/GlowLoader'
+import { RoundIcon } from '../ui-elements/RoundIcon'
 
 interface DiffToolbarProps {
   onRefresh?: () => void
   onSwapSides?: () => void
-  onExport?: () => void
-  onImport?: () => void
+  isLoading: boolean
 }
 
-export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, onExport, onImport }) => {
+export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, isLoading }) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -31,10 +29,11 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
       }
     >
       <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+        <div className="w-10 h-6 flex justify-center">{isLoading ? <GlowLoader className="w-8 h-6 py-1" /> : <RoundIcon className="w-8 h-6 py-1" />}</div>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="link" size="sm" onClick={onRefresh} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
-              <RotateCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Refresh Diff</TooltipContent>
@@ -48,26 +47,6 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
           </TooltipTrigger>
           <TooltipContent>Swap Sides</TooltipContent>
         </Tooltip>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={onExport}>
-              <Download className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Export to File</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={onImport}>
-              <Upload className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Import from File</TooltipContent>
-        </Tooltip> */}
       </div>
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs text-gray-200">
