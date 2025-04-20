@@ -57,17 +57,11 @@ export function initAutoUpdater(window: BrowserWindow) {
         const currentVersion = app.getVersion()
         const latestVersion = updateCheckResult.updateInfo.version
         const updateAvailable = latestVersion !== currentVersion
-        let releaseNotes: string | undefined
-        const rawNotes = updateCheckResult.updateInfo.releaseNotes
-        if (typeof rawNotes === 'string') {
-          releaseNotes = rawNotes
-        } else if (Array.isArray(rawNotes)) {
-          releaseNotes = rawNotes.map(r => r.note).join('\n\n')
-        }
+
+        const downloadResult = await autoUpdater.checkForUpdates()
         return {
           status: updateAvailable ? 'available' : 'not-available',
           version: latestVersion,
-          releaseNotes,
         }
       }
       return { status: 'not-available' }

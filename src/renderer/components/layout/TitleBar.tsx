@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Eraser, FileText, Info, Minus, RefreshCw, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { Download, Eraser, FileText, Info, Minus, RefreshCw, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -23,14 +23,13 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   const [showSettings, setShowSettings] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const [showClean, setShowClean] = useState(false)
-  const [hasAppUpdate, setHasAppUpdate] = useState(false)
   const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
   const [newVersionInfo, setNewVersionInfo] = useState<string>('')
-  const [releaseNotes, setReleaseNotes] = useState<string>('')
   const [newRevisionInfo, setNewRevisionInfo] = useState<string>('')
   const [showSvnUpdateDialog, setShowSvnUpdateDialog] = useState(false)
   const [svnRevisionInfo, setSvnRevisionInfo] = useState<string>('')
   const [resetSvnUpdateIndicator, setResetSvnUpdateIndicator] = useState(false)
+  const [status, setStatus] = useState('')
 
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
@@ -38,12 +37,11 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
 
   useEffect(() => {
     const handler = (_event: any, data: any) => {
+      setStatus(data.status)
+      console.log(data)
       if (data.status === 'available') {
         if (data.version) {
           setNewVersionInfo(`v${data.version}`)
-        }
-        if (data.releaseNotes) {
-          setReleaseNotes(data.releaseNotes)
         }
       }
     }
@@ -53,16 +51,18 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     }
   }, [])
 
-  const showUpdateToast = (version?: string, notes?: string) => {
+  const showUpdateToast = (version?: string) => {
     toast.custom(
       id => (
         <div className="bg-card p-4 rounded-lg shadow-lg border max-w-md">
-          <h3 className="font-semibold mb-2">{t('New Update Available')}</h3>
-          <p className="mb-2 text-md">
-            {t('A new version of the application is available:')} {version && `v${version}`}
+          <h3 className="flex flex-row gap-2 items-center font-semibold mb-2">
+            <Download className="w-4 h-4" />
+            {t('New Update Available')}
+          </h3>
+          <p className="mb-2 text-[0.85rem]">
+            {t('A new version of the application is available:')} {version && `${version}`}
           </p>
-          {notes && <div className="max-h-[150px] overflow-y-auto border rounded p-2 mb-4 whitespace-pre-wrap">{notes}</div>}
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-5">
             <Button variant="outline" size="sm" onClick={() => toast.dismiss(id)}>
               {t('Cancel')}
             </Button>
@@ -90,27 +90,27 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   }
 
   const checkForUpdates = async () => {
-    try {
-      setCheckingUpdate(true)
-      ToastMessageFunctions.info(t('Checking for updates...'))
-      const result = await window.api.updater.check_for_updates()
-      if (result.status === 'available') {
-        setHasAppUpdate(true)
-        if (result.version) {
-          setNewVersionInfo(`v${result.version}`)
-        }
-        if (result.releaseNotes) {
-          setReleaseNotes(result.releaseNotes)
-        }
-        showUpdateToast(result.version, result.releaseNotes)
-      } else {
-        ToastMessageFunctions.info(t('No updates available. You are using the latest version.'))
-      }
-    } catch (error) {
-      ToastMessageFunctions.error(t('Failed to check for updates'))
-    } finally {
-      setCheckingUpdate(false)
+    if (status === 'downloaded') {
+      showUpdateToast(newVersionInfo)
+      return
     }
+    // try {
+    //   setCheckingUpdate(true)
+    //   ToastMessageFunctions.info(t('Checking for updates...'))
+    //   const result = await window.api.updater.check_for_updates()
+    //   if (result.status === 'available') {
+    //     if (result.version) {
+    //       setNewVersionInfo(`v${result.version}`)
+    //     }
+    //     showUpdateToast(result.version)
+    //   } else {
+    //     ToastMessageFunctions.info(t('No updates available. You are using the latest version.'))
+    //   }
+    // } catch (error) {
+    //   ToastMessageFunctions.error(t('Failed to check for updates'))
+    // } finally {
+    //   setCheckingUpdate(false)
+    // }
   }
 
   const onUpdateSvn = () => {
@@ -154,7 +154,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     const checkAppUpdates = async () => {
       try {
         const result = await window.api.updater.check_for_updates()
-        setHasAppUpdate(result.status === 'available')
         if (result.status === 'available' && result.version) {
           setNewVersionInfo(`v${result.version}`)
         }
@@ -296,10 +295,10 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                   >
                     <RefreshCw strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
-                    {hasAppUpdate && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
+                    {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{hasAppUpdate ? t('New update available!') + (newVersionInfo ? ` (${newVersionInfo})` : '') : t('Check for Updates')}</TooltipContent>
+                <TooltipContent>{status === 'downloaded' ? t('New update available!') + (newVersionInfo ? ` (${newVersionInfo})` : '') : t('Check for Updates')}</TooltipContent>
               </Tooltip>
             </div>
           </div>

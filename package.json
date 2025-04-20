@@ -2,7 +2,7 @@
   "displayName": "SVNTool",
   "name": "svn-tool-electron",
   "description": "An internal desktop tool for managing SVN workflows. Includes commit generation, log viewing, cleanup operations, and real-time diff inspection.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
