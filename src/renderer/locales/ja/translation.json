@@ -1,0 +1,89 @@
+{
+  "common": {
+    "close": "閉じる"
+  },
+  "message": {
+    "commitMessageWarning": "コミットメッセージを入力してください！",
+    "noFilesWarning": "ファイルが選択されていません！"
+  },
+  "menu": {
+    "info": "メニュー",
+    "about": "アバウト",
+    "version": "バージョン",
+    "logs": "ログ",
+    "showLogs": "ログを表示",
+    "clearLogs": "ログをクリア",
+    "support": "サポート",
+    "contact": "お問い合わせ",
+    "faq": "よくある質問",
+    "settings": "設定"
+  },
+  "action": {
+    "refresh": "更新",
+    "generate": "コミットメッセージを生成",
+    "check": "コーディングルールを確認",
+    "commit": "コードをコミット"
+  },
+  "label": {
+    "changesMade": "変更内容",
+    "commitMessage": "コミットメッセージ"
+  },
+  "table": {
+    "status": "ステータス",
+    "filePath": "ファイルパス"
+  },
+  "placeholder": {
+    "commitMessage": "コミットメッセージを入力してください..."
+  },
+  "theme": {
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム"
+  },
+  "aboutDialog": {
+    "title": "SVN Tool",
+    "description": "このアプリケーションは、SVNの差分から意味のあるコミットメッセージを生成し、コーディング規約をチェックするために開発されました。",
+    "developer": "開発者",
+    "version": "バージョン",
+    "email": "メール",
+    "github": "GitHub",
+    "close": "閉じる"
+  },
+  "settings": {
+    "fontSize": "文字サイズ",
+    "theme": "テーマ",
+    "language": "言語",
+    "buttonVariant": "ボタンのバリアント",
+    "fontFamily": "フォントファミリー",
+    "description": "設定はローカルストレージに保存されます。アプリケーションのフォントサイズ、テーマ、言語を変更できます。",
+    "tab": {
+      "appearance": "外観",
+      "configuration": "設定",
+      "mailserver": "メールサーバー"
+    }
+  },
+  "fontSize": {
+    "small": "小",
+    "medium": "中",
+    "large": "大"
+  },
+  "fontFamily": {
+    "sans": "Sans",
+    "serif": "Serif",
+    "mono": "Monospace"
+  },
+  "toast": {
+    "success": "成功",
+    "error": "エラー",
+    "info": "情報",
+    "warning": "警告"
+  },
+  "notification": {
+    "commitSuccess": "コミットが成功しました",
+    "commitError": "コミット中にエラーが発生しました",
+    "checkSuccess": "コーディングルールの確認が成功しました",
+    "checkError": "コーディングルールの確認中にエラーが発生しました",
+    "generateSuccess": "コミットメッセージの生成が成功しました",
+    "generateError": "コミットメッセージの生成中にエラーが発生しました"
+  }
+}
