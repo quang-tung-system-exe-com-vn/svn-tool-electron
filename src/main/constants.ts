@@ -36,6 +36,7 @@ export const IPC = {
     CLEANUP: 'svn:cleanup',
     LOG: 'svn:log',
     UPDATE: 'svn:update',
+    STATISTICS: 'svn:statistics',
   },
   OPENAI: {
     SEND_MESSAGE: 'openai:send-message',

@@ -29,4 +29,8 @@ type SVNResponse = {
   status: string
   message?: string
   data?: any
+  pagination?: {
+    limit: number
+    offset: number
+  }
 }

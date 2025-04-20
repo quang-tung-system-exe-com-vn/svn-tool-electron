@@ -32,9 +32,10 @@ declare global {
         blame: (filePath: string) => Promise<any>
         revert: (filePath: string) => Promise<any>
         cleanup: (options?: string[]) => Promise<any>
-        log: (filePath: string) => Promise<any>
+        log: (filePath: string, options?: { limit?: number; offset?: number }) => Promise<any>
         update: (filePath?: string) => Promise<any>
         open_diff: (filePath: string) => void
+        statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) => Promise<any>
       }
 
       openai: {
@@ -121,9 +122,11 @@ contextBridge.exposeInMainWorld('api', {
     blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
     revert: (filePath: string) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
     cleanup: (options?: string[]) => ipcRenderer.invoke(IPC.SVN.CLEANUP, options),
-    log: (filePath: string) => ipcRenderer.invoke(IPC.SVN.LOG, filePath),
+    log: (filePath: string, options?: { limit?: number; offset?: number }) => ipcRenderer.invoke(IPC.SVN.LOG, filePath, options),
     update: (filePath?: string) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
     open_diff: (filePath: string) => ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, filePath),
+    statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) =>
+      ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),
   },
 
   updater: {

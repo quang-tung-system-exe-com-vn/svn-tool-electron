@@ -1,10 +1,27 @@
 {
   "common": {
-    "close": "Đóng"
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "save": "Lưu thay đổi",
+    "add": "Thêm",
+    "delete": "Xóa",
+    "install": "Cài đặt",
+    "update": "Cập nhật ngay",
+    "refresh": "Làm mới",
+    "reload": "Tải lại",
+    "choose": "Chọn thư mục",
+    "swap": "Đổi bên"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
-    "noFilesWarning": "Chưa có file nào được chọn!"
+    "noFilesWarning": "Chưa có file nào được chọn!",
+    "configSaved": "Đã lưu cấu hình!",
+    "configError": "Lỗi khi lưu cấu hình",
+    "noResults": "Chưa có kết quả phân tích.",
+    "loading": "Đang tải...",
+    "noIssues": "Không tìm thấy vấn đề",
+    "selectIssue": "Chọn một vấn đề để xem chi tiết",
+    "errorLoading": "Lỗi khi tải file để so sánh:"
   },
   "menu": {
     "info": "Danh mục",
@@ -20,20 +37,40 @@
   },
   "action": {
     "refresh": "Làm mới",
+    "refreshDiff": "Làm mới so sánh",
     "generate": "Tạo thông điệp commit",
     "check": "Kiểm tra quy tắc mã hóa",
     "commit": "Commit mã"
   },
   "label": {
     "changesMade": "Các thay đổi",
-    "commitMessage": "Thông điệp commit"
+    "commitMessage": "Thông điệp commit",
+    "line": "Dòng",
+    "column": "Cột",
+    "spaces": "Khoảng trắng:",
+    "encoding": "UTF-8"
   },
   "table": {
     "status": "Trạng thái",
-    "filePath": "Đường dẫn tập tin"
+    "filePath": "Đường dẫn tập tin",
+    "severity": "Mức độ nghiêm trọng",
+    "issue": "Vấn đề",
+    "line": "Dòng",
+    "type": "Loại",
+    "message": "Thông báo",
+    "category": "Danh mục",
+    "priority": "Ưu tiên",
+    "rank": "Xếp hạng",
+    "location": "Vị trí",
+    "file": "Tập tin",
+    "class": "Lớp",
+    "method": "Phương thức"
   },
   "placeholder": {
-    "commitMessage": "Nhập thông điệp commit..."
+    "commitMessage": "Nhập thông điệp commit...",
+    "search": "Tìm kiếm",
+    "selectLanguage": "Chọn ngôn ngữ...",
+    "noLanguage": "Không tìm thấy ngôn ngữ."
   },
   "theme": {
     "light": "Sáng",
@@ -60,6 +97,33 @@
       "appearance": "Giao diện",
       "configuration": "Cấu hình",
       "mailserver": "Máy chủ gửi mail"
+    },
+    "config": {
+      "title": "Cấu hình",
+      "description": "Cấu hình cài đặt dự án của bạn.",
+      "openaiKey": "Khóa API OpenAI",
+      "openaiKeyPlaceholder": "Nhập khóa API OpenAI của bạn",
+      "svnFolder": "Thư mục SVN",
+      "svnFolderPlaceholder": "Chọn thư mục SVN",
+      "sourceFolder": "Thư mục nguồn",
+      "sourceFolderPlaceholder": "Chọn thư mục nguồn",
+      "emailPL": "Email PL",
+      "emailPlaceholder": "Nhập địa chỉ email",
+      "webhookMS": "Webhook MS",
+      "webhookPlaceholder": "Chọn Webhook",
+      "addWebhook": "Thêm Webhook mới"
+    },
+    "mailServer": {
+      "title": "Cấu hình máy chủ mail",
+      "description": "Cấu hình cài đặt máy chủ mail của bạn.",
+      "smtpServer": "Máy chủ SMTP",
+      "smtpPlaceholder": "Nhập máy chủ SMTP của bạn",
+      "port": "Cổng",
+      "portPlaceholder": "Nhập cổng SMTP",
+      "email": "Email",
+      "emailPlaceholder": "Nhập địa chỉ email của bạn",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu của bạn"
     }
   },
   "fontSize": {
@@ -78,6 +142,55 @@
     "checkSuccess": "Kiểm tra thành công",
     "checkError": "Lỗi kiểm tra",
     "generateSuccess": "Tạo thông điệp commit thành công",
-    "generateError": "Lỗi tạo thông điệp commit"
+    "generateError": "Lỗi tạo thông điệp commit",
+    "updateAvailable": "Có bản cập nhật mới!",
+    "checkUpdates": "Kiểm tra cập nhật",
+    "updatingMessage": "Đang cập nhật SVN...",
+    "updateSuccess": "Cập nhật SVN thành công",
+    "updateError": "Lỗi khi cập nhật SVN",
+    "spotbugsError": "Lỗi khi chạy SpotBugs:",
+    "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {0} vấn đề được tìm thấy",
+    "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs..."
+  },
+  "svn": {
+    "status": {
+      "added": "Đã thêm",
+      "modified": "Đã sửa đổi",
+      "deleted": "Đã xóa",
+      "replaced": "Đã thay thế",
+      "conflicted": "Xung đột",
+      "external": "Bên ngoài",
+      "ignored": "Bỏ qua",
+      "unversioned": "Chưa quản lý phiên bản",
+      "missing": "Thiếu",
+      "typeChanged": "Đã thay đổi loại"
+    },
+    "update": {
+      "title": "Có phiên bản SVN mới",
+      "newRevision": "Có phiên bản SVN mới!",
+      "updateSvn": "Cập nhật SVN",
+      "cleanSvn": "Dọn dẹp SVN",
+      "showLogsSvn": "Xem nhật ký SVN"
+    },
+    "log": {
+      "title": "Nhật ký SVN",
+      "titleWithPath": "Nhật ký SVN: {0}"
+    }
+  },
+  "ui": {
+    "application": "Ứng dụng",
+    "diffViewer": "Trình xem so sánh",
+    "codingRules": "Phân tích quy tắc mã hóa",
+    "spotbugs": {
+      "title": "Phân tích SpotBugs",
+      "filesAnalyzed": "Các tập tin đã phân tích",
+      "totalIssues": "Tổng số vấn đề",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "allIssues": "Tất cả vấn đề",
+      "issues": "Vấn đề",
+      "issueDetails": "Chi tiết vấn đề"
+    }
   }
 }

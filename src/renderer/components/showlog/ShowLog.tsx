@@ -1,18 +1,20 @@
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
-import { forwardRef, useEffect, useState } from 'react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react'
+import type { DateRange } from 'react-day-picker'
 import { toast } from 'sonner'
 import { STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { StatusIcon } from '../ui-elements/StatusIcon'
-import { ShowlogToolbar } from './ShowlogToolbar'
-
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '../ui/textarea'
+import { StatisticDialog } from '../dialogs/StatisticDialog'
+import { ShowlogToolbar } from './ShowlogToolbar'
 
 window.addEventListener('storage', event => {
   if (event.key === 'ui-settings') {
@@ -35,6 +37,36 @@ interface LogEntry {
 interface LogFile {
   action: SvnStatusCode
   filePath: string
+}
+
+interface CommitByDate {
+  date: string
+  count: number
+}
+
+interface CommitByAuthor {
+  author: string
+  count: number
+}
+
+interface AuthorshipData {
+  author: string
+  percentage: number
+  count: number
+}
+
+interface SummaryData {
+  author: string
+  count: number
+  percentage: number
+}
+
+interface StatisticsData {
+  commitsByDate: CommitByDate[]
+  commitsByAuthor: CommitByAuthor[]
+  authorship: AuthorshipData[]
+  summary: SummaryData[]
+  totalCommits: number
 }
 
 export const columns: ColumnDef<LogEntry>[] = [
@@ -134,22 +166,77 @@ export function ShowLog() {
   const [commitMessage, setCommitMessage] = useState('')
   const [changedFiles, setChangedFiles] = useState<LogFile[]>([])
   const [statusSummary, setStatusSummary] = useState<Record<SvnStatusCode, number>>({} as Record<SvnStatusCode, number>)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  // Date range state - mặc định là 1 tuần trước đến ngày hiện tại
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const today = new Date()
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(today.getDate() - 7)
+    return {
+      from: oneWeekAgo,
+      to: today,
+    }
+  })
+
+  // Statistic dialog state
+  const [isStatisticOpen, setIsStatisticOpen] = useState(false)
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalEntries, setTotalEntries] = useState(0)
+  const [hasMoreEntries, setHasMoreEntries] = useState(true)
+  const pageSize = 50 // Số lượng log entries mỗi trang
+
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [data, setData] = useState<LogEntry[]>([])
 
   useEffect(() => {
     const handler = (_event: any, { filePath }: any) => {
       setFilePath(filePath)
-      loadLogData(filePath)
+      // Reset pagination when loading new file
+      setCurrentPage(1)
+      setTotalEntries(0)
+      setHasMoreEntries(true)
+      loadLogData(filePath, 1)
     }
     window.api.on('load-diff-data', handler)
   }, [])
-  const loadLogData = async (path: string) => {
+
+  // Tải lại dữ liệu khi dateRange thay đổi
+  useEffect(() => {
+    if (filePath) {
+      // Reset pagination when date range changes
+      setCurrentPage(1)
+      setHasMoreEntries(true)
+      loadLogData(filePath, 1)
+    }
+  }, [dateRange])
+
+  const loadLogData = async (path: string, page = currentPage) => {
     try {
       setCommitMessage('')
       setChangedFiles([])
       setStatusSummary({} as Record<SvnStatusCode, number>)
       table.resetRowSelection()
       setIsLoading(true)
-      const result = await window.api.svn.log(path)
+
+      // Tính offset dựa trên trang hiện tại
+      const offset = (page - 1) * pageSize
+
+      // Chuẩn bị tham số cho API
+      const options: any = { limit: pageSize, offset }
+
+      // Thêm date range nếu có
+      if (dateRange?.from) {
+        options.dateFrom = dateRange.from.toISOString()
+        if (dateRange.to) {
+          options.dateTo = dateRange.to.toISOString()
+        }
+      }
+
+      // Gọi API với tham số phân trang và date range
+      const result = await window.api.svn.log(path, options)
 
       if (result.status === 'success') {
         const rawLog = result.data as string
@@ -157,6 +244,13 @@ export function ShowLog() {
           .split('------------------------------------------------------------------------')
           .map(entry => entry.trim())
           .filter(entry => entry)
+
+        // Cập nhật trạng thái phân trang
+        if (result.pagination) {
+          // Nếu số lượng entries nhỏ hơn pageSize, có thể đã hết entries
+          setHasMoreEntries(entries.length >= pageSize)
+          setCurrentPage(page)
+        }
 
         const parsedEntries: LogEntry[] = []
 
@@ -183,13 +277,14 @@ export function ShowLog() {
 
           while (i < lines.length) {
             const line = lines[i]
-            const actionCode = line.charAt(0)
+            const match = line.match(/^([A-Z\?\!~])\s+(\/.+)$/)
+            if (!match) break
 
+            const [, actionCode, filePath] = match
             if (!isSvnStatusCode(actionCode)) break
 
-            const filePath = line.substring(2).trim()
             changedFiles.push({
-              action: actionCode, // ✅ đã kiểm tra bằng type guard
+              action: actionCode,
               filePath,
             })
             i++
@@ -206,7 +301,6 @@ export function ShowLog() {
             changedFiles,
           })
         }
-
         setData(parsedEntries)
 
         if (parsedEntries.length > 0) {
@@ -241,39 +335,74 @@ export function ShowLog() {
     }
   }
 
-  const selectRevision = async (revision: string) => {
-    setSelectedRevision(revision)
-    const entry = data.find(e => e.revision === revision)
-    if (entry) {
-      setCommitMessage(entry.message)
-      setChangedFiles(entry.changedFiles)
+  // Memoize the calculation of status summary to improve performance
+  const calculateStatusSummary = useCallback((changedFiles: LogFile[]) => {
+    const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
 
-      // Calculate status summary
-      const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
-
-      // Initialize all status codes with 0
-      for (const code of Object.keys(STATUS_TEXT)) {
-        summary[code as SvnStatusCode] = 0
-      }
-
-      // Count files by status
-      for (const file of entry.changedFiles) {
-        summary[file.action] = (summary[file.action] || 0) + 1
-      }
-
-      setStatusSummary(summary)
+    // Initialize all status codes with 0
+    for (const code of Object.keys(STATUS_TEXT)) {
+      summary[code as SvnStatusCode] = 0
     }
-  }
 
-  const handleRefresh = () => {
-    loadLogData(filePath)
-  }
+    // Count files by status
+    for (const file of changedFiles) {
+      summary[file.action] = (summary[file.action] || 0) + 1
+    }
 
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [data, setData] = useState<LogEntry[]>([])
+    return summary
+  }, [])
+
+  const selectRevision = useCallback(
+    (revision: string) => {
+      if (revision === selectedRevision) return // Avoid unnecessary updates if same revision
+
+      const entry = data.find(e => e.revision === revision)
+      if (entry) {
+        setSelectedRevision(revision)
+        setCommitMessage(entry.message)
+        setChangedFiles(entry.changedFiles)
+        setStatusSummary(calculateStatusSummary(entry.changedFiles))
+      }
+    },
+    [data, selectedRevision, calculateStatusSummary]
+  )
+
+  // Lọc dữ liệu dựa trên searchTerm
+  const filteredData = useMemo(() => {
+    if (!searchTerm.trim()) return data;
+
+    return data.filter(entry =>
+      entry.revision.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.date.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [data, searchTerm]);
+
+  // Sử dụng useCallback cho handleRefresh và handlePageChange để tránh tạo lại hàm mỗi lần render
+  const handleRefresh = useCallback(() => {
+    // Reset pagination when refreshing
+    setCurrentPage(1)
+    setHasMoreEntries(true)
+    loadLogData(filePath, 1)
+  }, [filePath])
+
+  // Hàm xử lý chuyển trang
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage < 1 || (newPage > currentPage && !hasMoreEntries)) return
+      loadLogData(filePath, newPage)
+    },
+    [currentPage, hasMoreEntries, filePath]
+  )
+
+  // Hàm xử lý search
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -293,69 +422,103 @@ export function ShowLog() {
   return (
     <div className="flex h-screen w-full">
       <div className="flex flex-col flex-1 w-full">
-        <ShowlogToolbar onRefresh={handleRefresh} filePath={filePath} isLoading={isLoading} />
+        <ShowlogToolbar
+          onRefresh={handleRefresh}
+          filePath={filePath}
+          isLoading={isLoading}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          onOpenStatistic={() => setIsStatisticOpen(true)}
+        />
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col overflow-hidden">
           <ResizablePanelGroup direction="horizontal">
             {/* LEFT PANEL: Log Table */}
             <ResizablePanel defaultSize={50} minSize={30} className="h-full">
               <div className="h-full pr-2">
-                <ScrollArea className="h-full border-1 rounded-md">
-                  <OverlayLoader isLoading={isLoading} />
-                  <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
-                    <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                      {table.getHeaderGroups().map(headerGroup => (
-                        <TableRow key={headerGroup.id}>
-                          {headerGroup.headers.map((header, index) => (
-                            <TableHead
-                              key={header.id}
-                              style={{ width: header.getSize() }}
-                              className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
-                            >
-                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableHeader>
-                    <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
-                      {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map(row => (
-                          <TableRow
-                            key={row.id}
-                            data-state={row.getIsSelected() && 'selected'}
-                            onClick={() => {
-                              if (!row.getIsSelected()) {
-                                table.resetRowSelection()
-                                row.toggleSelected(true)
-                                selectRevision(row.original.revision)
-                              }
-                            }}
-                            className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900/40"
-                          >
-                            {row.getVisibleCells().map((cell, index) => (
-                              <TableCell key={cell.id} className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
+                <div className="flex flex-col h-full">
+                  {/* Search input */}
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Tìm kiếm theo revision, author, message..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                  <ScrollArea className="flex-1 border-1 rounded-md">
+                    <OverlayLoader isLoading={isLoading} />
+                    <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
+                      <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                        {table.getHeaderGroups().map(headerGroup => (
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header, index) => (
+                              <TableHead
+                                key={header.id}
+                                style={{ width: header.getSize() }}
+                                className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
+                              >
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </TableHead>
                             ))}
                           </TableRow>
-                        ))
-                      ) : (
-                        <TableRow className="h-full">
-                          <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
-                            <div className="flex flex-col items-center justify-center gap-4 h-full">
-                              <p className="text-muted-foreground">No log entries found.</p>
-                              <Button variant="outline" onClick={handleRefresh}>
-                                Reload
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                  <ScrollBar orientation="vertical" />
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                        ))}
+                      </TableHeader>
+                      <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
+                        {table.getRowModel().rows?.length ? (
+                          table.getRowModel().rows.map(row => (
+                            <TableRow
+                              key={row.id}
+                              data-state={row.getIsSelected() && 'selected'}
+                              onClick={() => {
+                                if (!row.getIsSelected()) {
+                                  table.resetRowSelection()
+                                  row.toggleSelected(true)
+                                  selectRevision(row.original.revision)
+                                }
+                              }}
+                              className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900/40"
+                            >
+                              {row.getVisibleCells().map((cell, index) => (
+                                <TableCell key={cell.id} className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}>
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow className="h-full">
+                            <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
+                              <div className="flex flex-col items-center justify-center gap-4 h-full">
+                                <p className="text-muted-foreground">No log entries found.</p>
+                                <Button variant="outline" onClick={handleRefresh}>
+                                  Reload
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                    <ScrollBar orientation="vertical" />
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+
+                  {/* Pagination UI - Đã được di chuyển ra khỏi ScrollArea */}
+                  <div className="flex items-center justify-between p-2 border-t mt-2">
+                    <div className="text-sm text-muted-foreground">Trang {currentPage}</div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1 || isLoading}>
+                        Trang trước
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={!hasMoreEntries || isLoading}>
+                        Trang sau
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </ResizablePanel>
 
@@ -431,6 +594,14 @@ export function ShowLog() {
           </ResizablePanelGroup>
         </div>
       </div>
+
+      {/* Statistic Dialog */}
+      <StatisticDialog
+        isOpen={isStatisticOpen}
+        onOpenChange={setIsStatisticOpen}
+        filePath={filePath}
+        dateRange={dateRange}
+      />
     </div>
   )
 }

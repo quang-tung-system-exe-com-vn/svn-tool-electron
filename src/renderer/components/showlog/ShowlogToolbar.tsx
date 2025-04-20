@@ -1,7 +1,12 @@
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Minus, RefreshCw, Square, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { BarChart3, CalendarIcon, Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
+import type { DateRange } from 'react-day-picker'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { RoundIcon } from '../ui-elements/RoundIcon'
 
@@ -9,9 +14,12 @@ interface ShowlogProps {
   onRefresh?: () => void
   filePath: string
   isLoading: boolean
+  dateRange?: DateRange
+  setDateRange?: (range: DateRange | undefined) => void
+  onOpenStatistic?: () => void
 }
 
-export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, isLoading }) => {
+export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, isLoading, dateRange, setDateRange, onOpenStatistic }) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -37,6 +45,44 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
           </TooltipTrigger>
           <TooltipContent>Refresh</TooltipContent>
         </Tooltip>
+
+        {onOpenStatistic && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="link" size="sm" onClick={onOpenStatistic} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
+                <BarChart3 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Thống kê</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Date Range Picker */}
+        {setDateRange && (
+          <div className="ml-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn('justify-start text-left font-normal h-7 px-2', !dateRange && 'text-muted-foreground')}>
+                  <CalendarIcon className="mr-2 h-3 w-3" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
+                      </>
+                    ) : (
+                      format(dateRange.from, 'dd/MM/yyyy')
+                    )
+                  ) : (
+                    <span>Chọn ngày</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs text-gray-200">

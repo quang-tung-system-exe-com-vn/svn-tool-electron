@@ -2,7 +2,7 @@
   "displayName": "SVNTool",
   "name": "svn-tool-electron",
   "description": "An internal desktop tool for managing SVN workflows. Includes commit generation, log viewing, cleanup operations, and real-time diff inspection.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
@@ -79,7 +79,7 @@
     "nodemailer": "^6.10.1",
     "openai": "^4.95.1",
     "react": "^19.1.0",
-    "react-day-picker": "9.6.7",
+    "react-day-picker": "8.10.1",
     "react-dom": "^19.1.0",
     "react-i18next": "^15.4.1",
     "react-markdown": "^10.1.0",

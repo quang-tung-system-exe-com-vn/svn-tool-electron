@@ -1,10 +1,27 @@
 {
   "common": {
-    "close": "閉じる"
+    "close": "閉じる",
+    "cancel": "キャンセル",
+    "save": "変更を保存",
+    "add": "追加",
+    "delete": "削除",
+    "install": "インストール",
+    "update": "今すぐ更新",
+    "refresh": "更新",
+    "reload": "再読み込み",
+    "choose": "フォルダを選択",
+    "swap": "サイドを入れ替え"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
-    "noFilesWarning": "ファイルが選択されていません！"
+    "noFilesWarning": "ファイルが選択されていません！",
+    "configSaved": "設定が保存されました！",
+    "configError": "設定の保存に失敗しました",
+    "noResults": "まだ分析結果はありません。",
+    "loading": "読み込み中...",
+    "noIssues": "問題は見つかりませんでした",
+    "selectIssue": "詳細を表示する問題を選択してください",
+    "errorLoading": "差分ファイルの読み込みエラー："
   },
   "menu": {
     "info": "メニュー",
@@ -20,20 +37,40 @@
   },
   "action": {
     "refresh": "更新",
+    "refreshDiff": "差分を更新",
     "generate": "コミットメッセージを生成",
     "check": "コーディングルールを確認",
     "commit": "コードをコミット"
   },
   "label": {
     "changesMade": "変更内容",
-    "commitMessage": "コミットメッセージ"
+    "commitMessage": "コミットメッセージ",
+    "line": "行",
+    "column": "列",
+    "spaces": "スペース：",
+    "encoding": "UTF-8"
   },
   "table": {
     "status": "ステータス",
-    "filePath": "ファイルパス"
+    "filePath": "ファイルパス",
+    "severity": "重要度",
+    "issue": "問題",
+    "line": "行",
+    "type": "タイプ",
+    "message": "メッセージ",
+    "category": "カテゴリ",
+    "priority": "優先度",
+    "rank": "ランク",
+    "location": "場所",
+    "file": "ファイル",
+    "class": "クラス",
+    "method": "メソッド"
   },
   "placeholder": {
-    "commitMessage": "コミットメッセージを入力してください..."
+    "commitMessage": "コミットメッセージを入力してください...",
+    "search": "検索",
+    "selectLanguage": "言語を選択...",
+    "noLanguage": "言語が見つかりません。"
   },
   "theme": {
     "light": "ライト",
@@ -60,6 +97,33 @@
       "appearance": "外観",
       "configuration": "設定",
       "mailserver": "メールサーバー"
+    },
+    "config": {
+      "title": "設定",
+      "description": "プロジェクト設定を構成します。",
+      "openaiKey": "OpenAI APIキー",
+      "openaiKeyPlaceholder": "OpenAI APIキーを入力してください",
+      "svnFolder": "SVNフォルダ",
+      "svnFolderPlaceholder": "SVNフォルダを選択",
+      "sourceFolder": "ソースフォルダ",
+      "sourceFolderPlaceholder": "ソースフォルダを選択",
+      "emailPL": "メールPL",
+      "emailPlaceholder": "メールアドレスを入力",
+      "webhookMS": "Webhook MS",
+      "webhookPlaceholder": "Webhookを選択",
+      "addWebhook": "新しいWebhookを追加"
+    },
+    "mailServer": {
+      "title": "メールサーバー設定",
+      "description": "メールサーバー設定を構成します。",
+      "smtpServer": "SMTPサーバー",
+      "smtpPlaceholder": "SMTPサーバーを入力してください",
+      "port": "ポート",
+      "portPlaceholder": "SMTPポートを入力してください",
+      "email": "メール",
+      "emailPlaceholder": "メールアドレスを入力してください",
+      "password": "パスワード",
+      "passwordPlaceholder": "パスワードを入力してください"
     }
   },
   "fontSize": {
@@ -76,14 +140,61 @@
     "success": "成功",
     "error": "エラー",
     "info": "情報",
-    "warning": "警告"
-  },
-  "notification": {
+    "warning": "警告",
     "commitSuccess": "コミットが成功しました",
     "commitError": "コミット中にエラーが発生しました",
     "checkSuccess": "コーディングルールの確認が成功しました",
     "checkError": "コーディングルールの確認中にエラーが発生しました",
     "generateSuccess": "コミットメッセージの生成が成功しました",
-    "generateError": "コミットメッセージの生成中にエラーが発生しました"
+    "generateError": "コミットメッセージの生成中にエラーが発生しました",
+    "updateAvailable": "新しいアップデートが利用可能です！",
+    "checkUpdates": "アップデートを確認",
+    "updatingMessage": "SVNを更新中...",
+    "updateSuccess": "SVNの更新が成功しました",
+    "updateError": "SVNの更新中にエラーが発生しました",
+    "spotbugsError": "SpotBugsの実行中にエラーが発生しました：",
+    "spotbugsSuccess": "SpotBugs分析が完了しました：{0}件の問題が見つかりました",
+    "refreshingSpotbugs": "SpotBugs分析を更新中..."
+  },
+  "svn": {
+    "status": {
+      "added": "追加済み",
+      "modified": "変更済み",
+      "deleted": "削除済み",
+      "replaced": "置換済み",
+      "conflicted": "競合",
+      "external": "外部",
+      "ignored": "無視",
+      "unversioned": "バージョン管理外",
+      "missing": "欠落",
+      "typeChanged": "タイプ変更"
+    },
+    "update": {
+      "title": "新しいSVNリビジョンが利用可能",
+      "newRevision": "新しいSVNリビジョンが利用可能です！",
+      "updateSvn": "SVNを更新",
+      "cleanSvn": "SVNをクリーン",
+      "showLogsSvn": "SVNログを表示"
+    },
+    "log": {
+      "title": "SVNログ",
+      "titleWithPath": "SVNログ：{0}"
+    }
+  },
+  "ui": {
+    "application": "アプリケーション",
+    "diffViewer": "差分ビューア",
+    "codingRules": "コーディングルール分析",
+    "spotbugs": {
+      "title": "SpotBugs分析",
+      "filesAnalyzed": "分析されたファイル",
+      "totalIssues": "問題の総数",
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "allIssues": "すべての問題",
+      "issues": "問題",
+      "issueDetails": "問題の詳細"
+    }
   }
 }

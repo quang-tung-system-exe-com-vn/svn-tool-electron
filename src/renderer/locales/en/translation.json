@@ -1,10 +1,27 @@
 {
   "common": {
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "add": "Add",
+    "delete": "Delete",
+    "install": "Install",
+    "update": "Update Now",
+    "refresh": "Refresh",
+    "reload": "Reload",
+    "choose": "Choose Folder",
+    "swap": "Swap Sides"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
-    "noFilesWarning": "No files selected!"
+    "noFilesWarning": "No files selected!",
+    "configSaved": "Configuration saved!",
+    "configError": "Failed to save configuration",
+    "noResults": "No analysis results yet.",
+    "loading": "Loading...",
+    "noIssues": "No issues found",
+    "selectIssue": "Select an issue to view details",
+    "errorLoading": "Error loading file for diff:"
   },
   "menu": {
     "info": "Menu",
@@ -20,20 +37,40 @@
   },
   "action": {
     "refresh": "Refresh",
+    "refreshDiff": "Refresh Diff",
     "generate": "Generate Commit Message",
     "check": "Check Coding Rules",
     "commit": "Commit Code"
   },
   "label": {
     "changesMade": "Changes made",
-    "commitMessage": "Commit message"
+    "commitMessage": "Commit message",
+    "line": "Ln",
+    "column": "Col",
+    "spaces": "Spaces:",
+    "encoding": "UTF-8"
   },
   "table": {
     "status": "Status",
-    "filePath": "File path"
+    "filePath": "File path",
+    "severity": "Severity",
+    "issue": "Issue",
+    "line": "Line",
+    "type": "Type",
+    "message": "Message",
+    "category": "Category",
+    "priority": "Priority",
+    "rank": "Rank",
+    "location": "Location",
+    "file": "File",
+    "class": "Class",
+    "method": "Method"
   },
   "placeholder": {
-    "commitMessage": "Enter commit message..."
+    "commitMessage": "Enter commit message...",
+    "search": "Search",
+    "selectLanguage": "Select language...",
+    "noLanguage": "No language found."
   },
   "theme": {
     "light": "Light",
@@ -60,6 +97,33 @@
       "appearance": "Appearance",
       "configuration": "Configuration",
       "mailserver": "Mail Server"
+    },
+    "config": {
+      "title": "Configuration",
+      "description": "Configure your project settings.",
+      "openaiKey": "OpenAI API Key",
+      "openaiKeyPlaceholder": "Enter your OpenAI API Key",
+      "svnFolder": "SVN Folder",
+      "svnFolderPlaceholder": "Select SVN folder",
+      "sourceFolder": "Source Folder",
+      "sourceFolderPlaceholder": "Select source folder",
+      "emailPL": "Email PL",
+      "emailPlaceholder": "Enter email address",
+      "webhookMS": "Webhook MS",
+      "webhookPlaceholder": "Select Webhook",
+      "addWebhook": "Add New Webhook"
+    },
+    "mailServer": {
+      "title": "Mail Server Configuration",
+      "description": "Configure your mail server settings.",
+      "smtpServer": "SMTP Server",
+      "smtpPlaceholder": "Enter your SMTP server",
+      "port": "Port",
+      "portPlaceholder": "Enter SMTP port",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password"
     }
   },
   "fontSize": {
@@ -78,6 +142,55 @@
     "checkSuccess": "Check successful",
     "checkError": "Check error",
     "generateSuccess": "Commit message generated successfully",
-    "generateError": "Commit message generation error"
+    "generateError": "Commit message generation error",
+    "updateAvailable": "New update available!",
+    "checkUpdates": "Check for Updates",
+    "updatingMessage": "Updating SVN...",
+    "updateSuccess": "SVN updated successfully",
+    "updateError": "Error updating SVN",
+    "spotbugsError": "Error running SpotBugs:",
+    "spotbugsSuccess": "SpotBugs analysis completed: {0} issues found",
+    "refreshingSpotbugs": "Refreshing SpotBugs analysis..."
+  },
+  "svn": {
+    "status": {
+      "added": "Added",
+      "modified": "Modified",
+      "deleted": "Deleted",
+      "replaced": "Replaced",
+      "conflicted": "Conflicted",
+      "external": "External",
+      "ignored": "Ignored",
+      "unversioned": "Unversioned",
+      "missing": "Missing",
+      "typeChanged": "Type Changed"
+    },
+    "update": {
+      "title": "New SVN Revision Available",
+      "newRevision": "New SVN revision available!",
+      "updateSvn": "Update SVN",
+      "cleanSvn": "Clean SVN",
+      "showLogsSvn": "Show Logs SVN"
+    },
+    "log": {
+      "title": "SVN Log",
+      "titleWithPath": "SVN Log: {0}"
+    }
+  },
+  "ui": {
+    "application": "Application",
+    "diffViewer": "Diff Viewer",
+    "codingRules": "Coding Rules Analysis",
+    "spotbugs": {
+      "title": "SpotBugs Analysis",
+      "filesAnalyzed": "Files Analyzed",
+      "totalIssues": "Total Issues",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "allIssues": "All Issues",
+      "issues": "Issues",
+      "issueDetails": "Issue Details"
+    }
   }
 }

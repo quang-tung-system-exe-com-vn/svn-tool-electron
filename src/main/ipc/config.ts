@@ -10,7 +10,8 @@ import { cleanup } from 'main/svn/cleanup'
 import { commit } from 'main/svn/commit'
 import { getDiff } from 'main/svn/get-diff'
 import { info } from 'main/svn/info'
-import { log } from 'main/svn/log'
+import { log, type LogOptions } from 'main/svn/log'
+import { getStatistics, type StatisticsOptions } from 'main/svn/statistics'
 import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
 import { update } from 'main/svn/update'
@@ -297,8 +298,9 @@ export function registerConfigIpcHandlers() {
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
   ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string) => await revert(filePath))
   ipcMain.handle(IPC.SVN.CLEANUP, async (_event, options?: string[]) => await cleanup(options))
-  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string) => await log(filePath))
+  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string, options?: LogOptions) => await log(filePath, options))
   ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string) => await update(filePath))
+  ipcMain.handle(IPC.SVN.STATISTICS, async (_event, filePath: string, options?: StatisticsOptions) => await getStatistics(filePath, options))
 
   ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, { prompt }) => {
     try {
