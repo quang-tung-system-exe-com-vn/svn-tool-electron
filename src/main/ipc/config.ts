@@ -1,6 +1,3 @@
-import { readFile } from 'node:fs/promises'
-import path, { join, resolve } from 'node:path'
-import { format } from 'node:url'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { IPC } from 'main/constants'
 import { blame } from 'main/svn/blame'
@@ -10,11 +7,14 @@ import { cleanup } from 'main/svn/cleanup'
 import { commit } from 'main/svn/commit'
 import { getDiff } from 'main/svn/get-diff'
 import { info } from 'main/svn/info'
-import { log, type LogOptions } from 'main/svn/log'
-import { getStatistics, type StatisticsOptions } from 'main/svn/statistics'
+import { type LogOptions, log } from 'main/svn/log'
 import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
+import { type StatisticsOptions, getStatistics } from 'main/svn/statistics'
 import { update } from 'main/svn/update'
+import { readFile } from 'node:fs/promises'
+import path, { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import OpenAI from 'openai'
 import { ENVIRONMENT } from 'shared/constants'
 import appearanceStore from '../store/AppearanceStore'
@@ -42,20 +42,13 @@ export function registerConfigIpcHandlers() {
         win.close()
         break
       case 'refresh-spotbugs':
-        // Re-run SpotBugs analysis on the current files
         try {
-          // Get the filePaths from the window's properties
-          const filePaths = win.webContents.getTitle().includes('Spotbugs') ? (win as any).filePaths || [] : []
-
+          const filePaths = win.webContents.getTitle().includes('spotbugs') ? (win as any).filePaths || [] : []
+          console.log(win.webContents.getTitle());
           if (filePaths.length > 0) {
-            // Run SpotBugs analysis
             const result = await runSpotBugs(filePaths)
-
             if (result.status === 'success') {
-              // Parse the XML result
               const parsedResult = parseSpotBugsResult(result.data)
-
-              // Send the result to the renderer
               win.webContents.send('load-diff-data', {
                 filePaths,
                 spotbugsResult: parsedResult,
@@ -205,7 +198,6 @@ export function registerConfigIpcHandlers() {
   })
 
   ipcMain.on(IPC.WINDOW.SPOTBUGS, (event, filePaths) => {
-    // Create a new browser window
     const spotbugsWindow = new BrowserWindow({
       width: 1365,
       height: 768,
@@ -223,7 +215,6 @@ export function registerConfigIpcHandlers() {
       },
     })
 
-    // Store the filePaths on the window object for later use
     Object.defineProperty(spotbugsWindow, 'filePaths', {
       value: filePaths,
       writable: true,
@@ -245,14 +236,9 @@ export function registerConfigIpcHandlers() {
 
     spotbugsWindow.webContents.on('did-finish-load', async () => {
       try {
-        // Run SpotBugs analysis
         const result = await runSpotBugs(filePaths)
-
         if (result.status === 'success') {
-          // Parse the XML result
           const parsedResult = parseSpotBugsResult(result.data)
-
-          // Send the result to the renderer
           spotbugsWindow.webContents.send('load-diff-data', {
             filePaths,
             spotbugsResult: parsedResult,
@@ -270,7 +256,6 @@ export function registerConfigIpcHandlers() {
           error: error instanceof Error ? error.message : String(error),
         })
       }
-
       if (ENVIRONMENT.IS_DEV) {
         spotbugsWindow.webContents.openDevTools({ mode: 'bottom' })
       }

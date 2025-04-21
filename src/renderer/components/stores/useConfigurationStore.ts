@@ -24,6 +24,7 @@ export const useConfigurationStore = create<ConfigurationStore>((set, get) => ({
   },
   loadConfigurationConfig: async () => {
     const data = await window.api.configuration.get()
+    console.log(data)
     for (const [key, value] of Object.entries(data)) {
       set({ [key]: value })
     }

@@ -1,20 +1,22 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart2, BarChart3, BarChartIcon, LineChart as LineChartIcon } from 'lucide-react'
+import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartIcon, LineChart as LineChartIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
-import { Bar, BarChart, CartesianGrid, LabelList, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useTranslation } from 'react-i18next' // Import useTranslation
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { toast } from 'sonner'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart'
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '../ui/chart'
 
 interface CommitByDate {
   date: string
-  count: number
-  [key: string]: string | number // Để hỗ trợ các trường động cho stacked bar chart
+  authors: { author: string; count: number }[]
+  totalCount: number
+  // Giữ lại index signature để hỗ trợ dữ liệu đã xử lý cho biểu đồ stacked
+  [key: string]: string | number | { author: string; count: number }[]
 }
 
 interface CommitByAuthor {
@@ -49,15 +51,19 @@ interface StatisticDialogProps {
   dateRange?: DateRange
 }
 
-// Định nghĩa các kiểu biểu đồ
-type ChartType = 'bar-multiple' | 'bar-horizontal' | 'bar-stacked' | 'line-multiple'
+// Định nghĩa các kiểu biểu đồ cho tab "Commit theo ngày"
+type CommitByDateChartType = 'bar-multiple' | 'bar-horizontal' | 'bar-stacked' | 'line-multiple' | 'area-multiple'
+// Định nghĩa các kiểu biểu đồ cho tab "Commit theo tác giả"
+type CommitByAuthorChartType = 'bar-vertical' | 'bar-horizontal'
 
 export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: StatisticDialogProps) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('commit-by-date')
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(null)
   const [statisticsPeriod, setStatisticsPeriod] = useState<'day' | 'week' | 'month' | 'year' | 'all'>('all')
   const [isLoadingStatistics, setIsLoadingStatistics] = useState(false)
-  const [chartType, setChartType] = useState<ChartType>('bar-stacked')
+  const [commitByDateChartType, setCommitByDateChartType] = useState<CommitByDateChartType>('bar-stacked')
+  const [commitByAuthorChartType, setCommitByAuthorChartType] = useState<CommitByAuthorChartType>('bar-vertical')
 
   // Hàm lấy dữ liệu thống kê
   const loadStatisticsData = useCallback(async () => {
@@ -89,7 +95,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
       }
     } catch (error) {
       console.error('Error loading statistics data:', error)
-      toast.error('Error loading statistics data')
+      toast.error(t('statisticDialog.statisticDialog.errorLoading')) // Translate error toast
     } finally {
       setIsLoadingStatistics(false)
     }
@@ -108,54 +114,48 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
     setIsLoadingStatistics(true) // Hiển thị loading khi chọn khoảng thời gian
   }, [])
 
-  // Xử lý dữ liệu cho stacked bar chart
-  const processedDateData = useMemo(() => {
-    if (!statisticsData?.commitsByDate || !statisticsData?.commitsByAuthor) return []
+  // Dữ liệu cho biểu đồ Commit theo ngày (chỉ dùng tổng count - giữ lại cho bar-horizontal)
+  const processedTotalDateData = useMemo(() => {
+    return [...(statisticsData?.commitsByDate ?? [])]
+      .map(item => ({ date: item.date, count: item.totalCount })) // Chỉ lấy date và totalCount (đổi tên thành count)
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }, [statisticsData?.commitsByDate])
 
-    // Tạo một bản đồ các ngày
-    const dateMap: Record<string, Record<string, number>> = {}
+  // Dữ liệu đã xử lý cho biểu đồ Commit theo ngày (stacked, multiple)
+  const processedStackedDateData = useMemo(() => {
+    if (!statisticsData?.commitsByDate) return []
 
-    // Khởi tạo tất cả các ngày với count = 0 cho mỗi tác giả
-    for (const dateItem of statisticsData.commitsByDate) {
-      dateMap[dateItem.date] = { total: dateItem.count }
-
-      // Khởi tạo count = 0 cho mỗi tác giả
-      for (const authorItem of statisticsData.commitsByAuthor) {
-        dateMap[dateItem.date][authorItem.author] = 0
-      }
-    }
-
-    // Giả lập phân bổ commit theo tác giả cho mỗi ngày
-    // Trong thực tế, dữ liệu này nên được cung cấp từ API
-    for (const date of Object.keys(dateMap)) {
-      const totalCommits = dateMap[date].total
-      const authors = statisticsData.commitsByAuthor.map(a => a.author)
-
-      // Phân bổ ngẫu nhiên số lượng commit cho các tác giả
-      let remainingCommits = totalCommits
-
-      for (let index = 0; index < authors.length; index++) {
-        const author = authors[index]
-        if (index === authors.length - 1) {
-          // Tác giả cuối cùng nhận tất cả các commit còn lại
-          dateMap[date][author] = remainingCommits
-        } else {
-          // Phân bổ ngẫu nhiên
-          const authorCommits = Math.floor(Math.random() * remainingCommits)
-          dateMap[date][author] = authorCommits
-          remainingCommits -= authorCommits
+    // Lấy danh sách tất cả tác giả duy nhất từ tất cả các ngày
+    const allAuthors = new Set<string>()
+    if (statisticsData.commitsByDate) {
+      for (const day of statisticsData.commitsByDate) {
+        for (const authorData of day.authors) {
+          allAuthors.add(authorData.author)
         }
       }
     }
+    const uniqueAuthors = Array.from(allAuthors)
 
-    // Chuyển đổi bản đồ thành mảng để sử dụng với Recharts
-    return Object.entries(dateMap)
-      .map(([date, data]) => ({
-        date,
-        ...data,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date))
-  }, [statisticsData])
+    // Chuyển đổi dữ liệu
+    return [...statisticsData.commitsByDate]
+      .sort((a, b) => a.date.localeCompare(b.date)) // Sắp xếp theo ngày
+      .map(day => {
+        // Tạo object cơ sở cho ngày đó
+        const dayData: { date: string; totalCount: number; [key: string]: number | string } = {
+          date: day.date,
+          totalCount: day.totalCount, // Giữ lại totalCount nếu cần
+        }
+        // Khởi tạo count của tất cả author về 0 cho ngày này
+        for (const author of uniqueAuthors) {
+          dayData[author] = 0
+        }
+        // Gán count thực tế từ mảng authors
+        for (const authorData of day.authors) {
+          dayData[authorData.author] = authorData.count
+        }
+        return dayData
+      })
+  }, [statisticsData?.commitsByDate])
 
   const chartData1 = useMemo(() => {
     return (statisticsData?.commitsByAuthor ?? []).map((item, index) => ({
@@ -186,190 +186,220 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
     return config
   }, [chartData1])
 
-  const chartConfig = useMemo(() => {
-    const config: Record<string, { label: string; color?: string }> = {
-      count: { label: 'Count', color: 'var(--chart-1)' },
+  // Cấu hình cho biểu đồ Commit theo ngày (hiển thị theo tác giả)
+  const commitByDateChartConfig = useMemo(() => {
+    const config: Record<string, { label: string; color: string }> = {
+      // Có thể thêm totalCount nếu muốn hiển thị nó ở đâu đó
+      // totalCount: { label: t('statisticDialog.totalCommitCountLabel', 'Total Commits'), color: 'hsl(var(--muted))' },
+    }
+    const allAuthors = new Set<string>()
+    if (statisticsData?.commitsByDate) {
+      for (const day of statisticsData.commitsByDate) {
+        for (const authorData of day.authors) {
+          allAuthors.add(authorData.author)
+        }
+      }
     }
 
-    // Thêm cấu hình cho mỗi tác giả
-    statisticsData?.commitsByAuthor?.forEach((item, index) => {
-      config[item.author] = {
-        label: item.author,
-        color: `var(--chart-${index + 1})`,
+    Array.from(allAuthors).forEach((author, index) => {
+      // Giữ lại forEach ở đây vì cần index
+      // Đảm bảo index không vượt quá số lượng màu chart định nghĩa (ví dụ: 6)
+      const chartColorIndex = (index % 6) + 1
+      config[author] = {
+        label: author,
+        color: `var(--chart-${chartColorIndex})`, // Sử dụng trực tiếp biến CSS
       }
     })
-
     return config
-  }, [statisticsData])
+  }, [statisticsData?.commitsByDate, t])
+
+  // Cấu hình cho biểu đồ chỉ hiển thị tổng count (dùng cho bar-horizontal)
+  const totalCountChartConfig = useMemo(() => {
+    return {
+      count: { label: t('statisticDialog.commitCountLabel', 'Commits'), color: 'hsl(var(--chart-1))' },
+    }
+  }, [t])
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="table">
         <DialogHeader className="w-[750px]">
-          <DialogTitle>Thống kê</DialogTitle>
+          <DialogTitle>{t('statisticDialog.title')}</DialogTitle>
         </DialogHeader>
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex gap-2">
-            {activeTab === 'commit-by-date' && (
-              <>
-                <Button size="icon" variant={chartType === 'bar-multiple' ? 'default' : 'outline'} onClick={() => setChartType('bar-multiple')} title="Bar Chart - Multiple">
-                  <BarChartIcon className="h-4 w-4" />
-                </Button>
-                <Button size="icon" variant={chartType === 'bar-horizontal' ? 'default' : 'outline'} onClick={() => setChartType('bar-horizontal')} title="Bar Chart - Horizontal">
-                  <BarChart2 className="h-4 w-4" />
-                </Button>
-                <Button size="icon" variant={chartType === 'bar-stacked' ? 'default' : 'outline'} onClick={() => setChartType('bar-stacked')} title="Bar Chart - Stacked">
-                  <BarChart3 className="h-4 w-4" />
-                </Button>
-                <Button size="icon" variant={chartType === 'line-multiple' ? 'default' : 'outline'} onClick={() => setChartType('line-multiple')} title="Line Chart - Multiple">
-                  <LineChartIcon className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
-          <Select value={statisticsPeriod} onValueChange={handlePeriodChange}>
-          <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Chọn khoảng thời gian" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Ngày</SelectItem>
-              <SelectItem value="week">Tuần</SelectItem>
-              <SelectItem value="month">Tháng</SelectItem>
-              <SelectItem value="year">Năm</SelectItem>
-              <SelectItem value="all">Tất cả</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
           <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="commit-by-date">Commit theo ngày</TabsTrigger>
-            <TabsTrigger value="commit-by-author">Commit theo tác giả</TabsTrigger>
-            <TabsTrigger value="authorship">Tỷ lệ tác giả</TabsTrigger>
-            <TabsTrigger value="summary">Bảng tổng hợp</TabsTrigger>
+            <TabsTrigger value="commit-by-date">{t('statisticDialog.tabs.commitByDate')}</TabsTrigger>
+            <TabsTrigger value="commit-by-author">{t('statisticDialog.tabs.commitByAuthor')}</TabsTrigger>
+            <TabsTrigger value="authorship">{t('statisticDialog.tabs.authorship')}</TabsTrigger>
+            <TabsTrigger value="summary">{t('statisticDialog.tabs.summary')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="commit-by-date" className="h-[500px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">Số lượng commit theo ngày</h3>
-
               {(statisticsData?.commitsByDate?.length ?? 0) > 0 ? (
                 <Card className="flex flex-col max-w-full sticky h-[500px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
-                  <CardHeader className="items-center pb-0">
-                    <CardTitle>Commits Over Time</CardTitle>
-                    <CardDescription>Biểu đồ số lượng commit theo ngày</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between pb-0">
+                    <div className="flex flex-col">
+                      <CardTitle>{t('statisticDialog.commitByDate.cardTitle')}</CardTitle>
+                      <CardDescription>{t('statisticDialog.commitByDate.cardDescription')}</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant={commitByDateChartType === 'bar-multiple' ? 'default' : 'outline'}
+                        onClick={() => setCommitByDateChartType('bar-multiple')}
+                        title={t('statisticDialog.commitByDate.chartTypes.barMultiple')}
+                      >
+                        <BarChartIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant={commitByDateChartType === 'bar-horizontal' ? 'default' : 'outline'}
+                        onClick={() => setCommitByDateChartType('bar-horizontal')}
+                        title={t('statisticDialog.commitByDate.chartTypes.barHorizontal')}
+                      >
+                        <BarChart2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant={commitByDateChartType === 'bar-stacked' ? 'default' : 'outline'}
+                        onClick={() => setCommitByDateChartType('bar-stacked')}
+                        title={t('statisticDialog.commitByDate.chartTypes.barStacked')}
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant={commitByDateChartType === 'line-multiple' ? 'default' : 'outline'}
+                        onClick={() => setCommitByDateChartType('line-multiple')}
+                        title={t('statisticDialog.commitByDate.chartTypes.lineMultiple')}
+                      >
+                        <LineChartIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant={commitByDateChartType === 'area-multiple' ? 'default' : 'outline'}
+                        onClick={() => setCommitByDateChartType('area-multiple')}
+                        title={t('statisticDialog.commitByDate.chartTypes.areaMultiple')}
+                      >
+                        <AreaChartIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
-                  <CardContent className="flex-1 pb-0 overflow-hidden">
-                    {/* Render biểu đồ dựa trên chartType */}
+                  <CardContent className="flex-1 pb-0 overflow-hidden pt-4">
                     {(() => {
-                      // Biểu đồ Bar Multiple
-                      if (chartType === 'bar-multiple') {
-                        return (
-                          <ChartContainer config={chartConfig} className="w-full mx-auto h-[350px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
-                                accessibilityLayer
-                                data={Array.isArray(statisticsData?.commitsByDate) ? statisticsData.commitsByDate : []}
-                                margin={{ top: 25, right: 30, left: 20, bottom: 5 }}
-                              >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="var(--chart-1)" radius={8}>
-                                  <LabelList position="top" offset={12} className="fill-foreground" fontSize={12} />
-                                </Bar>
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </ChartContainer>
-                        )
-                      }
+                      const authorKeys = Object.keys(commitByDateChartConfig) //.filter(key => key !== 'totalCount'); // Lọc ra các key tác giả
 
-                      // Biểu đồ Bar Horizontal
-                      if (chartType === 'bar-horizontal') {
+                      // Biểu đồ Bar Multiple (theo tác giả)
+                      if (commitByDateChartType === 'bar-multiple') {
                         return (
-                          <ChartContainer config={chartConfig} className="w-full mx-auto h-[350px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
-                                accessibilityLayer
-                                layout="vertical"
-                                data={Array.isArray(statisticsData?.commitsByDate) ? statisticsData.commitsByDate : []}
-                                margin={{ top: 25, right: 30, left: 50, bottom: 5 }}
-                              >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" />
-                                <YAxis dataKey="date" type="category" tickLine={false} axisLine={false} />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="var(--chart-1)" radius={8}>
-                                  <LabelList position="right" offset={12} className="fill-foreground" fontSize={12} />
-                                </Bar>
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </ChartContainer>
-                        )
-                      }
-
-                      // Biểu đồ Bar Stacked
-                      if (chartType === 'bar-stacked') {
-                        return (
-                          <ChartContainer config={chartConfig} className="w-full mx-auto h-[350px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart accessibilityLayer data={processedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                {statisticsData?.commitsByAuthor?.map((author, index) => (
-                                  <Bar key={author.author} dataKey={author.author} stackId="a" fill={`var(--chart-${index + 1})`} />
-                                ))}
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </ChartContainer>
-                        )
-                      }
-
-                      // Biểu đồ Line Multiple
-                      if (chartType === 'line-multiple') {
-                        return (
-                          <ChartContainer config={chartConfig} className="w-full mx-auto h-[350px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart accessibilityLayer data={processedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                {statisticsData?.commitsByAuthor?.map((author, index) => (
-                                  <Line key={author.author} type="monotone" dataKey={author.author} stroke={`var(--chart-${index + 1})`} activeDot={{ r: 8 }} />
-                                ))}
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </ChartContainer>
-                        )
-                      }
-
-                      // Mặc định trả về biểu đồ Bar Stacked
-                      return (
-                        <ChartContainer config={chartConfig} className="w-full mx-auto h-[350px]">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart accessibilityLayer data={processedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
+                          <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
+                            <BarChart accessibilityLayer data={processedStackedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
                               <YAxis />
-                              <Tooltip />
-                              <Legend />
-                              {statisticsData?.commitsByAuthor?.map((author, index) => (
-                                <Bar key={author.author} dataKey={author.author} stackId="a" fill={`var(--chart-${index + 1})`} />
+                              <ChartTooltip content={<ChartTooltipContent />} />
+                              <ChartLegend content={<ChartLegendContent />} />
+                              {authorKeys.map(author => (
+                                <Bar key={author} dataKey={author} fill={commitByDateChartConfig[author]?.color} radius={4} />
                               ))}
                             </BarChart>
-                          </ResponsiveContainer>
-                        </ChartContainer>
-                      )
+                          </ChartContainer>
+                        )
+                      }
+
+                      // Biểu đồ Bar Horizontal (giữ nguyên theo tổng count)
+                      if (commitByDateChartType === 'bar-horizontal') {
+                        return (
+                          // Sử dụng processedTotalDateData và totalCountChartConfig
+                          <ChartContainer config={totalCountChartConfig} className="w-full mx-auto h-[350px]">
+                            <BarChart
+                              accessibilityLayer
+                              layout="vertical"
+                              data={processedTotalDateData} // Dữ liệu chỉ có date và count (tổng)
+                              margin={{ top: 25, right: 30, left: 50, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis type="number" dataKey="count" />
+                              <YAxis dataKey="date" type="category" tickLine={false} axisLine={false} width={80} />
+                              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                              <ChartLegend content={<ChartLegendContent />} />
+                              {/* Chỉ hiển thị thanh tổng count */}
+                              <Bar dataKey="count" fill="var(--chart-1)" radius={8}>
+                                <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={12} />
+                              </Bar>
+                            </BarChart>
+                          </ChartContainer>
+                        )
+                      }
+
+                      // Biểu đồ Bar Stacked (theo tác giả)
+                      if (commitByDateChartType === 'bar-stacked') {
+                        return (
+                          <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
+                            <BarChart accessibilityLayer data={processedStackedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
+                              <YAxis />
+                              <ChartTooltip content={<ChartTooltipContent />} />
+                              <ChartLegend content={<ChartLegendContent />} />
+                              {authorKeys.map(author => (
+                                <Bar key={author} dataKey={author} stackId="a" fill={commitByDateChartConfig[author]?.color} radius={4} />
+                              ))}
+                            </BarChart>
+                          </ChartContainer>
+                        )
+                      }
+
+                      // Biểu đồ Line Multiple (theo tác giả)
+                      if (commitByDateChartType === 'line-multiple') {
+                        return (
+                          <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
+                            <LineChart accessibilityLayer data={processedStackedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
+                              <YAxis />
+                              <ChartTooltip content={<ChartTooltipContent />} />
+                              <ChartLegend content={<ChartLegendContent />} />
+                              {authorKeys.map(author => (
+                                <Line key={author} type="monotone" dataKey={author} stroke={commitByDateChartConfig[author]?.color} activeDot={{ r: 8 }} />
+                              ))}
+                            </LineChart>
+                          </ChartContainer>
+                        )
+                      }
+
+                      // Biểu đồ Area Multiple (stacked theo tác giả)
+                      if (commitByDateChartType === 'area-multiple') {
+                        return (
+                          <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
+                            <AreaChart accessibilityLayer data={processedStackedDateData} margin={{ top: 25, right: 30, left: 20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
+                              <YAxis />
+                              <ChartTooltip content={<ChartTooltipContent />} />
+                              <ChartLegend content={<ChartLegendContent />} />
+                              {authorKeys.map(author => (
+                                <Area
+                                  key={author}
+                                  type="monotone"
+                                  dataKey={author}
+                                  stackId="1" // Stack các area lại với nhau
+                                  stroke={commitByDateChartConfig[author]?.color}
+                                  fill={commitByDateChartConfig[author]?.color}
+                                  fillOpacity={0.4}
+                                />
+                              ))}
+                            </AreaChart>
+                          </ChartContainer>
+                        )
+                      }
+                      return <div>{t('statisticDialog.selectChartType')}</div> // Sử dụng i18n
                     })()}
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">Dữ liệu commit trong khoảng thời gian được chọn</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
@@ -381,39 +411,85 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
 
           <TabsContent value="commit-by-author" className="h-[500px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">Số lượng commit theo tác giả</h3>
               {(statisticsData?.commitsByAuthor?.length ?? 0) > 0 ? (
                 <Card className="flex flex-col max-w-full sticky h-[500px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
-                  <CardHeader className="items-center pb-0">
-                    <CardTitle>Commits Over Time</CardTitle>
-                    <CardDescription>Biểu đồ số lượng commit theo ngày</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between pb-0">
+                    <div className="flex flex-col">
+                      <CardTitle>{t('statisticDialog.commitByAuthor.cardTitle')}</CardTitle>
+                      <CardDescription>{t('statisticDialog.commitByAuthor.cardDescription')}</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant={commitByAuthorChartType === 'bar-vertical' ? 'default' : 'outline'}
+                        onClick={() => setCommitByAuthorChartType('bar-vertical')}
+                        title={t('statisticDialog.commitByAuthor.chartTypes.barVertical')}
+                      >
+                        <BarChartIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant={commitByAuthorChartType === 'bar-horizontal' ? 'default' : 'outline'}
+                        onClick={() => setCommitByAuthorChartType('bar-horizontal')}
+                        title={t('statisticDialog.commitByAuthor.chartTypes.barHorizontal')}
+                      >
+                        <BarChart2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
-                  <CardContent className="flex-1 pb-0 overflow-hidden">
-                    <ChartContainer config={chartConfig1} className="w-full mx-auto h-[350px]">
-                      <ResponsiveContainer width="100%" height="100%">
+                  <CardContent className="flex-1 pb-0 overflow-hidden pt-4">
+                    {commitByAuthorChartType === 'bar-vertical' && (
+                      <ChartContainer config={chartConfig1} className="w-full mx-auto h-[350px]">
                         <BarChart
                           accessibilityLayer
                           data={chartData1}
                           margin={{
                             top: 25,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
                           }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="author" tickLine={false} tickMargin={10} axisLine={false} />
+                          <YAxis />
                           <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
                           <Bar dataKey="count" fill="var(--color-count)" radius={8}>
                             <LabelList position="top" offset={12} className="fill-foreground" fontSize={12} />
                           </Bar>
                         </BarChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
+                      </ChartContainer>
+                    )}
+                    {commitByAuthorChartType === 'bar-horizontal' && (
+                      <ChartContainer config={chartConfig1} className="w-full mx-auto h-[350px]">
+                        <BarChart
+                          accessibilityLayer
+                          layout="vertical"
+                          data={chartData1}
+                          margin={{
+                            top: 25,
+                            right: 30,
+                            left: 50,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="author" type="category" tickLine={false} axisLine={false} width={100} />
+                          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+                          <Bar dataKey="count" fill="var(--color-count)" radius={8}>
+                            <LabelList position="right" offset={12} className="fill-foreground" fontSize={12} />
+                          </Bar>
+                        </BarChart>
+                      </ChartContainer>
+                    )}
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">Dữ liệu commit trong khoảng thời gian được chọn</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">Không có dữ liệu</p>
+                  <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
                 </div>
               )}
             </div>
@@ -421,29 +497,27 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
 
           <TabsContent value="authorship" className="h-[500px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">Tỷ lệ đóng góp của tác giả</h3>
+              <h3 className="text-lg font-medium mb-2">{t('statisticDialog.authorship.cardTitle')}</h3>
               {(chartData2.length ?? 0) > 0 ? (
                 <Card className="flex flex-col max-w-full sticky h-[500px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Commits by Author</CardTitle>
-                    <CardDescription>Tỷ lệ đóng góp của tác giả</CardDescription>
+                    <CardTitle>{t('statisticDialog.authorship.cardTitle')}</CardTitle>
+                    <CardDescription>{t('statisticDialog.authorship.cardDescription')}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0 overflow-hidden">
                     <ChartContainer config={chartConfig1} className="w-full mx-auto h-[350px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart accessibilityLayer>
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Pie data={chartData2} dataKey="count" label nameKey="author" />
-                        </PieChart>
-                      </ResponsiveContainer>
+                      <PieChart accessibilityLayer>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={chartData2} dataKey="count" label nameKey="author" />
+                      </PieChart>
                     </ChartContainer>
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">Dữ liệu commit trong khoảng thời gian được chọn</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">Không có dữ liệu</p>
+                  <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
                 </div>
               )}
             </div>
@@ -451,16 +525,16 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
 
           <TabsContent value="summary" className="h-[500px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">Bảng tổng hợp</h3>
+              <h3 className="text-lg font-medium mb-2">{t('statisticDialog.summary.title')}</h3>
               <div className="flex-1 border rounded-md p-4 overflow-auto sticky">
                 <OverlayLoader isLoading={isLoadingStatistics} />
                 {(statisticsData?.summary?.length ?? 0) > 0 ? (
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Tác giả</th>
-                        <th className="text-right p-2">Số lượng commit</th>
-                        <th className="text-right p-2">Tỷ lệ</th>
+                        <th className="text-left p-2">{t('statisticDialog.summary.author')}</th>
+                        <th className="text-right p-2">{t('statisticDialog.summary.commitCount')}</th>
+                        <th className="text-right p-2">{t('statisticDialog.summary.percentage')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -472,7 +546,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                         </tr>
                       ))}
                       <tr className="font-bold border-t">
-                        <td className="p-2">Tổng cộng</td>
+                        <td className="p-2">{t('statisticDialog.summary.total')}</td>
                         <td className="text-right p-2">{statisticsData?.totalCommits ?? 0}</td>
                         <td className="text-right p-2">100%</td>
                       </tr>
@@ -480,7 +554,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                   </table>
                 ) : (
                   <div className="h-full flex items-center justify-center">
-                    <p className="text-muted-foreground">Không có dữ liệu</p>
+                    <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
                   </div>
                 )}
               </div>

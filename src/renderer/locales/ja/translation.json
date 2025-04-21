@@ -194,7 +194,70 @@
       "low": "低",
       "allIssues": "すべての問題",
       "issues": "問題",
-      "issueDetails": "問題の詳細"
+      "issueDetails": "問題の詳細",
+      "bugDetails": "バグの詳細",
+      "location": "場所",
+      "methodLocation": "メソッドの場所",
+      "lines": "行：",
+      "localVariables": "ローカル変数",
+      "properties": "プロパティ",
+      "name": "名前：",
+      "value": "値：",
+      "notAvailable": "該当なし",
+      "static": "静的",
+      "primary": "プライマリ"
     }
+  },
+  "statisticDialog": {
+    "title": "統計",
+    "selectPeriodPlaceholder": "期間を選択",
+    "period": {
+      "day": "日",
+      "week": "週",
+      "month": "月",
+      "year": "年",
+      "all": "すべて"
+    },
+    "tabs": {
+      "commitByDate": "日付別コミット",
+      "commitByAuthor": "作成者別コミット",
+      "authorship": "作成者比率",
+      "summary": "概要テーブル"
+    },
+    "commitByDate": {
+      "cardTitle": "期間別コミット",
+      "cardDescription": "日付別コミット数のグラフ",
+      "selectChartType": "グラフの種類を選択",
+      "chartTypes": {
+        "barMultiple": "棒グラフ - 複数",
+        "barHorizontal": "棒グラフ - 横",
+        "barStacked": "棒グラフ - 積み上げ",
+        "lineMultiple": "折れ線グラフ - 複数",
+        "areaMultiple": "面グラフ - 複数"
+      }
+    },
+    "commitByAuthor": {
+      "cardTitle": "作成者別コミット",
+      "cardDescription": "作成者別コミット数のグラフ",
+      "chartTypes": {
+        "barVertical": "棒グラフ - 縦",
+        "barHorizontal": "棒グラフ - 横"
+      }
+    },
+    "authorship": {
+      "title": "作成者貢献率",
+      "cardTitle": "作成者別コミット",
+      "cardDescription": "作成者貢献率"
+    },
+    "summary": {
+      "title": "概要テーブル",
+      "author": "作成者",
+      "commitCount": "コミット数",
+      "percentage": "割合",
+      "total": "合計"
+    },
+    "cardFooter": "選択した期間のコミットデータ",
+    "noData": "データがありません",
+    "errorLoading": "統計データの読み込みエラー"
   }
 }

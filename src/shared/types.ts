@@ -16,3 +16,17 @@ export interface WindowCreationByIPC {
   window(): BrowserWindowOrNull
   callback(window: BrowserWindow, event: IpcMainInvokeEvent): void
 }
+
+export interface PaginationInfo {
+  limit: number;
+  offset: number;
+  totalEntries: number;
+  suggestedStartDate?: string | null; // Add this line
+}
+
+export interface SVNResponse {
+  status: 'success' | 'error';
+  message?: string;
+  data?: any; // Có thể là string (cho log), hoặc object (cho statistics)
+  pagination?: PaginationInfo;
+}

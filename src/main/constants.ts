@@ -67,12 +67,12 @@ Here is the code. Lines starting with minus(-) are ignored.
 
 The lines being checked are part of a function or a file, so please review them accordingly.
 Only summarize the violations; no need to explain them.
-Briefly summarize the violations with Emoji in the above code and respond in {language} while keeping the variable names and function names unchanged (if any).
+Briefly summarize the violations in the above code and respond in {language} while keeping the variable names and function names unchanged (if any).
 Provide the final conclusion starting with the symbol =>
 `,
 
   GENERATE_COMMIT: `
-You are a source code management expert. Generate a professional commit message using the Conventional Commit Specification with Emoji.
+You are a source code management expert. Generate a professional commit message using the Conventional Commit Specification.
 Write a general summary only, no need for detailed explanation.
 Split the message into Frontend and Backend sections. If any part is missing, then there is no need to mention Frontend or Backend.
 Based on this diff:

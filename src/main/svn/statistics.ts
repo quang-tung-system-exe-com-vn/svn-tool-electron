@@ -12,9 +12,17 @@ export interface StatisticsOptions {
   dateTo?: string;
 }
 
-interface CommitByDate {
-  date: string;
+// Chi tiết commit của một tác giả trong một ngày cụ thể
+interface CommitAuthorDetail {
+  author: string;
   count: number;
+}
+
+// Dữ liệu commit được nhóm theo ngày, bao gồm chi tiết theo tác giả
+interface CommitByDateGrouped {
+  date: string;
+  authors: CommitAuthorDetail[];
+  totalCount: number; // Tổng số commit trong ngày
 }
 
 interface CommitByAuthor {
@@ -35,7 +43,7 @@ interface SummaryData {
 }
 
 export interface StatisticsResponse {
-  commitsByDate: CommitByDate[];
+  commitsByDate: CommitByDateGrouped[];
   commitsByAuthor: CommitByAuthor[];
   authorship: AuthorshipData[];
   summary: SummaryData[];
@@ -92,34 +100,81 @@ export async function getStatistics(filePath = '.', options?: StatisticsOptions)
       .filter(entry => entry);
 
     // Khởi tạo các đối tượng để lưu trữ thống kê
-    const commitsByDate: Record<string, number> = {};
-    const commitsByAuthor: Record<string, number> = {};
-    const totalCommits = entries.length;
+    // commitsByDate: Ghi lại số commit của mỗi tác giả theo từng ngày
+    // Ví dụ: { '2023-10-26': { 'author1': 5, 'author2': 3 }, '2023-10-27': { 'author1': 2 } }
+    const commitsByDate: Record<string, Record<string, number>> = {};
+    const commitsByAuthor: Record<string, number> = {}; // Tổng số commit của mỗi tác giả
+    let totalCommits = 0; // Tổng số commit sẽ được tính lại chính xác hơn
 
     // Phân tích từng entry
     for (const entry of entries) {
       const lines = entry.split('\n').map(line => line.trim());
-      const headerMatch = lines[0]?.match(/^r\d+\s+\|\s+(.+?)\s+\|\s+(.+?)\s+\|/);
+      // Dòng header chứa thông tin revision, author, date
+      // Ví dụ: r12345 | author_name | 2023-10-26 15:30:00 +0700 (Thu, 26 Oct 2023) | 1 line
+      const headerMatch = lines[0]?.match(/^r\d+\s+\|\s+([^|]+?)\s+\|\s+([^|]+?)\s+\|/);
 
       if (headerMatch) {
+        totalCommits++; // Tăng tổng số commit nếu parse được header
         const [, author, dateStr] = headerMatch;
-        const date = new Date(dateStr);
-        const dateKey = format(date, 'yyyy-MM-dd');
+        // Cần parse date cẩn thận hơn, có thể bao gồm timezone
+        // Thử parse với các định dạng phổ biến mà SVN log có thể trả về
+        let date: Date | null = null;
+        try {
+          // Thử parse định dạng chuẩn ISO có timezone offset
+          date = new Date(dateStr.replace(' (', 'T').replace(')', '').replace(' ', ''));
+          if (Number.isNaN(date.getTime())) {
+            // Thử parse định dạng không có timezone (ít phổ biến hơn)
+            date = new Date(dateStr.split('(')[0].trim());
+          }
+        } catch (e) {
+          console.error(`Could not parse date string: ${dateStr}`, e);
+          date = null; // Không parse được date
+        }
 
-        // Thống kê theo ngày
-        commitsByDate[dateKey] = (commitsByDate[dateKey] || 0) + 1;
 
-        // Thống kê theo tác giả
-        commitsByAuthor[author] = (commitsByAuthor[author] || 0) + 1;
+        if (date && !Number.isNaN(date.getTime())) {
+          const dateKey = format(date, 'yyyy-MM-dd');
+
+          // Thống kê theo ngày và tác giả
+          if (!commitsByDate[dateKey]) {
+            commitsByDate[dateKey] = {};
+          }
+          commitsByDate[dateKey][author] = (commitsByDate[dateKey][author] || 0) + 1;
+
+          // Thống kê tổng số commit theo tác giả
+          commitsByAuthor[author] = (commitsByAuthor[author] || 0) + 1;
+        } else {
+          console.warn(`Skipping entry due to invalid date: ${dateStr}`);
+        }
+      } else {
+        console.warn(`Skipping entry due to invalid header format: ${lines[0]}`);
       }
     }
 
-    // Chuyển đổi dữ liệu thành mảng để dễ dàng sử dụng
-    const commitsByDateArray = Object.entries(commitsByDate).map(([date, count]) => ({
-      date,
-      count
-    })).sort((a, b) => a.date.localeCompare(b.date));
+    // Kiểm tra lại totalCommits nếu không parse được header nào
+    if (totalCommits === 0 && entries.length > 0) {
+      console.warn("Parsed 0 commits, but found log entries. Check SVN log format or parsing logic.");
+      // Có thể gán totalCommits = entries.length nếu muốn ước lượng, nhưng không chính xác
+    }
 
+    // Chuyển đổi dữ liệu commitsByDate thành mảng theo cấu trúc mới
+    const commitsByDateArray: CommitByDateGrouped[] = Object.entries(commitsByDate)
+      .map(([date, authorsData]) => {
+        const authorsArray: CommitAuthorDetail[] = Object.entries(authorsData)
+          .map(([author, count]) => ({ author, count }))
+          .sort((a, b) => b.count - a.count); // Sắp xếp tác giả theo số commit giảm dần trong ngày
+
+        const totalCount = authorsArray.reduce((sum, author) => sum + author.count, 0);
+
+        return {
+          date,
+          authors: authorsArray,
+          totalCount
+        };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date)); // Sắp xếp các ngày tăng dần
+
+    // Chuyển đổi dữ liệu commitsByAuthor thành mảng
     const commitsByAuthorArray = Object.entries(commitsByAuthor).map(([author, count]) => ({
       author,
       count

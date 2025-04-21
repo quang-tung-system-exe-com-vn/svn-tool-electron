@@ -190,7 +190,70 @@
       "low": "Low",
       "allIssues": "All Issues",
       "issues": "Issues",
-      "issueDetails": "Issue Details"
+      "issueDetails": "Issue Details",
+      "bugDetails": "Bug Details",
+      "location": "Location",
+      "methodLocation": "Method Location",
+      "lines": "Lines:",
+      "localVariables": "Local Variables",
+      "properties": "Properties",
+      "name": "Name:",
+      "value": "Value:",
+      "notAvailable": "N/A",
+      "static": "static",
+      "primary": "primary"
     }
+  },
+  "statisticDialog": {
+    "title": "Statistics",
+    "selectPeriodPlaceholder": "Select period",
+    "period": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "year": "Year",
+      "all": "All"
+    },
+    "tabs": {
+      "commitByDate": "Commits by Date",
+      "commitByAuthor": "Commits by Author",
+      "authorship": "Authorship Rate",
+      "summary": "Summary Table"
+    },
+    "commitByDate": {
+      "cardTitle": "Commits Over Time",
+      "cardDescription": "Chart of commit counts by date",
+      "selectChartType": "Select a chart type",
+      "chartTypes": {
+        "barMultiple": "Bar Chart - Multiple",
+        "barHorizontal": "Bar Chart - Horizontal",
+        "barStacked": "Bar Chart - Stacked",
+        "lineMultiple": "Line Chart - Multiple",
+        "areaMultiple": "Area Chart - Multiple"
+      }
+    },
+    "commitByAuthor": {
+      "cardTitle": "Commits by Author",
+      "cardDescription": "Chart of commit counts by author",
+      "chartTypes": {
+        "barVertical": "Bar Chart - Vertical",
+        "barHorizontal": "Bar Chart - Horizontal"
+      }
+    },
+    "authorship": {
+      "title": "Author Contribution Rate",
+      "cardTitle": "Commits by Author",
+      "cardDescription": "Author contribution rate"
+    },
+    "summary": {
+      "title": "Summary Table",
+      "author": "Author",
+      "commitCount": "Commit Count",
+      "percentage": "Percentage",
+      "total": "Total"
+    },
+    "cardFooter": "Commit data for the selected period",
+    "noData": "No data available",
+    "errorLoading": "Error loading statistics data"
   }
 }

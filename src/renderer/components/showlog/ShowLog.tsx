@@ -10,10 +10,10 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { toast } from 'sonner'
+import { StatisticDialog } from '../dialogs/StatisticDialog'
 import { STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { StatusIcon } from '../ui-elements/StatusIcon'
 import { Textarea } from '../ui/textarea'
-import { StatisticDialog } from '../dialogs/StatisticDialog'
 import { ShowlogToolbar } from './ShowlogToolbar'
 
 window.addEventListener('storage', event => {
@@ -28,7 +28,8 @@ window.addEventListener('storage', event => {
 interface LogEntry {
   revision: string
   author: string
-  date: string
+  date: string // Formatted date for display
+  isoDate: string // Original ISO date string for comparison/sorting
   message: string
   action: string[]
   changedFiles: LogFile[]
@@ -184,7 +185,7 @@ export function ShowLog() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalEntries, setTotalEntries] = useState(0)
+  const [totalEntries, setTotalEntries] = useState(0) // State để lưu tổng số entries
   const [hasMoreEntries, setHasMoreEntries] = useState(true)
   const pageSize = 50 // Số lượng log entries mỗi trang
 
@@ -245,14 +246,9 @@ export function ShowLog() {
           .map(entry => entry.trim())
           .filter(entry => entry)
 
-        // Cập nhật trạng thái phân trang
-        if (result.pagination) {
-          // Nếu số lượng entries nhỏ hơn pageSize, có thể đã hết entries
-          setHasMoreEntries(entries.length >= pageSize)
-          setCurrentPage(page)
-        }
-
+        // Khởi tạo parsedEntries và Set để theo dõi revision đã thêm
         const parsedEntries: LogEntry[] = []
+        const addedRevisions = new Set<string>() // Set to track added revisions
 
         for (const entry of entries) {
           const lines = entry
@@ -292,16 +288,83 @@ export function ShowLog() {
 
           const messageLines = lines.slice(i)
 
-          parsedEntries.push({
-            revision: revisionStr,
-            author,
-            date: new Date(date).toLocaleString(),
-            message: messageLines.join('\n').trim(),
-            action: Array.from(new Set(changedFiles.map(f => f.action))),
-            changedFiles,
-          })
+          // Chỉ thêm entry nếu revision chưa tồn tại trong Set
+          if (!addedRevisions.has(revisionStr)) {
+            // Store both formatted and ISO date
+            const originalDate = new Date(date)
+            parsedEntries.push({
+              revision: revisionStr,
+              author,
+              date: originalDate.toLocaleString(), // Formatted for display
+              isoDate: originalDate.toISOString(), // ISO for comparison
+              message: messageLines.join('\n').trim(),
+              action: Array.from(new Set(changedFiles.map(f => f.action))),
+              changedFiles,
+            })
+            addedRevisions.add(revisionStr) // Đánh dấu revision này đã được thêm
+          } else {
+            console.warn(`Skipping duplicate revision entry found during frontend parsing: r${revisionStr}`)
+          }
         }
-        setData(parsedEntries)
+
+        // Log số lượng entry trước và sau khi loại bỏ trùng lặp (nếu có)
+        if (entries.length !== parsedEntries.length) {
+          console.log(`Parsed ${entries.length} raw entries, kept ${parsedEntries.length} unique entries.`)
+        }
+
+        setData(parsedEntries) // Cập nhật data state với entries duy nhất đã parse
+
+        // --- Find earliest date from the *current* results and update dateRange.from if needed ---
+        if (parsedEntries.length > 0) {
+          // Sort entries by isoDate to find the earliest
+          const sortedEntries = [...parsedEntries].sort((a, b) => a.isoDate.localeCompare(b.isoDate))
+          const earliestIsoDate = sortedEntries[0].isoDate
+          const earliestDate = new Date(earliestIsoDate)
+
+          // Only update if the earliest date found is different from the current 'from' date
+          // Compare time values to avoid issues with object references
+          if (dateRange?.from?.getTime() !== earliestDate.getTime()) {
+            console.log(`Updating dateRange.from to earliest date found: ${earliestIsoDate}`)
+            // Update only the 'from' date, keep 'to' as is
+            setDateRange(prevRange => ({
+              from: earliestDate,
+              to: prevRange?.to, // Keep the existing 'to' date
+            }))
+          }
+        }
+        // --- End of earliest date update ---
+
+        // --- Cập nhật trạng thái phân trang SAU KHI parsedEntries được tạo và setData được gọi ---
+        if (result.pagination) {
+          const receivedTotal = result.pagination.totalEntries ?? 0
+          const receivedLimit = result.pagination.limit ?? pageSize
+          const receivedOffset = result.pagination.offset ?? (page - 1) * receivedLimit
+
+          setTotalEntries(receivedTotal)
+          // Tính lại trang hiện tại một cách an toàn
+          const calculatedCurrentPage = receivedLimit > 0 ? Math.floor(receivedOffset / receivedLimit) + 1 : 1
+          setCurrentPage(calculatedCurrentPage)
+
+          // Xác định hasMoreEntries dựa trên totalEntries nếu có, hoặc số lượng entry nhận được
+          let moreEntriesExist: boolean
+          if (receivedTotal > 0) {
+            // So sánh offset + số lượng thực tế nhận được với total
+            moreEntriesExist = receivedOffset + parsedEntries.length < receivedTotal
+          } else {
+            // Fallback: Nếu không có total, kiểm tra xem có nhận đủ số lượng yêu cầu không
+            // Dùng >= vì trang cuối có thể ít hơn limit
+            moreEntriesExist = parsedEntries.length >= receivedLimit
+          }
+          setHasMoreEntries(moreEntriesExist)
+          console.log(`Pagination updated: currentPage=${calculatedCurrentPage}, totalEntries=${receivedTotal}, hasMoreEntries=${moreEntriesExist}`)
+        } else {
+          // Fallback nếu không có thông tin pagination từ API
+          setTotalEntries(0)
+          setHasMoreEntries(parsedEntries.length >= pageSize) // Dùng logic cũ dựa trên số lượng nhận được
+          setCurrentPage(page)
+          console.warn('Pagination info missing from API response. Using fallback logic.')
+        }
+        // --- Kết thúc cập nhật phân trang ---
 
         if (parsedEntries.length > 0) {
           // Initialize status summary with the first entry
@@ -369,15 +432,22 @@ export function ShowLog() {
 
   // Lọc dữ liệu dựa trên searchTerm
   const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return data;
+    if (!searchTerm.trim()) return data
 
-    return data.filter(entry =>
-      entry.revision.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.date.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [data, searchTerm]);
+    return data.filter(
+      entry =>
+        entry.revision.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.date.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [data, searchTerm])
+
+  // Tính tổng số trang
+  const totalPages = useMemo(() => {
+    if (totalEntries <= 0 || pageSize <= 0) return 1 // Tránh chia cho 0
+    return Math.ceil(totalEntries / pageSize)
+  }, [totalEntries, pageSize])
 
   // Sử dụng useCallback cho handleRefresh và handlePageChange để tránh tạo lại hàm mỗi lần render
   const handleRefresh = useCallback(() => {
@@ -390,16 +460,22 @@ export function ShowLog() {
   // Hàm xử lý chuyển trang
   const handlePageChange = useCallback(
     (newPage: number) => {
-      if (newPage < 1 || (newPage > currentPage && !hasMoreEntries)) return
+      // Kiểm tra giới hạn trang dựa trên totalPages nếu totalEntries > 0
+      const maxPage = totalPages > 0 ? totalPages : Number.POSITIVE_INFINITY // Sửa lỗi Biome
+      if (newPage < 1 || newPage > maxPage || newPage === currentPage) return
+
+      // Kiểm tra hasMoreEntries chỉ khi đi tới trang tiếp theo
+      if (newPage > currentPage && !hasMoreEntries) return
+
       loadLogData(filePath, newPage)
     },
-    [currentPage, hasMoreEntries, filePath]
+    [currentPage, hasMoreEntries, filePath, totalPages] // Thêm totalPages vào dependencies
   )
 
   // Hàm xử lý search
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  }, []);
+    setSearchTerm(e.target.value)
+  }, [])
 
   const table = useReactTable({
     data: filteredData,
@@ -440,12 +516,7 @@ export function ShowLog() {
                   <div className="mb-2 flex items-center gap-2">
                     <div className="relative flex-1">
                       <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        placeholder="Tìm kiếm theo revision, author, message..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="pl-8"
-                      />
+                      <Input placeholder="Tìm kiếm theo revision, author, message..." value={searchTerm} onChange={handleSearchChange} className="pl-8" />
                     </div>
                   </div>
                   <ScrollArea className="flex-1 border-1 rounded-md">
@@ -506,18 +577,32 @@ export function ShowLog() {
                     <ScrollBar orientation="horizontal" />
                   </ScrollArea>
 
-                  {/* Pagination UI - Đã được di chuyển ra khỏi ScrollArea */}
-                  <div className="flex items-center justify-between p-2 border-t mt-2">
-                    <div className="text-sm text-muted-foreground">Trang {currentPage}</div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1 || isLoading}>
-                        Trang trước
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={!hasMoreEntries || isLoading}>
-                        Trang sau
-                      </Button>
+                  {/* Pagination Controls */}
+                  {(totalEntries > 0 || data.length > 0 || isLoading) && (
+                    <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground border-t">
+                      <span className="flex-1 text-xs pl-1">
+                        {totalEntries > 0 ? `${totalEntries} total entries` : isLoading ? 'Loading...' : data.length === 0 ? 'No entries' : ''}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
+                          Previous
+                        </Button>
+                        <span>
+                          Page {currentPage}
+                          {totalPages > 1 ? ` of ${totalPages}` : ''}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={isLoading || !hasMoreEntries || (totalPages > 0 && currentPage >= totalPages)}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                      <div className="flex-1" /> {/* Spacer - Self-closing */}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </ResizablePanel>
@@ -596,12 +681,7 @@ export function ShowLog() {
       </div>
 
       {/* Statistic Dialog */}
-      <StatisticDialog
-        isOpen={isStatisticOpen}
-        onOpenChange={setIsStatisticOpen}
-        filePath={filePath}
-        dateRange={dateRange}
-      />
+      <StatisticDialog isOpen={isStatisticOpen} onOpenChange={setIsStatisticOpen} filePath={filePath} dateRange={dateRange} />
     </div>
   )
 }

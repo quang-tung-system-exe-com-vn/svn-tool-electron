@@ -78,18 +78,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   }
 
+  useEffect(() => {
+    if (open) {
+      console.log('Running load functions...')
+      loadWebhookConfig()
+      loadConfigurationConfig()
+      loadMailServerConfig()
+    }
+  }, [open])
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={value => {
-        if (value) {
-          loadWebhookConfig()
-          loadConfigurationConfig()
-          loadMailServerConfig()
-        }
-        onOpenChange?.(value)
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('menu.settings')}</DialogTitle>
