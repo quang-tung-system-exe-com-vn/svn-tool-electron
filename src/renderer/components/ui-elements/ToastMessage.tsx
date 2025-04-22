@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import chalk from 'chalk'
+import { t } from 'i18next'
 import { Copy } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
@@ -34,7 +35,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ message, type }) => {
 const ToastMessageFunctions = {
   success: (message: string) => {
     console.log(chalk.green.bold('[SUCCESS]'), message)
-    toast('SUCCESS', {
+    toast(t('toast.success'), {
       description: <ToastMessage message={message} type="success" />,
       className: 'toast-success',
     })
@@ -42,7 +43,7 @@ const ToastMessageFunctions = {
 
   info: (message: string) => {
     console.log(chalk.cyan.bold('[INFO]'), message)
-    toast('INFO', {
+    toast(t('toast.info'), {
       description: <ToastMessage message={message} type="info" />,
       className: 'toast-info',
     })
@@ -50,7 +51,7 @@ const ToastMessageFunctions = {
 
   warning: (message: string) => {
     console.log(chalk.yellow.bold('[WARNING]'), message)
-    toast('WARNING', {
+    toast(t('toast.warning'), {
       description: <ToastMessage message={message} type="warning" />,
       className: 'toast-warning',
     })
@@ -58,7 +59,7 @@ const ToastMessageFunctions = {
 
   error: (message: any) => {
     console.log(chalk.red.bold('[ERROR]'), message)
-    toast('ERROR', {
+    toast(t('toast.error'), {
       description: <ToastMessage message={message} type="error" />,
       className: 'toast-error',
     })

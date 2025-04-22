@@ -44,6 +44,7 @@ export const IPC = {
   NOTIFICATIONS: {
     SEND_MAIL: 'notification:send-mail',
     SEND_TEAMS: 'notification:send-teams',
+    SEND_SUPPORT_FEEDBACK: 'notification:send-support-feedback', // Add this line
   },
   SYSTEM: {
     OPEN_FOLDER: 'system:open-folder',

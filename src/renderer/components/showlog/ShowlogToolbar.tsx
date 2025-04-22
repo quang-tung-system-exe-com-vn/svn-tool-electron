@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { BarChart3, CalendarIcon, Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
+import { useEffect, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
 import { GlowLoader } from '../ui-elements/GlowLoader'
@@ -25,6 +26,21 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
+  const [open, setOpen] = useState(false)
+  const [date, setDate] = useState<DateRange | undefined>(() => {
+    const today = new Date()
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(today.getDate() - 7)
+    return {
+      from: oneWeekAgo,
+      to: today,
+    }
+  })
+  useEffect(() => {
+    if (setDateRange) {
+      setDateRange(dateRange)
+    }
+  }, [dateRange, setDateRange])
 
   return (
     <div
@@ -41,7 +57,7 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
         <div className="w-10 h-6 flex justify-center">{isLoading ? <GlowLoader className="w-8 h-6 py-1" /> : <RoundIcon className="w-8 h-6 py-1" />}</div>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="link" size="sm" onClick={onRefresh} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
+            <Button variant="link" disabled={isLoading} size="sm" onClick={onRefresh} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
               <RefreshCw className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -51,7 +67,7 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
         {onOpenStatistic && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="link" size="sm" onClick={onOpenStatistic} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
+              <Button variant="link" disabled={isLoading} size="sm" onClick={onOpenStatistic} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
                 <BarChart3 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -62,27 +78,43 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
         {/* Date Range Picker */}
         {setDateRange && (
           <div className="ml-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn('justify-start text-left font-normal h-7 px-2', !dateRange && 'text-muted-foreground')}>
-                  <CalendarIcon className="mr-2 h-3 w-3" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
-                      </>
-                    ) : (
-                      format(dateRange.from, 'dd/MM/yyyy')
-                    )
-                  ) : (
-                    <span>{t('statisticDialog.selectPeriodPlaceholder')}</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} />
-              </PopoverContent>
-            </Popover>
+            {/* Thêm state open */}
+            {(() => {
+              return (
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isLoading} className={cn('justify-start text-left font-normal h-7 px-2', !dateRange && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-2 h-3 w-3" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
+                          </>
+                        ) : (
+                          format(dateRange.from, 'dd/MM/yyyy')
+                        )
+                      ) : (
+                        <span>{t('statisticDialog.selectPeriodPlaceholder')}</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
+                    <div className="flex justify-end">
+                      <Button
+                        className="mr-2 mb-3"
+                        onClick={() => {
+                          setDateRange(date)
+                          setOpen(false)
+                        }}
+                      >
+                        Xác nhận
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )
+            })()}
           </div>
         )}
       </div>

@@ -91,7 +91,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('menu.settings')}</DialogTitle>
+          <DialogTitle>{t('title.settings')}</DialogTitle>
           <DialogDescription>{t('settings.description')}</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="appearance" className="w-full">

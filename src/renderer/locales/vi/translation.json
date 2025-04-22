@@ -2,7 +2,7 @@
   "common": {
     "close": "Đóng",
     "cancel": "Hủy",
-    "save": "Lưu thay đổi",
+    "save": "Lưu",
     "add": "Thêm",
     "delete": "Xóa",
     "install": "Cài đặt",
@@ -12,7 +12,9 @@
     "choose": "Chọn thư mục",
     "swap": "Đổi bên",
     "next": "Tiếp",
-    "back": "Quay lại"
+    "back": "Quay lại",
+    "send": "Gửi",
+    "sending": "Đang gửi..."
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -23,19 +25,22 @@
     "loading": "Đang tải...",
     "noIssues": "Không tìm thấy vấn đề",
     "selectIssue": "Chọn một vấn đề để xem chi tiết",
-    "errorLoading": "Lỗi khi tải file để so sánh:"
+    "errorLoading": "Lỗi khi tải file để so sánh:",
+    "noFilesChanged": "Chưa có file nào được thay đổi hoặc thêm mới kể từ lần commit cuối.",
+    "rowSelected": "{{0}} của {{1}} hàng được chọn.",
+    "leastOneJavaFile": "Vui lòng chọn ít nhất một file Java để phân tích."
   },
-  "menu": {
-    "info": "Danh mục",
+  "title": {
+    "settings": "Cài đặt",
     "about": "Giới thiệu",
-    "version": "Phiên bản",
-    "logs": "Nhật ký",
-    "showLogs": "Xem nhật ký",
-    "clearLogs": "Xóa nhật ký",
-    "support": "Hỗ trợ",
+    "checkForUpdate": "Kiểm tra cập nhật",
+    "checkForUpdate1": "Có bản cập nhật mới! ({{0}})",
     "contact": "Liên hệ",
-    "faq": "Câu hỏi thường gặp",
-    "settings": "Cài đặt"
+    "updateSvn": "SVN (Phiên bản hiện tại: {{0}})",
+    "updateSvn1": "Có bản SVN mới! ({{0}}) - (Hiện tại: {{1}})",
+    "cleanSvn": "Dọn dẹp SVN",
+    "showLogsSvn": "Hiển thị nhật ký SVN",
+    "supportFeedback": "Hỗ trợ & Phản hồi"
   },
   "action": {
     "refresh": "Làm mới",
@@ -55,6 +60,7 @@
   "table": {
     "status": "Trạng thái",
     "filePath": "Đường dẫn tập tin",
+    "extension": "Phần mở rộng",
     "severity": "Mức độ nghiêm trọng",
     "issue": "Vấn đề",
     "line": "Dòng",
@@ -154,8 +160,8 @@
     "updatingMessage": "Đang cập nhật SVN...",
     "updateSuccess": "Cập nhật SVN thành công",
     "updateError": "Lỗi khi cập nhật SVN",
-    "spotbugsError": "Lỗi khi chạy SpotBugs: {0}",
-    "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {0} vấn đề được tìm thấy",
+    "spotbugsError": "Lỗi khi chạy SpotBugs: {{0}}",
+    "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {{0}} vấn đề được tìm thấy",
     "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs..."
   },
   "codingRules": {
@@ -230,17 +236,19 @@
       }
     },
     "showLogs": {
+      "title": "Nhật ký SVN",
+      "titleWithPath": "Nhật ký SVN: {{0}}",
       "commitMessage": "Tin nhắn commit",
       "changedFiles": "Tệp đã thay đổi",
       "revision": "Phiên bản",
       "date": "Ngày",
-      "author": "Tác giả",
+      "author": "Người cập nhật",
       "action": "Hành động",
       "message": "Thông điệp",
       "path": "Đường dẫn",
       "placeholderSearch": "Tìm kiếm phiên bản, tác giả, thông điệp...",
-      "totalEntries": "{0} mục tổng cộng",
-      "page": "Trang {0} của {1}"
+      "totalEntries": "{{0}} mục tổng cộng",
+      "page": "Trang {{0}} của {{1}}"
     }
   },
   "statisticDialog": {
@@ -286,7 +294,7 @@
     },
     "summary": {
       "title": "Bảng tổng hợp",
-      "author": "Tác giả",
+      "author": "Người cập nhật",
       "commitCount": "Số lượng commit",
       "percentage": "Tỷ lệ",
       "total": "Tổng cộng"
@@ -306,5 +314,41 @@
     "unversioned": "Chưa được quản lý phiên bản",
     "missing": "Thiếu",
     "typeChanged": "Đã thay đổi kiểu"
+  },
+  "dialog": {
+    "supportFeedback": {
+      "title": "Hỗ trợ & Phản hồi",
+      "description": "Gửi yêu cầu hỗ trợ hoặc cung cấp phản hồi.",
+      "typeLabel": "Loại",
+      "typePlaceholder": "Chọn loại",
+      "typeSupport": "Yêu cầu Hỗ trợ",
+      "typeFeedback": "Phản hồi",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Nhập địa chỉ email của bạn",
+      "messageLabel": "Nội dung",
+      "messagePlaceholder": "Nhập nội dung tin nhắn",
+      "validationWarning": "Vui lòng nhập email.",
+      "sendSuccess": "Tin nhắn của bạn đã được gửi thành công!",
+      "sendError": "Gửi tin nhắn thất bại. Vui lòng thử lại sau hoặc kiểm tra cấu hình webhook.",
+      "basicInfoTitle": "Thông tin cơ bản",
+      "messageTitle": "Nội dung tin nhắn",
+      "imagesTitle": "Đính kèm hình ảnh",
+      "dragImages": "Kéo và thả hình ảnh vào đây, hoặc nhấp để chọn tệp",
+      "dropHere": "Thả hình ảnh vào đây...",
+      "imageLimit": "Tối đa 5 hình ảnh, mỗi hình 5MB",
+      "tooManyImages": "Bạn chỉ có thể tải lên tối đa 5 hình ảnh",
+      "onlyImages": "Chỉ cho phép tệp hình ảnh"
+    },
+    "updateSvn": {
+      "title": "Thông tin đã thay đổi gần đây",
+      "author": "Người cập nhật: ",
+      "revision": "Phiên bản: ",
+      "curRevision": "Hiện tại: ",
+      "date": "Thời gian: ",
+      "changedFiles": "Tệp đã thay đổi",
+      "action": "Hành động",
+      "path": "Đường dẫn",
+      "commitMessage": "Thông điệp commit"
+    }
   }
 }

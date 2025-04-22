@@ -42,6 +42,10 @@ declare global {
         send_message: (params: any) => Promise<string>
       }
 
+      notification: {
+        send_support_feedback: (data: { type: 'support' | 'feedback'; name: string; message: string; images: string[] }) => Promise<{ status: string; message?: string }>
+      }
+
       updater: {
         check_for_updates: () => Promise<{
           status: string
@@ -112,12 +116,17 @@ contextBridge.exposeInMainWorld('api', {
     },
   },
 
+  notification: {
+    send_support_feedback: (data: { type: 'support' | 'feedback'; name: string; message: string; images: string[] }) =>
+      ipcRenderer.invoke(IPC.NOTIFICATIONS.SEND_SUPPORT_FEEDBACK, data),
+  },
+
   svn: {
     changed_files: () => ipcRenderer.invoke(IPC.SVN.CHANGED_FILES),
     get_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_DIFF, selectedFiles),
     open_dif: (filePath: string, status: string) => ipcRenderer.invoke(IPC.SVN.OPEN_DIFF, filePath, status),
     commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
-    info: (filePath: string, revision: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath, revision),
+    info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
     cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
     blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
     revert: (filePath: string) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),

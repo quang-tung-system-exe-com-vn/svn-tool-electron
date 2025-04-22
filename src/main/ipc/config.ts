@@ -1,5 +1,6 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { IPC } from 'main/constants'
+import { sendSupportFeedbackToTeams } from 'main/notification/sendTeams'
 import { blame } from 'main/svn/blame'
 import { cat } from 'main/svn/cat'
 import { changedFiles } from 'main/svn/changed-files'
@@ -44,7 +45,7 @@ export function registerConfigIpcHandlers() {
       case 'refresh-spotbugs':
         try {
           const filePaths = win.webContents.getTitle().includes('spotbugs') ? (win as any).filePaths || [] : []
-          console.log(win.webContents.getTitle());
+          console.log(win.webContents.getTitle())
           if (filePaths.length > 0) {
             const result = await runSpotBugs(filePaths)
             if (result.status === 'success') {
@@ -278,7 +279,7 @@ export function registerConfigIpcHandlers() {
   ipcMain.handle(IPC.SVN.GET_DIFF, async (_event, selectedFiles: any[]) => await getDiff(selectedFiles))
   ipcMain.handle(IPC.SVN.OPEN_DIFF, async (_event, file: string, status: string) => await openDiff(file, status))
   ipcMain.handle(IPC.SVN.COMMIT, async (_event, commitMessage: string, violations: string, selectedFiles: any[]) => await commit(commitMessage, violations, selectedFiles))
-  ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string, revision: string) => await info(filePath, revision))
+  ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string) => await info(filePath))
   ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string) => await cat(filePath))
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
   ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string) => await revert(filePath))
@@ -330,6 +331,20 @@ export function registerConfigIpcHandlers() {
       return content
     } catch (err) {
       return `Error generating message: ${err}`
+    }
+  })
+
+  ipcMain.handle(IPC.NOTIFICATIONS.SEND_SUPPORT_FEEDBACK, async (_event, data: SupportFeedback) => {
+    console.log('Received support/feedback data:', data)
+    try {
+      const result = await sendSupportFeedbackToTeams(data)
+      if (result.success) {
+        return { status: 'success', message: 'Feedback sent successfully.' }
+      }
+      return { status: 'error', message: result.error || 'Failed to send feedback.' }
+    } catch (error: any) {
+      console.error('Error handling SEND_SUPPORT_FEEDBACK IPC:', error)
+      return { status: 'error', message: error.message || 'An internal error occurred.' }
     }
   })
 }

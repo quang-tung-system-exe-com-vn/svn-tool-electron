@@ -8,6 +8,7 @@ import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, us
 import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
 import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
@@ -54,7 +55,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            File Path
+            {t('table.filePath')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -78,7 +79,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            Status
+            {t('table.isFile')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -101,7 +102,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            Extension
+            {t('table.extension')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -120,7 +121,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            Status
+            {t('table.status')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -407,9 +408,9 @@ export const DataTable = forwardRef((props, ref) => {
               <TableRow className="h-full">
                 <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
                   <div className="flex flex-col items-center justify-center gap-4 h-full">
-                    <p className="text-muted-foreground">No files were changed or added since the last commit.</p>
+                    <p className="text-muted-foreground">{t('message.noFilesChanged')}</p>
                     <Button variant="outline" onClick={reloadData}>
-                      Reload
+                      {t('common.reload')}
                     </Button>
                   </div>
                 </TableCell>
@@ -422,7 +423,10 @@ export const DataTable = forwardRef((props, ref) => {
       </ScrollArea>
       <div className="absolute flex items-center justify-end space-x-2 pt-4 px-4 right-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
+          {t('message.rowSelected', {
+            0: table.getFilteredSelectedRowModel().rows.length,
+            1: table.getFilteredRowModel().rows.length,
+          })}
         </div>
       </div>
     </div>

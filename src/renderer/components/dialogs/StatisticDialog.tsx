@@ -44,6 +44,7 @@ interface StatisticsData {
 }
 
 interface StatisticDialogProps {
+  data: any
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   filePath: string
@@ -53,7 +54,7 @@ interface StatisticDialogProps {
 type CommitByDateChartType = 'bar-multiple' | 'bar-horizontal' | 'bar-stacked' | 'line-multiple' | 'area-multiple'
 type CommitByAuthorChartType = 'bar-vertical' | 'bar-horizontal'
 
-export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: StatisticDialogProps) {
+export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRange }: StatisticDialogProps) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('commit-by-date')
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(null)
@@ -67,6 +68,8 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
 
     try {
       setIsLoadingStatistics(true)
+      console.log(data)
+      // setStatisticsData(data)
       let options: any = { period: statisticsPeriod }
       if (dateRange?.from) {
         const dateFrom = dateRange.from.toISOString()
@@ -162,10 +165,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
   }, [chartData1])
 
   const commitByDateChartConfig = useMemo(() => {
-    const config: Record<string, { label: string; color: string }> = {
-      // Có thể thêm totalCount nếu muốn hiển thị nó ở đâu đó
-      // totalCount: { label: t('statisticDialog.totalCommitCountLabel', 'Total Commits'), color: 'hsl(var(--muted))' },
-    }
+    const config: Record<string, { label: string; color: string }> = {}
     const allAuthors = new Set<string>()
     if (statisticsData?.commitsByDate) {
       for (const day of statisticsData.commitsByDate) {
@@ -190,6 +190,54 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
       count: { label: t('statisticDialog.commitCountLabel', 'Commits'), color: 'hsl(var(--chart-1))' },
     }
   }, [t])
+
+  function getBarRadius(data: any[], authorKeys: any[]) {
+    const posMap: Record<string, { single?: string; top?: string; bottom?: string }> = {}
+    for (const row of data) {
+      const authorsWithValue = authorKeys.filter(key => row[key] > 0)
+      if (authorsWithValue.length === 1) {
+        posMap[row.date] = { single: authorsWithValue[0] }
+      } else if (authorsWithValue.length > 1) {
+        posMap[row.date] = {
+          top: authorsWithValue[authorsWithValue.length - 1],
+          bottom: authorsWithValue[0],
+        }
+      }
+    }
+    return posMap
+  }
+
+  const posMap = getBarRadius(processedStackedDateData, Object.keys(commitByDateChartConfig))
+
+  const getRadiusForAuthor = (date: string | number, author: string | undefined) => {
+    if (!posMap[date]) return [0, 0, 0, 0]
+    if (posMap[date].single === author) return [4, 4, 4, 4]
+    if (posMap[date].top === author) return [4, 4, 0, 0]
+    if (posMap[date].bottom === author) return [0, 0, 4, 4]
+    return [0, 0, 0, 0]
+  }
+
+  function roundedRect(x: any, y: any, width: any, height: any, radiusTopLeft: any, radiusTopRight: number, radiusBottomRight: number, radiusBottomLeft: number) {
+    return `
+        M${x + radiusTopLeft},${y}
+        H${x + width - radiusTopRight}
+        Q${x + width},${y} ${x + width},${y + radiusTopRight}
+        V${y + height - radiusBottomRight}
+        Q${x + width},${y + height} ${x + width - radiusBottomRight},${y + height}
+        H${x + radiusBottomLeft}
+        Q${x},${y + height} ${x},${y + height - radiusBottomLeft}
+        V${y + radiusTopLeft}
+        Q${x},${y} ${x + radiusTopLeft},${y}
+        Z
+      `
+  }
+  const CustomBarShape = (props: { x: number; y: number; width: number; height: number; payload: any; dataKey: string; fill: string }) => {
+    const { x, y, width, height, payload, dataKey, fill, ...rest } = props
+    const date = payload.date
+    const radius = getRadiusForAuthor(date, dataKey)
+    const d = roundedRect(x, y, width, height, ...(radius as [number, number, number, number]))
+    return <path d={d} fill={fill} />
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -262,6 +310,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                   <CardContent className="flex-1 pb-0 overflow-hidden pt-4">
                     {(() => {
                       const authorKeys = Object.keys(commitByDateChartConfig)
+
                       if (commitByDateChartType === 'bar-multiple') {
                         return (
                           <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
@@ -306,7 +355,13 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                               <ChartTooltip content={<ChartTooltipContent />} />
                               <ChartLegend content={<ChartLegendContent />} />
                               {authorKeys.map(author => (
-                                <Bar key={author} dataKey={author} stackId="a" fill={commitByDateChartConfig[author]?.color} radius={4} />
+                                <Bar
+                                  key={author}
+                                  dataKey={author}
+                                  stackId="a"
+                                  fill={commitByDateChartConfig[author]?.color}
+                                  shape={(props: any) => <CustomBarShape {...props} dataKey={author} />}
+                                />
                               ))}
                             </BarChart>
                           </ChartContainer>
@@ -354,6 +409,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                           </ChartContainer>
                         )
                       }
+
                       return <div>{t('statisticDialog.selectChartType')}</div>
                     })()}
                   </CardContent>
@@ -443,7 +499,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                       </ChartContainer>
                     )}
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">t('statisticDialog.cardFooter')</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">

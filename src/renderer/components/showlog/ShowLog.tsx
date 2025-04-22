@@ -419,6 +419,9 @@ export function ShowLog() {
 
   return (
     <div className="flex h-screen w-full">
+      {/* Dialogs */}
+      <StatisticDialog data={allLogData} isOpen={isStatisticOpen} onOpenChange={setIsStatisticOpen} filePath={filePath} dateRange={dateRange} />
+
       <div className="flex flex-col flex-1 w-full">
         <ShowlogToolbar
           onRefresh={handleRefresh}
@@ -498,7 +501,7 @@ export function ShowLog() {
                   </ScrollArea>
 
                   {(isLoading || filteredLogData.length > 0) && (
-                    <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground border-t">
+                    <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground border-t h-10">
                       <span className="flex-1 text-xs pl-1">
                         {isLoading
                           ? 'Loading...'
@@ -506,15 +509,17 @@ export function ShowLog() {
                               searchTerm.trim() ? `(${t('ui.showLogs.filtered', { 0: filteredLogData.length })})` : ''
                             }`}
                       </span>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
-                          {t('common.back')}
-                        </Button>
-                        <span>{t('ui.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
-                        <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
-                          {t('common.next')}
-                        </Button>
-                      </div>
+                      {!isLoading && (
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
+                            {t('common.back')}
+                          </Button>
+                          <span>{t('ui.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
+                          <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
+                            {t('common.next')}
+                          </Button>
+                        </div>
+                      )}
                       <div className="flex-1" />
                     </div>
                   )}
@@ -527,8 +532,8 @@ export function ShowLog() {
             <ResizablePanel defaultSize={50} minSize={30}>
               <ResizablePanelGroup direction="vertical" className="h-full">
                 <ResizablePanel defaultSize={40} minSize={20}>
-                  <div className="p-2 font-medium pb-[0.8rem]">{t('ui.showLogs.commitMessage')}</div>
-                  <div className="h-full pb-[2.7rem]">
+                  <div className="p-2 font-medium pb-[11px]">{t('ui.showLogs.commitMessage')}</div>
+                  <div className="h-full pb-[2.8rem]">
                     <ScrollArea className="h-full border-1 rounded-md">
                       <Textarea className="w-full h-full resize-none border-none cursor-default break-all" readOnly={true} value={commitMessage} spellCheck={false} />
                       <ScrollBar orientation="vertical" />
@@ -591,8 +596,6 @@ export function ShowLog() {
           </ResizablePanelGroup>
         </div>
       </div>
-
-      <StatisticDialog isOpen={isStatisticOpen} onOpenChange={setIsStatisticOpen} filePath={filePath} dateRange={dateRange} />
     </div>
   )
 }

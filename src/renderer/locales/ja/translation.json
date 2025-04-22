@@ -12,7 +12,9 @@
     "choose": "フォルダを選択",
     "swap": "サイドを入れ替え",
     "next": "次へ",
-    "back": "戻る"
+    "back": "戻る",
+    "send": "送信",
+    "sending": "送信中..."
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -23,19 +25,22 @@
     "loading": "読み込み中...",
     "noIssues": "問題は見つかりませんでした",
     "selectIssue": "詳細を表示する問題を選択してください",
-    "errorLoading": "差分ファイルの読み込みエラー："
+    "errorLoading": "差分ファイルの読み込みエラー：",
+    "noFilesChanged": "最後のコミット以降、ファイルは変更または追加されていません。",
+    "rowSelected": "{{0}} の {{1}} 行が選択されました。",
+    "leastOneJavaFile": "Javaファイルを少なくとも1つ選択してください"
   },
-  "menu": {
-    "info": "メニュー",
-    "about": "アバウト",
-    "version": "バージョン",
-    "logs": "ログ",
-    "showLogs": "ログを表示",
-    "clearLogs": "ログをクリア",
-    "support": "サポート",
+  "title": {
+    "settings": "設定",
+    "about": "このアプリについて",
+    "checkForUpdate": "アップデートを確認",
+    "checkForUpdate1": "新しいアップデートがあります！ ({{0}})",
     "contact": "お問い合わせ",
-    "faq": "よくある質問",
-    "settings": "設定"
+    "updateSvn": "SVN (現在のリビジョン: {{0}})",
+    "updateSvn1": "新しい SVN リビジョンがあります！ ({{0}}) - (現在: {{1}})",
+    "cleanSvn": "SVN をクリーンアップ",
+    "showLogsSvn": "SVN ログを表示",
+    "supportFeedback": "サポートとフィードバック"
   },
   "action": {
     "refresh": "更新",
@@ -55,6 +60,7 @@
   "table": {
     "status": "ステータス",
     "filePath": "ファイルパス",
+    "extension": "拡張子",
     "severity": "重要度",
     "issue": "問題",
     "line": "行",
@@ -154,8 +160,8 @@
     "updatingMessage": "SVNを更新中...",
     "updateSuccess": "SVNの更新が成功しました",
     "updateError": "SVNの更新中にエラーが発生しました",
-    "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {0}",
-    "spotbugsSuccess": "SpotBugs分析が完了しました：{0}件の問題が見つかりました",
+    "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {{0}}",
+    "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました",
     "refreshingSpotbugs": "SpotBugs分析を更新中..."
   },
   "ui": {
@@ -188,17 +194,19 @@
       }
     },
     "showLogs": {
+      "title": "SVNログ",
+      "titleWithPath": "SVNログ: {{0}}",
       "commitMessage": "コミットメッセージ",
       "changedFiles": "変更されたファイル",
       "revision": "リビジョン",
       "date": "日付",
-      "author": "著者",
+      "author": "更新者",
       "action": "アクション",
       "message": "メッセージ",
       "path": "パス",
-      "placeholderSearch": "リビジョン、著者、メッセージを検索...",
-      "totalEntries": "{0}件のエントリ",
-      "page": "ページ{0} / {1}"
+      "placeholderSearch": "リビジョン、更新者、メッセージを検索...",
+      "totalEntries": "{{0}}件のエントリ",
+      "page": "ページ{{0}} / {{1}}"
     }
   },
   "codingRules": {
@@ -306,5 +314,41 @@
     "unversioned": "バージョン管理外",
     "missing": "欠落",
     "typeChanged": "タイプ変更"
+  },
+  "dialog": {
+    "supportFeedback": {
+      "title": "サポートとフィードバック",
+      "description": "サポートリクエストを送信するか、フィードバックを提供してください。",
+      "typeLabel": "タイプ",
+      "typePlaceholder": "タイプを選択",
+      "typeSupport": "サポートリクエスト",
+      "typeFeedback": "フィードバック",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "メールアドレスを入力してください",
+      "messageLabel": "メッセージ",
+      "messagePlaceholder": "メッセージを入力してください",
+      "validationWarning": "メールアドレスを入力してください。",
+      "sendSuccess": "メッセージが正常に送信されました！",
+      "sendError": "メッセージの送信に失敗しました。後でもう一度試すか、Webhookの設定を確認してください。",
+      "basicInfoTitle": "基本情報",
+      "messageTitle": "メッセージ",
+      "imagesTitle": "画像を添付",
+      "dragImages": "ここに画像をドラッグ＆ドロップするか、クリックしてファイルを選択してください",
+      "dropHere": "ここに画像をドロップしてください...",
+      "imageLimit": "最大5枚の画像、各5MBまで",
+      "tooManyImages": "最大5枚の画像しかアップロードできません",
+      "onlyImages": "画像ファイルのみ許可されています"
+    },
+    "updateSvn": {
+      "title": "最近の変更情報",
+      "author": "更新者: ",
+      "revision": "バージョン: ",
+      "curRevision": "現在: ",
+      "date": "日付: ",
+      "changedFiles": "変更されたファイル",
+      "action": "アクション",
+      "path": "パス",
+      "commitMessage": "コミットメッセージ"
+    }
   }
 }

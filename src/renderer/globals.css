@@ -2,7 +2,20 @@
 @plugin 'tailwindcss-animate';
 @plugin "@tailwindcss/typography";
 @custom-variant dark (&:is(.dark *));
-
+@layer utilities {
+  .dark\:hover\:bg-accent\/50 {
+    @media (hover: hover) {
+      @supports (color: color-mix(in lab, red, red)) {
+        .dark & {
+          &:hover {
+            background-color: color-mix(in oklab, var(--accent) 50%, transparent);
+            color: oklch(0.985 0 0);
+          }
+        }
+      }
+    }
+  }
+}
 :root {
   --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -179,13 +192,13 @@
     font-size: 80%;
   }
   [data-font-size="small"] {
-    --app-font-size: 0.9rem !important;
-  }
-  [data-font-size="medium"] {
     --app-font-size: 0.95rem !important;
   }
-  [data-font-size="large"] {
+  [data-font-size="medium"] {
     --app-font-size: 1rem !important;
+  }
+  [data-font-size="large"] {
+    --app-font-size: 1.05rem !important;
   }
 
   [data-font-family="sans"] {

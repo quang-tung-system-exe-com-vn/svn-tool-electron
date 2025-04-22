@@ -218,7 +218,7 @@ export function MainPage() {
                     .map((row: any) => row.original.filePath)
 
                   if (selectedFiles.length === 0) {
-                    ToastMessageFunctions.warning(t('Please select at least one Java file'))
+                    ToastMessageFunctions.warning(t('message.leastOneJavaFile'))
                     return
                   }
                   window.api.electron.send(IPC.WINDOW.SPOTBUGS, selectedFiles)

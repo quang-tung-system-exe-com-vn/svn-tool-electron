@@ -12,7 +12,9 @@
     "choose": "Choose Folder",
     "swap": "Swap Sides",
     "next": "Next",
-    "back": "Back"
+    "back": "Back",
+    "send": "Send",
+    "sending": "Sending..."
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -23,19 +25,21 @@
     "loading": "Loading...",
     "noIssues": "No issues found",
     "selectIssue": "Select an issue to view details",
-    "errorLoading": "Error loading file for diff:"
+    "errorLoading": "Error loading file for diff:",
+    "noFilesChanged": "No files were changed or added since the last commit.",
+    "rowSelected": "{{0}} of {{1}} row(s) selected."
   },
-  "menu": {
-    "info": "Menu",
+  "title": {
+    "settings": "Settings",
     "about": "About",
-    "version": "Version",
-    "logs": "Logs",
-    "showLogs": "Show Logs",
-    "clearLogs": "Clear Logs",
-    "support": "Support",
+    "checkForUpdate": "Check For Updates",
+    "checkForUpdate1": "New update available! ({{0}})",
     "contact": "Contact",
-    "faq": "FAQ",
-    "settings": "Settings"
+    "updateSvn": "SVN (Current revision: {{0}})",
+    "updateSvn1": "New SVN revision available! ({{0}}) - (Current: {{1}})",
+    "cleanSvn": "Clean SVN",
+    "showLogsSvn": "Show Logs SVN",
+    "supportFeedback": "Support & Feedback"
   },
   "action": {
     "refresh": "Refresh",
@@ -55,6 +59,7 @@
   "table": {
     "status": "Status",
     "filePath": "File path",
+    "extension": "Extension",
     "severity": "Severity",
     "issue": "Issue",
     "line": "Line",
@@ -156,7 +161,8 @@
     "updateError": "Error updating SVN",
     "spotbugsError": "Error running SpotBugs: {{0}}",
     "spotbugsSuccess": "SpotBugs analysis completed: {{0}} issues found",
-    "refreshingSpotbugs": "Refreshing SpotBugs analysis..."
+    "refreshingSpotbugs": "Refreshing SpotBugs analysis...",
+    "leastOneJavaFile": "Please select at least one Java file"
   },
   "codingRules": {
     "title": "Coding Rules Analysis",
@@ -308,5 +314,41 @@
     "unversioned": "Unversioned",
     "missing": "Missing",
     "typeChanged": "Type Changed"
+  },
+  "dialog": {
+    "supportFeedback": {
+      "title": "Support & Feedback",
+      "description": "Submit a support request or provide feedback.",
+      "typeLabel": "Type",
+      "typePlaceholder": "Select type",
+      "typeSupport": "Support Request",
+      "typeFeedback": "Feedback",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Enter your email address",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Enter your message",
+      "validationWarning": "Please fill in Email field",
+      "sendSuccess": "Your message has been sent successfully!",
+      "sendError": "Failed to send message. Please try again later or check your webhook configuration.",
+      "basicInfoTitle": "Basic Information",
+      "messageTitle": "Message",
+      "imagesTitle": "Attach Images",
+      "dragImages": "Drag and drop images here, or click to select files",
+      "dropHere": "Drop the images here...",
+      "imageLimit": "Maximum 5 images, 5MB each",
+      "tooManyImages": "You can upload a maximum of 5 images",
+      "onlyImages": "Only image files are allowed"
+    },
+    "updateSvn": {
+      "title": "Last Changed Info",
+      "author": "Author: ",
+      "revision": "Revision: ",
+      "curRevision": "Current: ",
+      "date": "Date: ",
+      "changedFiles": "Changed Files",
+      "action": "Action",
+      "path": "Path",
+      "commitMessage": "Commit Message"
+    }
   }
 }

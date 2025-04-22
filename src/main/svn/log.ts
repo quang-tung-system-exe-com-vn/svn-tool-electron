@@ -1,16 +1,13 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import type { SVNResponse } from '../../shared/types' // Sửa đường dẫn import
 import configurationStore from '../store/ConfigurationStore'
 const execPromise = promisify(exec)
 const { sourceFolder } = configurationStore.store
 export interface LogOptions {
-  // Bỏ limit và offset
   dateFrom?: string
   dateTo?: string
 }
 
-// Helper function to fetch ALL log data for a specific date range
 async function fetchAllLogData(
   filePath: string,
   startDate: string | undefined,
@@ -22,8 +19,8 @@ async function fetchAllLogData(
   message?: string
 }> {
   let baseCommand = `svn log "${filePath}"`
-  let detailCommandBase = `svn log -v "${filePath}"` // Lấy chi tiết log
-  const effectiveStartDate = startDate // Keep track of the date used for fetching
+  let detailCommandBase = `svn log -v "${filePath}"`
+  const effectiveStartDate = startDate
 
   // Apply date range if specified
   if (effectiveStartDate) {
@@ -34,14 +31,14 @@ async function fetchAllLogData(
       const revisionRange = toISO ? `{${fromISO}}:{${toISO}}` : `{${fromISO}}:HEAD`
       const revisionArg = ` --revision "${revisionRange}"`
       baseCommand += revisionArg
-      detailCommandBase += revisionArg // Áp dụng date range cho cả lệnh lấy chi tiết
+      detailCommandBase += revisionArg
     }
   }
 
-  // 1. Get all relevant revision IDs first (quiet mode) - Vẫn cần để lấy totalEntries chính xác
   const revisionListCommand = `${baseCommand} -q`
   console.log(`Executing revision list command (Range: ${effectiveStartDate || 'Beginning'} - ${endDate || 'HEAD'}):`, revisionListCommand)
 
+  console.log(revisionListCommand);
   let allRevisions: string[] = []
   try {
     const { stdout: revisionStdout, stderr: revisionStderr } = await execPromise(revisionListCommand, { cwd: sourceFolder, maxBuffer: 1024 * 1024 * 20 })
@@ -61,11 +58,9 @@ async function fetchAllLogData(
       .filter((rev): rev is string => !!rev)
 
     allRevisions = [...new Set(parsedRevisions)]
-
     if (parsedRevisions.length !== allRevisions.length) {
       console.warn(`Removed ${parsedRevisions.length - allRevisions.length} duplicate revision IDs.`)
     }
-
     console.log(`Found ${allRevisions.length} unique revisions matching criteria in range.`)
   } catch (fetchError) {
     console.error('Error executing revision list command:', fetchError)
@@ -76,28 +71,19 @@ async function fetchAllLogData(
       return { status: 'error', message: `Error fetching revision list: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}` }
     }
   }
-
   const totalEntries = allRevisions.length
-
-  // Handle no entries
   if (totalEntries === 0) {
     console.log(`No revisions found in range [${effectiveStartDate || 'Beginning'}, ${endDate || 'HEAD'}].`)
     return { status: 'success', totalEntries: 0, data: '' }
   }
-
-  // 2. Get detailed log data for ALL revisions in the range
-  // Không cần phân trang revision IDs nữa
-  // Sử dụng detailCommandBase đã có date range (nếu có)
   const detailCommand = detailCommandBase // Lệnh này đã bao gồm date range
   console.log('Executing detail command for ALL revisions in range:', detailCommand)
 
   let allData = ''
   try {
-    // Tăng maxBuffer nếu cần thiết vì có thể lấy nhiều dữ liệu hơn
-    const { stdout: detailStdout, stderr: detailStderr } = await execPromise(detailCommand, { cwd: sourceFolder, maxBuffer: 1024 * 1024 * 100 }) // Tăng maxBuffer lên 100MB
+    const { stdout: detailStdout, stderr: detailStderr } = await execPromise(detailCommand, { cwd: sourceFolder, maxBuffer: 1024 * 1024 * 100 })
     if (detailStderr && !detailStdout.trim()) {
       console.warn(`Warning fetching log details: ${detailStderr}`)
-      // Vẫn trả về success nếu có stdout, lỗi stderr có thể không nghiêm trọng
     }
     if (detailStderr) {
       console.warn(`Non-fatal warning fetching log details: ${detailStderr}`)
@@ -108,23 +94,18 @@ async function fetchAllLogData(
     console.error('Error executing detail command:', detailError)
     return { status: 'error', message: `Error fetching log details: ${detailError instanceof Error ? detailError.message : String(detailError)}` }
   }
-
-  // Trả về toàn bộ dữ liệu và tổng số entries
   return { status: 'success', totalEntries: totalEntries, data: allData }
 }
 
-// Main log function - simplified
 export async function log(filePath = '.', options?: LogOptions): Promise<SVNResponse> {
   try {
     console.log('Initial Log options (fetching all data):', options)
     const { dateFrom, dateTo } = options || {} // Bỏ limit, offset
     let suggestedStartDate: string | null = null
 
-    // --- First Attempt: Fetch all data directly ---
     console.log(`--- Attempt 1: Fetching ALL logs for [${dateFrom || 'Beginning'}, ${dateTo || 'HEAD'}] ---`)
     let result = await fetchAllLogData(filePath, dateFrom, dateTo)
 
-    // If first attempt failed hard, return error
     if (result.status === 'error') {
       return { status: 'error', message: result.message }
     }
@@ -132,7 +113,6 @@ export async function log(filePath = '.', options?: LogOptions): Promise<SVNResp
     let totalEntries = result.totalEntries ?? 0
     let allData = result.data ?? ''
 
-    // --- Handle No Results in First Attempt ---
     if (totalEntries === 0 && dateFrom) {
       console.log(`No revisions found in the initial range [${dateFrom}, ${dateTo || 'HEAD'}].`)
       console.log(`Searching for the last revision of "${filePath}" at or before ${dateFrom}...`)
@@ -158,19 +138,13 @@ export async function log(filePath = '.', options?: LogOptions): Promise<SVNResp
             result = await fetchAllLogData(filePath, suggestedStartDate, dateTo) // Gọi lại fetchAllLogData
 
             if (result.status === 'error') {
-              // If retry fails, return error but still include suggestedStartDate
-              // Không còn pagination object
               return { status: 'error', message: result.message, suggestedStartDate }
             }
-
-            // Update results from the successful retry
             totalEntries = result.totalEntries ?? 0
             allData = result.data ?? ''
-            // Trả về dữ liệu và suggestedStartDate, không cần pagination
             return { status: 'success', data: allData, totalEntries, suggestedStartDate }
-          } else {
-            console.log('Could not parse date from the last revision XML output. No retry possible.')
           }
+          console.log('Could not parse date from the last revision XML output. No retry possible.')
         } else {
           console.log('No output received when searching for the last revision before start date. No retry possible.')
         }
@@ -179,18 +153,12 @@ export async function log(filePath = '.', options?: LogOptions): Promise<SVNResp
           `Could not find any revision for "${filePath}" at or before ${dateFrom}. No retry possible. Error: ${findLastError instanceof Error ? findLastError.message : String(findLastError)}`
         )
       }
-      // If no suggestedStartDate found or retry wasn't possible/successful, return empty result from first attempt
-      // Không còn pagination object
       return { status: 'success', data: '', totalEntries: 0, suggestedStartDate }
     }
-    // Bỏ kiểm tra offset >= totalEntries vì không còn offset
 
-    // --- Return result (either from successful first attempt or successful retry) ---
     console.log('Returning result (all data fetched).')
-    // Trả về toàn bộ dữ liệu và totalEntries, không cần pagination
     return { status: 'success', data: allData, totalEntries, suggestedStartDate } // suggestedStartDate is likely null here
   } catch (error) {
-    // Catch any unexpected errors in the main function logic
     console.error('Unexpected error in log function:', error)
     return { status: 'error', message: error instanceof Error ? error.message : String(error) }
   }

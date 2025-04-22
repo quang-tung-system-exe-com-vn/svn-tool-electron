@@ -56,7 +56,7 @@ export interface StatisticsResponse {
 export async function getStatistics(filePath = '.', options?: StatisticsOptions): Promise<SVNResponse> {
   try {
     const { period = 'all', dateFrom, dateTo } = options || {};
-
+    console.log(`Fetching SVN statistics for file: ${filePath} with period: ${period}, dateFrom: ${dateFrom}, dateTo: ${dateTo}`);
     // Xây dựng lệnh cơ bản
     let command = `svn log "${filePath}"`;
 

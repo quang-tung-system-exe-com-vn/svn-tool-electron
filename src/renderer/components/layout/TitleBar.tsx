@@ -1,13 +1,16 @@
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Download, Eraser, FileText, Info, Minus, RefreshCw, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { Download, Eraser, FileText, Info, LifeBuoy, Minus, RefreshCw, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { CleanDialog } from '../dialogs/CleanDialog'
+import { NewRevisionDialog } from '../dialogs/NewRevisionDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
+import { SupportFeedbackDialog } from '../dialogs/SupportFeedbackDialog'
+import type { SvnStatusCode } from '../shared/constants'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { RoundIcon } from '../ui-elements/RoundIcon'
 import ToastMessageFunctions from '../ui-elements/ToastMessage'
@@ -16,20 +19,29 @@ interface TitleBarProps {
   isLoading: boolean
   tableRef: any
 }
+type SvnInfo = {
+  author: string
+  revision: string
+  date: string
+  curRevision: string
+  commitMessage: string
+  changedFiles: { status: SvnStatusCode; path: string }[]
+}
 
 export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   const { t } = useTranslation()
-  const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const [showClean, setShowClean] = useState(false)
-  const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
-  const [newVersionInfo, setNewVersionInfo] = useState<string>('')
-  const [newRevisionInfo, setNewRevisionInfo] = useState<string>('')
   const [showSvnUpdateDialog, setShowSvnUpdateDialog] = useState(false)
-  const [svnRevisionInfo, setSvnRevisionInfo] = useState<string>('')
-  const [resetSvnUpdateIndicator, setResetSvnUpdateIndicator] = useState(false)
+  const [showSupportFeedback, setShowSupportFeedback] = useState(false)
+
   const [status, setStatus] = useState('')
+  const [appVersion, setAppVersion] = useState<string>('')
+
+  const [svnInfo, setSvnInfo] = useState<SvnInfo>({ author: '', revision: '', date: '', curRevision: '', commitMessage: '', changedFiles: [] })
+  const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
+  const [resetSvnUpdateIndicator, setResetSvnUpdateIndicator] = useState(false)
 
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
@@ -41,7 +53,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       console.log(data)
       if (data.status === 'available') {
         if (data.version) {
-          setNewVersionInfo(`v${data.version}`)
+          setAppVersion(`v${data.version}`)
         }
       }
     }
@@ -91,7 +103,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
 
   const checkForUpdates = async () => {
     if (status === 'downloaded') {
-      showUpdateToast(newVersionInfo)
+      showUpdateToast(appVersion)
       return
     }
   }
@@ -132,13 +144,19 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
     }
   }
+  const openSupportFeedbackDialog = () => {
+    setShowSupportFeedback(true)
+  }
+  const openSvnUpdateDialog = () => {
+    setShowSvnUpdateDialog(true)
+  }
 
   useEffect(() => {
     const checkAppUpdates = async () => {
       try {
         const result = await window.api.updater.check_for_updates()
         if (result.status === 'available' && result.version) {
-          setNewVersionInfo(`v${result.version}`)
+          setAppVersion(`v${result.version}`)
         }
       } catch (error) {
         console.error('Error checking for app updates:', error)
@@ -148,16 +166,18 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     // Check for SVN updates
     const checkSvnUpdates = async () => {
       try {
-        const localInfo = await window.api.svn.info('.', 'BASE')
-        const remoteInfo = await window.api.svn.info('.', 'HEAD')
-        if (localInfo?.data < remoteInfo?.data) {
+        const { status, data, message } = await window.api.svn.info('.')
+        if (status === 'success') {
+          console.log(data)
           setHasSvnUpdate(true)
-          setNewRevisionInfo(`r${remoteInfo?.data}`)
-          setSvnRevisionInfo(`New revision r${remoteInfo.data} available`)
+          setSvnInfo(data)
           setShowSvnUpdateDialog(true)
-        } else {
+        } else if (status === 'no-change') {
+          console.log('Không có thay đổi')
           setHasSvnUpdate(false)
-          setNewRevisionInfo(`r${localInfo?.data}`)
+          setSvnInfo(data)
+        } else {
+          console.error('Lỗi SVN:', message)
         }
       } catch (error) {
         console.error('Error checking for SVN updates:', error)
@@ -193,7 +213,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         if (result.status === 'success') {
           setShowSvnUpdateDialog(false)
           setHasSvnUpdate(false) // Reset indicator
-          setSvnRevisionInfo('') // Clear revision info
           ToastMessageFunctions.success(t('SVN updated successfully'))
         } else {
           ToastMessageFunctions.error(result.message)
@@ -203,6 +222,12 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         ToastMessageFunctions.error(error.message || 'Error updating SVN')
       })
   }
+  const handleCurRevisionUpdate = (revision: string) => {
+    setSvnInfo(prev => ({
+      ...prev,
+      curRevision: revision,
+    }))
+  }
 
   return (
     <>
@@ -210,21 +235,15 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
       <InfoDialog open={showInfo} onOpenChange={setShowInfo} />
       <CleanDialog open={showClean} onOpenChange={setShowClean} />
-      {/* New Revision Dialog */}
-      {showSvnUpdateDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card p-6 rounded-lg shadow-lg w-100">
-            <h3 className="text-lg font-semibold mb-4">{t('New SVN Revision Available')}</h3>
-            <p className="mb-6">{svnRevisionInfo}</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowSvnUpdateDialog(false)}>
-                {t('Cancel')}
-              </Button>
-              <Button onClick={handleSvnUpdate}>{t('Update Now')}</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SupportFeedbackDialog open={showSupportFeedback} onOpenChange={setShowSupportFeedback} />
+      <NewRevisionDialog
+        open={showSvnUpdateDialog}
+        onOpenChange={setShowSvnUpdateDialog}
+        svnInfo={svnInfo}
+        onUpdate={handleSvnUpdate}
+        hasSvnUpdate={hasSvnUpdate}
+        onCurRevisionUpdate={handleCurRevisionUpdate}
+      />
       <div
         className="flex items-center justify-between h-8 text-sm select-none"
         style={
@@ -251,7 +270,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     <Settings2 strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{t('menu.settings')}</TooltipContent>
+                <TooltipContent>{t('title.settings')}</TooltipContent>
               </Tooltip>
 
               <Tooltip>
@@ -265,7 +284,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     <Info strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{t('menu.about')}</TooltipContent>
+                <TooltipContent>{t('title.about')}</TooltipContent>
               </Tooltip>
 
               <Tooltip>
@@ -274,18 +293,32 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     variant="link"
                     size="sm"
                     onClick={checkForUpdates}
-                    disabled={checkingUpdate}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                   >
                     <RefreshCw strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
                     {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{status === 'downloaded' ? t('New update available!') + (newVersionInfo ? ` (${newVersionInfo})` : '') : t('Check for Updates')}</TooltipContent>
+                <TooltipContent>{status === 'downloaded' ? t('title.checkForUpdate1', { 0: appVersion }) : t('title.checkForUpdate')}</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={openSupportFeedbackDialog}
+                    className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                  >
+                    <LifeBuoy strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('title.supportFeedback')}</TooltipContent>
               </Tooltip>
             </div>
           </div>
         </div>
+
         {/* Center Section (Title) */}
 
         {/* Right Section (Window Controls) */}
@@ -296,7 +329,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                 <Button
                   variant="link"
                   size="sm"
-                  onClick={onUpdateSvn}
+                  onClick={openSvnUpdateDialog}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                 >
                   <SquareArrowDown strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
@@ -304,9 +337,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {hasSvnUpdate
-                  ? t('New SVN revision available!') + (newRevisionInfo ? ` (${newRevisionInfo})` : '')
-                  : t('Update SVN') + (newRevisionInfo ? ` (${newRevisionInfo})` : '')}
+                {hasSvnUpdate ? t('title.updateSvn1', { 0: svnInfo?.revision, 1: svnInfo?.curRevision }) : t('title.updateSvn', { 0: svnInfo?.revision })}
               </TooltipContent>
             </Tooltip>
 
@@ -321,7 +352,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                   <Eraser strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Clean SVN</TooltipContent>
+              <TooltipContent>{t('title.cleanSvn')}</TooltipContent>
             </Tooltip>
 
             <Tooltip>
@@ -335,7 +366,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                   <FileText strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Show Logs SVN</TooltipContent>
+              <TooltipContent>{t('title.showLogsSvn')}</TooltipContent>
             </Tooltip>
           </div>
           <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">
