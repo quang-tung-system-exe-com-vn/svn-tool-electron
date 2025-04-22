@@ -10,7 +10,9 @@
     "refresh": "Làm mới",
     "reload": "Tải lại",
     "choose": "Chọn thư mục",
-    "swap": "Đổi bên"
+    "swap": "Đổi bên",
+    "next": "Tiếp",
+    "back": "Quay lại"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -137,6 +139,10 @@
     "mono": "Monospace"
   },
   "toast": {
+    "success": "Thành công",
+    "error": "Lỗi",
+    "info": "Thông tin",
+    "warning": "Cảnh báo",
     "commitSuccess": "Commit thành công",
     "commitError": "Lỗi commit",
     "checkSuccess": "Kiểm tra thành công",
@@ -148,39 +154,53 @@
     "updatingMessage": "Đang cập nhật SVN...",
     "updateSuccess": "Cập nhật SVN thành công",
     "updateError": "Lỗi khi cập nhật SVN",
-    "spotbugsError": "Lỗi khi chạy SpotBugs:",
+    "spotbugsError": "Lỗi khi chạy SpotBugs: {0}",
     "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {0} vấn đề được tìm thấy",
     "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs..."
   },
-  "svn": {
-    "status": {
-      "added": "Đã thêm",
-      "modified": "Đã sửa đổi",
-      "deleted": "Đã xóa",
-      "replaced": "Đã thay thế",
-      "conflicted": "Xung đột",
-      "external": "Bên ngoài",
-      "ignored": "Bỏ qua",
-      "unversioned": "Chưa quản lý phiên bản",
-      "missing": "Thiếu",
-      "typeChanged": "Đã thay đổi loại"
+  "codingRules": {
+    "title": "Phân tích quy tắc mã nguồn",
+    "refresh": "Làm mới",
+    "noResults": "Chưa có kết quả phân tích."
+  },
+  "cleanDialog": {
+    "title": "Tùy chọn dọn dẹp SVN",
+    "description": "Chọn các tùy chọn dọn dẹp cho bản sao làm việc của bạn:",
+    "options": {
+      "externals": {
+        "label": "Dọn dẹp các thành phần bên ngoài",
+        "description": "Dọn dẹp cả các thành phần bên ngoài"
+      },
+      "unversioned": {
+        "label": "Xoá tệp và thư mục chưa được quản lý",
+        "description": "Xoá tất cả tệp và thư mục chưa được quản lý khỏi bản sao làm việc"
+      },
+      "ignored": {
+        "label": "Xoá tệp và thư mục bị bỏ qua",
+        "description": "Xoá tất cả tệp và thư mục bị bỏ qua khỏi bản sao làm việc"
+      },
+      "unused": {
+        "label": "Xoá các bản sao pristine không sử dụng",
+        "description": "Xoá tất cả các bản sao pristine không được tham chiếu trong bản sao làm việc"
+      },
+      "metadata": {
+        "label": "Làm mới trạng thái bản sao làm việc",
+        "description": "Làm mới trạng thái của bản sao làm việc"
+      },
+      "locks": {
+        "label": "Phá khoá",
+        "description": "Phá và chiếm các khoá trong bản sao làm việc"
+      },
+      "fixTimestamps": {
+        "label": "Sửa dấu thời gian",
+        "description": "Sửa dấu thời gian của các tệp trong bản sao làm việc"
+      }
     },
-    "update": {
-      "title": "Có phiên bản SVN mới",
-      "newRevision": "Có phiên bản SVN mới!",
-      "updateSvn": "Cập nhật SVN",
-      "cleanSvn": "Dọn dẹp SVN",
-      "showLogsSvn": "Xem nhật ký SVN"
-    },
-    "log": {
-      "title": "Nhật ký SVN",
-      "titleWithPath": "Nhật ký SVN: {0}"
-    }
+    "clean": "Dọn dẹp",
+    "cleanSuccess": "Dọn dẹp SVN thành công",
+    "cleanError": "Lỗi trong quá trình dọn dẹp"
   },
   "ui": {
-    "application": "Ứng dụng",
-    "diffViewer": "Trình xem so sánh",
-    "codingRules": "Phân tích quy tắc mã hóa",
     "spotbugs": {
       "title": "Phân tích SpotBugs",
       "filesAnalyzed": "Các tập tin đã phân tích",
@@ -202,6 +222,25 @@
       "notAvailable": "Không có",
       "static": "tĩnh",
       "primary": "chính"
+    },
+    "diffViewer": {
+      "language": {
+        "select": "Chọn ngôn ngữ...",
+        "notFound": "Không tìm thấy ngôn ngữ."
+      }
+    },
+    "showLogs": {
+      "commitMessage": "Tin nhắn commit",
+      "changedFiles": "Tệp đã thay đổi",
+      "revision": "Phiên bản",
+      "date": "Ngày",
+      "author": "Tác giả",
+      "action": "Hành động",
+      "message": "Thông điệp",
+      "path": "Đường dẫn",
+      "placeholderSearch": "Tìm kiếm phiên bản, tác giả, thông điệp...",
+      "totalEntries": "{0} mục tổng cộng",
+      "page": "Trang {0} của {1}"
     }
   },
   "statisticDialog": {
@@ -255,5 +294,17 @@
     "cardFooter": "Dữ liệu commit trong khoảng thời gian được chọn",
     "noData": "Không có dữ liệu",
     "errorLoading": "Lỗi khi tải dữ liệu thống kê"
+  },
+  "svnStatus": {
+    "added": "Đã thêm",
+    "modified": "Đã sửa đổi",
+    "deleted": "Đã xóa",
+    "replaced": "Đã thay thế",
+    "conflicted": "Xung đột",
+    "external": "Bên ngoài",
+    "ignored": "Bị bỏ qua",
+    "unversioned": "Chưa được quản lý phiên bản",
+    "missing": "Thiếu",
+    "typeChanged": "Đã thay đổi kiểu"
   }
 }

@@ -77,7 +77,7 @@ export function SpotBugs() {
       setIsLoading(true)
       setFilePaths(data.filePaths || [])
       if (data.error) {
-        toast.error(`Error running SpotBugs: ${data.error}`)
+        toast.error(t('toast.refreshingSpotbugs', `${data.error}`))
         setIsLoading(false)
         return
       }
@@ -87,7 +87,7 @@ export function SpotBugs() {
         if (data.spotbugsResult.bugInstances.length > 0) {
           setSelectedBug(data.spotbugsResult.bugInstances[0])
         }
-        toast.success(`SpotBugs analysis completed: ${data.spotbugsResult.totalBugs} issues found`)
+        toast.success(t('toast.refreshingSpotbugs', { totalBugs: data.spotbugsResult.totalBugs }))
         setIsLoading(false)
       } else {
         setIsLoading(false)
@@ -100,7 +100,7 @@ export function SpotBugs() {
   const handleRefresh = () => {
     setIsLoading(true)
     window.api.electron.send('window-action', 'refresh-spotbugs')
-    toast.info('Refreshing SpotBugs analysis...')
+    toast.info('toast.refreshingSpotbugs')
   }
 
   const getSeverityIcon = (severity: string) => {
@@ -145,40 +145,40 @@ export function SpotBugs() {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <Bug className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-semibold">{t('SpotBugs Analysis')}</h2>
+              <h2 className="text-xl font-semibold">{t('ui.spotbugs.title')}</h2>
             </div>
           </div>
 
           <div className="flex gap-4 mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t('Files Analyzed')}:</span>
+              <span className="text-sm font-medium">{t('ui.spotbugs.filesAnalyzed')}:</span>
               <Badge variant="outline" className="rounded-md">
                 {filePaths.length}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t('Total Issues')}:</span>
+              <span className="text-sm font-medium">{t('ui.spotbugs.totalIssues')}:</span>
               <Badge variant="outline" className="rounded-md">
                 {spotbugsResult.totalBugs}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span className="text-sm font-medium">{t('High')}:</span>
+              <span className="text-sm font-medium">{t('ui.spotbugs.high')}:</span>
               <Badge variant="outline" className="rounded-md bg-destructive/10 text-destructive border-destructive/20">
                 {spotbugsResult.bugsBySeverity.high}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-warning" />
-              <span className="text-sm font-medium">{t('Medium')}:</span>
+              <span className="text-sm font-medium">{t('ui.spotbugs.medium')}:</span>
               <Badge variant="outline" className="rounded-md bg-warning/10 text-warning border-warning/20">
                 {spotbugsResult.bugsBySeverity.medium}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-info" />
-              <span className="text-sm font-medium">{t('Low')}:</span>
+              <span className="text-sm font-medium">{t('ui.spotbugs.low')}:</span>
               <Badge variant="outline" className="rounded-md bg-info/10 text-info border-info/20">
                 {spotbugsResult.bugsBySeverity.low}
               </Badge>
@@ -414,7 +414,7 @@ export function SpotBugs() {
                     </div>
                   ) : (
                     <div className="border rounded-md p-4 flex items-center justify-center h-full">
-                      <p className="text-muted-foreground">{t('Select an issue to view details')}</p>
+                      <p className="text-muted-foreground">{t('message.selectIssue')}</p>
                     </div>
                   )}
                 </div>

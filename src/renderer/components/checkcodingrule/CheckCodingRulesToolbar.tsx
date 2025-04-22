@@ -2,15 +2,17 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Minus, RotateCw, Square, X } from 'lucide-react'
 import type React from 'react'
+import { useTranslation } from 'react-i18next'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { RoundIcon } from '../ui-elements/RoundIcon'
 
 interface CheckCodingRulesProps {
-  onRefresh?: () => void
+  onRefresh: () => void
   isLoading: boolean
 }
 
 export const CheckCodingRulesToolbar: React.FC<CheckCodingRulesProps> = ({ onRefresh, isLoading }) => {
+  const { t } = useTranslation()
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -34,13 +36,15 @@ export const CheckCodingRulesToolbar: React.FC<CheckCodingRulesProps> = ({ onRef
               <RotateCw className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Refresh</TooltipContent>
+          <TooltipContent>{t('codingRules.refresh')}</TooltipContent>
         </Tooltip>
       </div>
+
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs">
-        Coding Rules Analysis
+        {t('codingRules.title')}
       </Button>
+
       {/* Right Section (Window Controls) */}
       <div className="flex gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">

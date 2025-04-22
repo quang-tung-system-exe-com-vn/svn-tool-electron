@@ -10,7 +10,9 @@
     "refresh": "更新",
     "reload": "再読み込み",
     "choose": "フォルダを選択",
-    "swap": "サイドを入れ替え"
+    "swap": "サイドを入れ替え",
+    "next": "次へ",
+    "back": "戻る"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -152,39 +154,11 @@
     "updatingMessage": "SVNを更新中...",
     "updateSuccess": "SVNの更新が成功しました",
     "updateError": "SVNの更新中にエラーが発生しました",
-    "spotbugsError": "SpotBugsの実行中にエラーが発生しました：",
+    "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {0}",
     "spotbugsSuccess": "SpotBugs分析が完了しました：{0}件の問題が見つかりました",
     "refreshingSpotbugs": "SpotBugs分析を更新中..."
   },
-  "svn": {
-    "status": {
-      "added": "追加済み",
-      "modified": "変更済み",
-      "deleted": "削除済み",
-      "replaced": "置換済み",
-      "conflicted": "競合",
-      "external": "外部",
-      "ignored": "無視",
-      "unversioned": "バージョン管理外",
-      "missing": "欠落",
-      "typeChanged": "タイプ変更"
-    },
-    "update": {
-      "title": "新しいSVNリビジョンが利用可能",
-      "newRevision": "新しいSVNリビジョンが利用可能です！",
-      "updateSvn": "SVNを更新",
-      "cleanSvn": "SVNをクリーン",
-      "showLogsSvn": "SVNログを表示"
-    },
-    "log": {
-      "title": "SVNログ",
-      "titleWithPath": "SVNログ：{0}"
-    }
-  },
   "ui": {
-    "application": "アプリケーション",
-    "diffViewer": "差分ビューア",
-    "codingRules": "コーディングルール分析",
     "spotbugs": {
       "title": "SpotBugs分析",
       "filesAnalyzed": "分析されたファイル",
@@ -206,7 +180,68 @@
       "notAvailable": "該当なし",
       "static": "静的",
       "primary": "プライマリ"
+    },
+    "diffViewer": {
+      "language": {
+        "select": "言語を選択...",
+        "notFound": "言語が見つかりません。"
+      }
+    },
+    "showLogs": {
+      "commitMessage": "コミットメッセージ",
+      "changedFiles": "変更されたファイル",
+      "revision": "リビジョン",
+      "date": "日付",
+      "author": "著者",
+      "action": "アクション",
+      "message": "メッセージ",
+      "path": "パス",
+      "placeholderSearch": "リビジョン、著者、メッセージを検索...",
+      "totalEntries": "{0}件のエントリ",
+      "page": "ページ{0} / {1}"
     }
+  },
+  "codingRules": {
+    "title": "コーディングルール分析",
+    "refresh": "更新",
+    "noResults": "分析結果はまだありません。"
+  },
+  "cleanDialog": {
+    "title": "SVNクリーンアップオプション",
+    "description": "作業コピーに対してクリーンアップオプションを選択してください：",
+    "options": {
+      "externals": {
+        "label": "外部をクリーンアップ",
+        "description": "外部もクリーンアップします"
+      },
+      "unversioned": {
+        "label": "バージョン管理外のファイルとディレクトリを削除",
+        "description": "作業コピーからすべてのバージョン管理外のファイルとディレクトリを削除します"
+      },
+      "ignored": {
+        "label": "無視されたファイルとディレクトリを削除",
+        "description": "作業コピーからすべての無視されたファイルとディレクトリを削除します"
+      },
+      "unused": {
+        "label": "未使用のpristineコピーを削除",
+        "description": "作業コピーで参照されていないすべてのpristineコピーを削除します"
+      },
+      "metadata": {
+        "label": "作業コピーのステータスを更新",
+        "description": "作業コピーのステータスをリフレッシュします"
+      },
+      "locks": {
+        "label": "ロックを解除",
+        "description": "作業コピー内のロックを解除・奪取します"
+      },
+      "fixTimestamps": {
+        "label": "タイムスタンプを修正",
+        "description": "作業コピー内のファイルのタイムスタンプを修正します"
+      }
+    },
+    "clean": "クリーンアップ",
+    "cleanSuccess": "SVNクリーンアップが正常に完了しました",
+    "cleanError": "クリーンアップ中にエラーが発生しました"
   },
   "statisticDialog": {
     "title": "統計",
@@ -259,5 +294,17 @@
     "cardFooter": "選択した期間のコミットデータ",
     "noData": "データがありません",
     "errorLoading": "統計データの読み込みエラー"
+  },
+  "svnStatus": {
+    "added": "追加済み",
+    "modified": "変更済み",
+    "deleted": "削除済み",
+    "replaced": "置換済み",
+    "conflicted": "コンフリクト",
+    "external": "外部",
+    "ignored": "無視された",
+    "unversioned": "バージョン管理外",
+    "missing": "欠落",
+    "typeChanged": "タイプ変更"
   }
 }

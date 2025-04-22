@@ -2,7 +2,7 @@
   "displayName": "SVNTool",
   "name": "svn-tool-electron",
   "description": "An internal desktop tool for managing SVN workflows. Includes commit generation, log viewing, cleanup operations, and real-time diff inspection.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
@@ -10,7 +10,7 @@
     "email": "quang-tung@system-exe.com.vn"
   },
   "license": "MIT",
-  "packageManager": "pnpm@10.8.1",
+  "packageManager": "pnpm@10.9.0",
   "pnpm": {
     "onlyBuiltDependenciesFile": "./trusted-dependencies-scripts.json"
   },
@@ -69,11 +69,11 @@
     "embla-carousel-react": "^8.6.0",
     "fast-xml-parser": "^5.2.0",
     "framer-motion": "^12.7.4",
-    "i18next": "^25.0.0",
+    "i18next": "^25.0.1",
     "i18next-browser-languagedetector": "^8.0.5",
     "input-otp": "^1.4.2",
     "ldrs": "^1.1.6",
-    "lucide-react": "^0.501.0",
+    "lucide-react": "^0.503.0",
     "monaco-editor": "^0.52.2",
     "next-themes": "^0.4.6",
     "nodemailer": "^6.10.1",
@@ -83,7 +83,7 @@
     "react-dom": "^19.1.0",
     "react-i18next": "^15.4.1",
     "react-markdown": "^10.1.0",
-    "react-resizable-panels": "^2.1.7",
+    "react-resizable-panels": "^2.1.8",
     "react-router-dom": "^7.5.1",
     "recharts": "^2.15.3",
     "remark-gfm": "^4.0.1",

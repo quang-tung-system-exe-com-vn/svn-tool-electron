@@ -94,23 +94,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       showUpdateToast(newVersionInfo)
       return
     }
-    // try {
-    //   setCheckingUpdate(true)
-    //   ToastMessageFunctions.info(t('Checking for updates...'))
-    //   const result = await window.api.updater.check_for_updates()
-    //   if (result.status === 'available') {
-    //     if (result.version) {
-    //       setNewVersionInfo(`v${result.version}`)
-    //     }
-    //     showUpdateToast(result.version)
-    //   } else {
-    //     ToastMessageFunctions.info(t('No updates available. You are using the latest version.'))
-    //   }
-    // } catch (error) {
-    //   ToastMessageFunctions.error(t('Failed to check for updates'))
-    // } finally {
-    //   setCheckingUpdate(false)
-    // }
   }
 
   const onUpdateSvn = () => {
@@ -304,9 +287,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
           </div>
         </div>
         {/* Center Section (Title) */}
-        {/* <Button variant="ghost" className="font-medium text-xs">
-          {t('SVN Tool')}
-        </Button> */}
+
         {/* Right Section (Window Controls) */}
         <div className="flex gap-1 items-center justify-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <div className="flex items-center gap-1 pt-0.5">

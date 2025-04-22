@@ -18,15 +18,17 @@ export interface WindowCreationByIPC {
 }
 
 export interface PaginationInfo {
-  limit: number;
-  offset: number;
-  totalEntries: number;
-  suggestedStartDate?: string | null; // Add this line
+  limit: number
+  offset: number
+  totalEntries: number
+  suggestedStartDate?: string | null // Add this line
 }
 
 export interface SVNResponse {
-  status: 'success' | 'error';
-  message?: string;
-  data?: any; // Có thể là string (cho log), hoặc object (cho statistics)
-  pagination?: PaginationInfo;
+  status: 'success' | 'error'
+  message?: string
+  data?: any // Có thể là string (cho log), hoặc object (cho statistics)
+  totalEntries?: number // Thêm totalEntries ở cấp cao nhất
+  suggestedStartDate?: string | null // Thêm suggestedStartDate ở cấp cao nhất
+  pagination?: PaginationInfo // Giữ lại là tùy chọn phòng trường hợp khác
 }

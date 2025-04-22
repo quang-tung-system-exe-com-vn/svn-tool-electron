@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartIcon, LineChart as LineChartIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
-import { useTranslation } from 'react-i18next' // Import useTranslation
+import { useTranslation } from 'react-i18next'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { toast } from 'sonner'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
@@ -15,7 +15,6 @@ interface CommitByDate {
   date: string
   authors: { author: string; count: number }[]
   totalCount: number
-  // Giữ lại index signature để hỗ trợ dữ liệu đã xử lý cho biểu đồ stacked
   [key: string]: string | number | { author: string; count: number }[]
 }
 
@@ -51,9 +50,7 @@ interface StatisticDialogProps {
   dateRange?: DateRange
 }
 
-// Định nghĩa các kiểu biểu đồ cho tab "Commit theo ngày"
 type CommitByDateChartType = 'bar-multiple' | 'bar-horizontal' | 'bar-stacked' | 'line-multiple' | 'area-multiple'
-// Định nghĩa các kiểu biểu đồ cho tab "Commit theo tác giả"
 type CommitByAuthorChartType = 'bar-vertical' | 'bar-horizontal'
 
 export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: StatisticDialogProps) {
@@ -65,26 +62,20 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
   const [commitByDateChartType, setCommitByDateChartType] = useState<CommitByDateChartType>('bar-stacked')
   const [commitByAuthorChartType, setCommitByAuthorChartType] = useState<CommitByAuthorChartType>('bar-vertical')
 
-  // Hàm lấy dữ liệu thống kê
   const loadStatisticsData = useCallback(async () => {
     if (!filePath) return
 
     try {
       setIsLoadingStatistics(true)
       let options: any = { period: statisticsPeriod }
-
-      // Nếu có date range, sử dụng date range thay vì period
       if (dateRange?.from) {
         const dateFrom = dateRange.from.toISOString()
         const dateTo = dateRange.to?.toISOString()
-
-        // Tạo đối tượng mới không chứa period
         options = { dateFrom }
         if (dateTo) {
           options.dateTo = dateTo
         }
       }
-
       const result = await window.api.svn.statistics(filePath, options)
 
       if (result.status === 'success') {
@@ -101,31 +92,20 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
     }
   }, [filePath, statisticsPeriod, dateRange])
 
-  // Thêm useEffect để tải lại dữ liệu thống kê khi statisticsPeriod thay đổi
   useEffect(() => {
     if (isOpen) {
       loadStatisticsData()
     }
   }, [statisticsPeriod, isOpen, loadStatisticsData])
 
-  // Hàm xử lý thay đổi period
-  const handlePeriodChange = useCallback((value: string) => {
-    setStatisticsPeriod(value as 'day' | 'week' | 'month' | 'year' | 'all')
-    setIsLoadingStatistics(true) // Hiển thị loading khi chọn khoảng thời gian
-  }, [])
-
-  // Dữ liệu cho biểu đồ Commit theo ngày (chỉ dùng tổng count - giữ lại cho bar-horizontal)
   const processedTotalDateData = useMemo(() => {
     return [...(statisticsData?.commitsByDate ?? [])]
       .map(item => ({ date: item.date, count: item.totalCount })) // Chỉ lấy date và totalCount (đổi tên thành count)
       .sort((a, b) => a.date.localeCompare(b.date))
   }, [statisticsData?.commitsByDate])
 
-  // Dữ liệu đã xử lý cho biểu đồ Commit theo ngày (stacked, multiple)
   const processedStackedDateData = useMemo(() => {
     if (!statisticsData?.commitsByDate) return []
-
-    // Lấy danh sách tất cả tác giả duy nhất từ tất cả các ngày
     const allAuthors = new Set<string>()
     if (statisticsData.commitsByDate) {
       for (const day of statisticsData.commitsByDate) {
@@ -135,21 +115,16 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
       }
     }
     const uniqueAuthors = Array.from(allAuthors)
-
-    // Chuyển đổi dữ liệu
     return [...statisticsData.commitsByDate]
       .sort((a, b) => a.date.localeCompare(b.date)) // Sắp xếp theo ngày
       .map(day => {
-        // Tạo object cơ sở cho ngày đó
         const dayData: { date: string; totalCount: number; [key: string]: number | string } = {
           date: day.date,
           totalCount: day.totalCount, // Giữ lại totalCount nếu cần
         }
-        // Khởi tạo count của tất cả author về 0 cho ngày này
         for (const author of uniqueAuthors) {
           dayData[author] = 0
         }
-        // Gán count thực tế từ mảng authors
         for (const authorData of day.authors) {
           dayData[authorData.author] = authorData.count
         }
@@ -186,7 +161,6 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
     return config
   }, [chartData1])
 
-  // Cấu hình cho biểu đồ Commit theo ngày (hiển thị theo tác giả)
   const commitByDateChartConfig = useMemo(() => {
     const config: Record<string, { label: string; color: string }> = {
       // Có thể thêm totalCount nếu muốn hiển thị nó ở đâu đó
@@ -202,18 +176,15 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
     }
 
     Array.from(allAuthors).forEach((author, index) => {
-      // Giữ lại forEach ở đây vì cần index
-      // Đảm bảo index không vượt quá số lượng màu chart định nghĩa (ví dụ: 6)
       const chartColorIndex = (index % 6) + 1
       config[author] = {
         label: author,
-        color: `var(--chart-${chartColorIndex})`, // Sử dụng trực tiếp biến CSS
+        color: `var(--chart-${chartColorIndex})`,
       }
     })
     return config
   }, [statisticsData?.commitsByDate, t])
 
-  // Cấu hình cho biểu đồ chỉ hiển thị tổng count (dùng cho bar-horizontal)
   const totalCountChartConfig = useMemo(() => {
     return {
       count: { label: t('statisticDialog.commitCountLabel', 'Commits'), color: 'hsl(var(--chart-1))' },
@@ -290,9 +261,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                   </CardHeader>
                   <CardContent className="flex-1 pb-0 overflow-hidden pt-4">
                     {(() => {
-                      const authorKeys = Object.keys(commitByDateChartConfig) //.filter(key => key !== 'totalCount'); // Lọc ra các key tác giả
-
-                      // Biểu đồ Bar Multiple (theo tác giả)
+                      const authorKeys = Object.keys(commitByDateChartConfig)
                       if (commitByDateChartType === 'bar-multiple') {
                         return (
                           <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
@@ -310,23 +279,15 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                         )
                       }
 
-                      // Biểu đồ Bar Horizontal (giữ nguyên theo tổng count)
                       if (commitByDateChartType === 'bar-horizontal') {
                         return (
-                          // Sử dụng processedTotalDateData và totalCountChartConfig
                           <ChartContainer config={totalCountChartConfig} className="w-full mx-auto h-[350px]">
-                            <BarChart
-                              accessibilityLayer
-                              layout="vertical"
-                              data={processedTotalDateData} // Dữ liệu chỉ có date và count (tổng)
-                              margin={{ top: 25, right: 30, left: 50, bottom: 5 }}
-                            >
+                            <BarChart accessibilityLayer layout="vertical" data={processedTotalDateData} margin={{ top: 25, right: 30, left: 50, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis type="number" dataKey="count" />
                               <YAxis dataKey="date" type="category" tickLine={false} axisLine={false} width={80} />
                               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                               <ChartLegend content={<ChartLegendContent />} />
-                              {/* Chỉ hiển thị thanh tổng count */}
                               <Bar dataKey="count" fill="var(--chart-1)" radius={8}>
                                 <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={12} />
                               </Bar>
@@ -335,7 +296,6 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                         )
                       }
 
-                      // Biểu đồ Bar Stacked (theo tác giả)
                       if (commitByDateChartType === 'bar-stacked') {
                         return (
                           <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
@@ -353,7 +313,6 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                         )
                       }
 
-                      // Biểu đồ Line Multiple (theo tác giả)
                       if (commitByDateChartType === 'line-multiple') {
                         return (
                           <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
@@ -371,7 +330,6 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                         )
                       }
 
-                      // Biểu đồ Area Multiple (stacked theo tác giả)
                       if (commitByDateChartType === 'area-multiple') {
                         return (
                           <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">
@@ -386,7 +344,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                                   key={author}
                                   type="monotone"
                                   dataKey={author}
-                                  stackId="1" // Stack các area lại với nhau
+                                  stackId="1"
                                   stroke={commitByDateChartConfig[author]?.color}
                                   fill={commitByDateChartConfig[author]?.color}
                                   fillOpacity={0.4}
@@ -396,7 +354,7 @@ export function StatisticDialog({ isOpen, onOpenChange, filePath, dateRange }: S
                           </ChartContainer>
                         )
                       }
-                      return <div>{t('statisticDialog.selectChartType')}</div> // Sử dụng i18n
+                      return <div>{t('statisticDialog.selectChartType')}</div>
                     })()}
                   </CardContent>
                   <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>

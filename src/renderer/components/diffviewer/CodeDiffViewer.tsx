@@ -1,3 +1,4 @@
+import i18n from '@/lib/i18n'
 import { DiffEditor, type DiffOnMount, useMonaco } from '@monaco-editor/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -7,10 +8,11 @@ import { DiffToolbar } from './DiffToolbar'
 
 window.addEventListener('storage', event => {
   if (event.key === 'ui-settings') {
-    const style = JSON.parse(event.newValue || '{}')
-    document.documentElement.setAttribute('data-font-size', style.state.fontSize)
-    document.documentElement.setAttribute('data-font-family', style.state.fontFamily)
-    document.documentElement.setAttribute('data-button-variant', style.state.buttonVariant)
+    const storage = JSON.parse(event.newValue || '{}')
+    document.documentElement.setAttribute('data-font-size', storage.state.fontSize)
+    document.documentElement.setAttribute('data-font-family', storage.state.fontFamily)
+    document.documentElement.setAttribute('data-button-variant', storage.state.buttonVariant)
+    i18n.changeLanguage(storage.state.language)
   }
 })
 

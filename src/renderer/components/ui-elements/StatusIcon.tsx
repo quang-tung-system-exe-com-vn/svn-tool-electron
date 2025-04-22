@@ -1,5 +1,6 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { EyeOff, FileClock, FileDiff, FileMinus, FilePen, FilePlus, FileQuestion, FileType, FileWarning, FileX } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 }
 
 export const StatusIcon = ({ code, className }: Props) => {
+  const { t } = useTranslation()
   const Icon = STATUS_ICON[code]
   const colorClass = STATUS_COLOR_CLASS_MAP[code] ?? ''
   if (!Icon) return null
@@ -16,7 +18,7 @@ export const StatusIcon = ({ code, className }: Props) => {
       <TooltipTrigger asChild>
         <Icon strokeWidth={1.5} className={`${className ?? 'w-4 h-4'} ${colorClass}`} />
       </TooltipTrigger>
-      <TooltipContent>{STATUS_TEXT[code]}</TooltipContent>
+      <TooltipContent>{t(STATUS_TEXT[code])}</TooltipContent>
     </Tooltip>
   )
 }

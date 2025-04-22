@@ -7,12 +7,13 @@ import { format } from 'date-fns'
 import { BarChart3, CalendarIcon, Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
 import type { DateRange } from 'react-day-picker'
+import { useTranslation } from 'react-i18next'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { RoundIcon } from '../ui-elements/RoundIcon'
 
 interface ShowlogProps {
-  onRefresh?: () => void
-  filePath: string
+  onRefresh: () => void
+  filePath?: string
   isLoading: boolean
   dateRange?: DateRange
   setDateRange?: (range: DateRange | undefined) => void
@@ -20,6 +21,7 @@ interface ShowlogProps {
 }
 
 export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, isLoading, dateRange, setDateRange, onOpenStatistic }) => {
+  const { t } = useTranslation()
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -43,7 +45,7 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
               <RefreshCw className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Refresh</TooltipContent>
+          <TooltipContent>{t('common.refresh')}</TooltipContent>
         </Tooltip>
 
         {onOpenStatistic && (
@@ -53,7 +55,7 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
                 <BarChart3 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Thống kê</TooltipContent>
+            <TooltipContent>{t('statisticDialog.title')}</TooltipContent>
           </Tooltip>
         )}
 
@@ -73,7 +75,7 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
                       format(dateRange.from, 'dd/MM/yyyy')
                     )
                   ) : (
-                    <span>Chọn ngày</span>
+                    <span>{t('statisticDialog.selectPeriodPlaceholder')}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -84,10 +86,12 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
           </div>
         )}
       </div>
+
       {/* Center Section (Title) */}
-      <Button variant="ghost" className="font-medium text-xs text-gray-200">
-        {filePath === '.' ? 'SVN Log' : `SVN Log: ${filePath}`}
+      <Button variant="ghost" className="font-medium text-xs">
+        {filePath !== '.' ? t('ui.showLogs.titleWithPath', { 0: filePath }) : t('ui.showLogs.title')}
       </Button>
+
       {/* Right Section (Window Controls) */}
       <div className="flex gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">

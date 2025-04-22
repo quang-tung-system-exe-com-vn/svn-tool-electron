@@ -10,7 +10,9 @@
     "refresh": "Refresh",
     "reload": "Reload",
     "choose": "Choose Folder",
-    "swap": "Swap Sides"
+    "swap": "Swap Sides",
+    "next": "Next",
+    "back": "Back"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -137,6 +139,10 @@
     "mono": "Monospace"
   },
   "toast": {
+    "success": "Success",
+    "error": "Error",
+    "info": "Info",
+    "warning": "Warning",
     "commitSuccess": "Commit successful",
     "commitError": "Commit error",
     "checkSuccess": "Check successful",
@@ -148,39 +154,53 @@
     "updatingMessage": "Updating SVN...",
     "updateSuccess": "SVN updated successfully",
     "updateError": "Error updating SVN",
-    "spotbugsError": "Error running SpotBugs:",
-    "spotbugsSuccess": "SpotBugs analysis completed: {0} issues found",
+    "spotbugsError": "Error running SpotBugs: {{0}}",
+    "spotbugsSuccess": "SpotBugs analysis completed: {{0}} issues found",
     "refreshingSpotbugs": "Refreshing SpotBugs analysis..."
   },
-  "svn": {
-    "status": {
-      "added": "Added",
-      "modified": "Modified",
-      "deleted": "Deleted",
-      "replaced": "Replaced",
-      "conflicted": "Conflicted",
-      "external": "External",
-      "ignored": "Ignored",
-      "unversioned": "Unversioned",
-      "missing": "Missing",
-      "typeChanged": "Type Changed"
+  "codingRules": {
+    "title": "Coding Rules Analysis",
+    "refresh": "Refresh",
+    "noResults": "No analysis results yet."
+  },
+  "cleanDialog": {
+    "title": "SVN Cleanup Options",
+    "description": "Select cleanup options for your working copy:",
+    "options": {
+      "externals": {
+        "label": "Clean up externals",
+        "description": "Also clean up externals"
+      },
+      "unversioned": {
+        "label": "Delete unversioned files and directories",
+        "description": "Delete all unversioned files and directories from working copy"
+      },
+      "ignored": {
+        "label": "Delete ignored files and directories",
+        "description": "Delete all ignored files and directories from working copy"
+      },
+      "unused": {
+        "label": "Delete unused pristine copies",
+        "description": "Delete all pristine copies of files that are not referenced in the working copy"
+      },
+      "metadata": {
+        "label": "Clean up working copy status",
+        "description": "Refresh the status of the working copy"
+      },
+      "locks": {
+        "label": "Break locks",
+        "description": "Break and steal any locks in working copy"
+      },
+      "fixTimestamps": {
+        "label": "Fix timestamps",
+        "description": "Fix timestamps of working copy files"
+      }
     },
-    "update": {
-      "title": "New SVN Revision Available",
-      "newRevision": "New SVN revision available!",
-      "updateSvn": "Update SVN",
-      "cleanSvn": "Clean SVN",
-      "showLogsSvn": "Show Logs SVN"
-    },
-    "log": {
-      "title": "SVN Log",
-      "titleWithPath": "SVN Log: {0}"
-    }
+    "clean": "Clean",
+    "cleanSuccess": "SVN cleanup completed successfully",
+    "cleanError": "Error during cleanup"
   },
   "ui": {
-    "application": "Application",
-    "diffViewer": "Diff Viewer",
-    "codingRules": "Coding Rules Analysis",
     "spotbugs": {
       "title": "SpotBugs Analysis",
       "filesAnalyzed": "Files Analyzed",
@@ -202,6 +222,27 @@
       "notAvailable": "N/A",
       "static": "static",
       "primary": "primary"
+    },
+    "diffViewer": {
+      "language": {
+        "select": "Select language...",
+        "notFound": "No language found."
+      }
+    },
+    "showLogs": {
+      "title": "SVN Log",
+      "titleWithPath": "SVN Log: {{0}}",
+      "commitMessage": "Commit message",
+      "changedFiles": "Changed Files",
+      "revision": "Revision",
+      "date": "Date",
+      "author": "Author",
+      "action": "Action",
+      "message": "Message",
+      "path": "Path",
+      "placeholderSearch": "Search for revision, author, message...",
+      "totalEntries": "{{0}} total entries",
+      "page": "Page {{0}} of {{1}}"
     }
   },
   "statisticDialog": {
@@ -255,5 +296,17 @@
     "cardFooter": "Commit data for the selected period",
     "noData": "No data available",
     "errorLoading": "Error loading statistics data"
+  },
+  "svnStatus": {
+    "added": "Added",
+    "modified": "Modified",
+    "deleted": "Deleted",
+    "replaced": "Replaced",
+    "conflicted": "Conflicted",
+    "external": "External",
+    "ignored": "Ignored",
+    "unversioned": "Unversioned",
+    "missing": "Missing",
+    "typeChanged": "Type Changed"
   }
 }

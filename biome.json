@@ -29,7 +29,7 @@
         "useButtonType": "off"
       },
       "suspicious": {
-        "noArrayIndexKey": "info",
+        "noArrayIndexKey": "off",
         "noDuplicateObjectKeys": "warn",
         "noExplicitAny": "off",
         "noEmptyInterface": "off"
