@@ -578,10 +578,10 @@ export function ShowLog() {
                           {changedFiles.length > 0 ? (
                             changedFiles.map((file, index) => (
                               <TableRow key={index}>
-                                <TableCell>
+                                <TableCell className="p-0 h-6 px-2">
                                   <StatusIcon code={file.action} />
                                 </TableCell>
-                                <TableCell>{file.filePath}</TableCell>
+                                <TableCell className="p-0 h-6 px-2 cursor-pointer">{file.filePath}</TableCell>
                               </TableRow>
                             ))
                           ) : (
