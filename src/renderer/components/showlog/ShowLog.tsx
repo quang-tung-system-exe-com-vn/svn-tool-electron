@@ -581,7 +581,7 @@ export function ShowLog() {
                                 <TableCell className="p-0 h-6 px-2">
                                   <StatusIcon code={file.action} />
                                 </TableCell>
-                                <TableCell className="p-0 h-6 px-2 cursor-pointer">{file.filePath}</TableCell>
+                                <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.filePath}</TableCell>
                               </TableRow>
                             ))
                           ) : (

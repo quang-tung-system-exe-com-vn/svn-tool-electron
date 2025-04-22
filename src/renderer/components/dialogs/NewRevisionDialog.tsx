@@ -110,10 +110,10 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCur
                 <TableBody className={(svnInfo?.changedFiles ?? []).length === 0 ? 'h-full' : ''}>
                   {(svnInfo?.changedFiles ?? []).map((file, index) => (
                     <TableRow key={index}>
-                      <TableCell>
+                      <TableCell className="p-0 h-6 px-2">
                         <StatusIcon code={file.status} />
                       </TableCell>
-                      <TableCell className="break-words whitespace-normal">{file.path}</TableCell>
+                      <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.path}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

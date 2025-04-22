@@ -417,7 +417,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">Không có dữ liệu</p>
+                  <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
                 </div>
               )}
             </div>
