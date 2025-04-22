@@ -213,7 +213,6 @@ export function ShowLog() {
       }
 
       const result = await window.api.svn.log(path, options)
-
       if (result.status === 'success') {
         const rawLog = result.data as string
         const backendTotal = result.totalEntries ?? 0
@@ -226,10 +225,8 @@ export function ShowLog() {
         if (entries.length !== backendTotal && backendTotal > 0) {
           console.warn(chalk.yellow.bold(`Số entries parse (${entries.length}) khác với total từ backend (${backendTotal})!`))
         }
-
         const parsedEntries: LogEntry[] = []
         const addedRevisions = new Set<string>()
-
         for (const entry of entries) {
           const lines = entry
             .split('\n')
@@ -269,7 +266,8 @@ export function ShowLog() {
           }
         }
 
-        setAllLogData(parsedEntries)
+        const sortedEntries = parsedEntries.sort((a: any, b: any) => b.revision - a.revision)
+        setAllLogData(sortedEntries)
 
         if (result.suggestedStartDate) {
           const suggestedDate = new Date(result.suggestedStartDate)
@@ -280,7 +278,6 @@ export function ShowLog() {
             }))
           }
         } else if (parsedEntries.length > 0 && !dateRange?.from) {
-          const sortedEntries = [...parsedEntries].sort((a, b) => a.isoDate.localeCompare(b.isoDate))
           const earliestIsoDate = sortedEntries[0].isoDate
           const earliestDate = new Date(earliestIsoDate)
           setDateRange(prevRange => ({
@@ -305,6 +302,17 @@ export function ShowLog() {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (allLogData.length > 0) {
+      const topRevision = allLogData[0].revision
+      const topRow = table.getRowModel().rows.find(row => row.original.revision === topRevision)
+      if (topRow) {
+        table.setRowSelection({ [topRow.id]: true })
+        selectRevision(topRevision)
+      }
+    }
+  }, [allLogData])
 
   const calculateStatusSummary = useCallback((changedFiles: LogFile[]) => {
     const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
@@ -357,7 +365,6 @@ export function ShowLog() {
           entry.message.toLowerCase().includes(lowerSearchTerm) ||
           entry.date.toLowerCase().includes(lowerSearchTerm)
       )
-    } else {
     }
     setFilteredLogData(filtered)
 
@@ -371,8 +378,8 @@ export function ShowLog() {
       const isSelectedRowVisible = selectedRow && currentPageData.some(entry => entry.revision === selectedRow.original.revision)
 
       if (!selectedRow || !isSelectedRowVisible) {
-        selectRevision(currentPageData[0].revision)
         table.resetRowSelection()
+        selectRevision(currentPageData[0].revision)
       }
     } else {
       setCommitMessage('')

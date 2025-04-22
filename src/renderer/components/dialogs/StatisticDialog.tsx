@@ -499,7 +499,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                       </ChartContainer>
                     )}
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">t('statisticDialog.cardFooter')</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
