@@ -1,16 +1,18 @@
-import type { ButtonVariant, FontFamily, FontSize, Language, Theme } from 'main/store/AppearanceStore'
+import type { ButtonVariant, FontFamily, FontSize, Language, Theme, ThemeMode } from 'main/store/AppearanceStore'
 import { useTheme } from 'next-themes'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 type AppearanceStore = {
   theme: Theme
+  themeMode: ThemeMode
   fontSize: FontSize
   fontFamily: FontFamily
   buttonVariant: ButtonVariant
   language: Language
   panelHeight: number
   setTheme: (theme: Theme) => void
+  setThemeMode: (mode: ThemeMode) => void
   setFontSize: (size: FontSize) => void
   setFontFamily: (font: FontFamily) => void
   setButtonVariant: (variant: ButtonVariant) => void
@@ -21,7 +23,8 @@ type AppearanceStore = {
 const useStore = create<AppearanceStore>()(
   persist(
     set => ({
-      theme: 'system',
+      theme: 'theme-default',
+      themeMode: 'light',
       fontSize: 'medium',
       fontFamily: 'sans',
       buttonVariant: 'default',
@@ -29,7 +32,22 @@ const useStore = create<AppearanceStore>()(
       panelHeight: 150,
       setTheme: theme => {
         set({ theme })
+        const html = document.documentElement;
+        for (const cls of html.classList) {
+          if (cls.startsWith('theme-')) {
+            html.classList.remove(cls);
+          }
+        }
+        html.classList.add(theme);
         window.api.appearance.set('theme', theme)
+      },
+      setThemeMode: (mode: any) => {
+        const html = document.documentElement;
+        html.classList.remove('dark', 'light');
+        html.classList.add(mode);
+        document.documentElement.setAttribute('data-theme-mode', mode)
+        set({ themeMode: mode })
+        window.api.appearance.set('themeMode', mode)
       },
       setFontSize: size => {
         document.documentElement.setAttribute('data-font-size', size)

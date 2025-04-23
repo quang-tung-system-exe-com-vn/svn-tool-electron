@@ -25,9 +25,37 @@ export const STATUS_COLOR_CLASS_MAP = {
   '!': 'text-rose-600 dark:text-rose-400',
   '~': 'text-indigo-600 dark:text-indigo-400',
 }
-
 export const FONT_SIZES = ['small', 'medium', 'large'] as const
-export const FONT_FAMILIES = ['sans', 'serif', 'mono'] as const
+export const FONT_FAMILIES = [
+  'sans',
+  'serif',
+  'mono',
+  'roboto',
+  'open-sans',
+  'lato',
+  'montserrat',
+  'poppins',
+  'raleway',
+  'nunito',
+  'playfair',
+  'merriweather',
+  'fira-code',
+  'source-code-pro',
+  'ubuntu'
+] as const
+export const THEMES = [
+  'theme-default',
+  'theme-nord',
+  'theme-dracula',
+  'theme-solarized',
+  'theme-github',
+  'theme-monokai',
+  'theme-material',
+  'theme-gruvbox',
+  'theme-catppuccin',
+  'theme-tokyo-night',
+  'theme-rose-pine'
+] as const
 export const BUTTON_VARIANTS = ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link'] as const
 export const LANGUAGES = [
   { code: 'en', label: 'English' },

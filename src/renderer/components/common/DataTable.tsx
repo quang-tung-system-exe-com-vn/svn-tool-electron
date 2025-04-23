@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
@@ -132,7 +132,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
         const statusCode = row.getValue('status') as SvnStatusCode
         const status = STATUS_TEXT[statusCode]
         const className = STATUS_COLOR_CLASS_MAP[statusCode]
-        return <div className={className}>{status}</div>
+        return <div className={className}>{t(status)}</div>
       },
     },
   ]
@@ -418,8 +418,8 @@ export const DataTable = forwardRef((props, ref) => {
             )}
           </TableBody>
         </Table>
-        <ScrollBar orientation="vertical" />
-        <ScrollBar orientation="horizontal" />
+        {/* <ScrollBar orientation="vertical" />
+        <ScrollBar orientation="horizontal" /> */}
       </ScrollArea>
       <div className="absolute flex items-center justify-end space-x-2 pt-4 px-4 right-4">
         <div className="flex-1 text-sm text-muted-foreground">

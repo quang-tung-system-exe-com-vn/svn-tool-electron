@@ -3,8 +3,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Quantum } from 'ldrs/react'
 import 'ldrs/react/Quantum.css'
-import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { useAppearanceStore } from '../stores/useAppearanceStore'
 
 type OverlayLoaderProps = {
   isLoading: boolean
@@ -19,8 +19,8 @@ export function OverlayLoader({
   speed = 2.5,
   delayMs = 400, // Delay để giữ loader lâu hơn
 }: OverlayLoaderProps) {
-  const { theme } = useTheme()
-  const loaderColor = theme === 'dark' ? '#fff' : '#000'
+  const { themeMode } = useAppearanceStore()
+  const loaderColor = themeMode === 'dark' ? '#fff' : '#000'
 
   const [shouldRender, setShouldRender] = useState(isLoading)
 

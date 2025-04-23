@@ -10,15 +10,16 @@ import i18n from '../lib/i18n'
 import { MainPage } from '../pages/MainPage'
 
 export function AppRoutes() {
-  const { theme, fontSize, fontFamily, buttonVariant, language, setTheme, setLanguage } = useAppearanceStore()
+  const { theme, themeMode, fontSize, fontFamily, buttonVariant, language, setTheme, setThemeMode, setLanguage } = useAppearanceStore()
   useEffect(() => {
     setTheme(theme)
+    setThemeMode(themeMode)
     document.documentElement.setAttribute('data-font-size', fontSize)
     document.documentElement.setAttribute('data-font-family', fontFamily)
     document.documentElement.setAttribute('data-button-variant', buttonVariant)
     setLanguage(language)
     i18n.changeLanguage(language)
-  }, [theme, fontSize, fontFamily, buttonVariant, language])
+  }, [theme, themeMode, fontSize, fontFamily, buttonVariant, language])
   return (
     <Router>
       <Routes>

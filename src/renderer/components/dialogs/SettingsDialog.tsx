@@ -5,12 +5,14 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Cloud, Mail, Palette, Settings } from 'lucide-react'
+import type { Theme } from 'main/store/AppearanceStore'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES } from '../shared/constants'
+import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES, THEMES } from '../shared/constants'
 import { useAppearanceStore } from '../stores/useAppearanceStore'
 import { useConfigurationStore } from '../stores/useConfigurationStore'
 import { useMailServerStore } from '../stores/useMailServerStore'
@@ -23,20 +25,44 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { theme, setTheme, fontSize, setFontSize, fontFamily, setFontFamily, buttonVariant, setButtonVariant, language, setLanguage } = useAppearanceStore()
+  const { theme, setTheme, themeMode, setThemeMode, fontSize, setFontSize, fontFamily, setFontFamily, buttonVariant, setButtonVariant, language, setLanguage } =
+    useAppearanceStore()
+  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'))
   const { t, i18n } = useTranslation()
+
+  const {
+    openaiApiKey,
+    svnFolder,
+    sourceFolder,
+    emailPL,
+    webhookMS,
+    oneDriveClientId,
+    oneDriveTenantId,
+    oneDriveClientSecret,
+    oneDriveRefreshToken,
+    setFieldConfiguration,
+    saveConfigurationConfig,
+    loadConfigurationConfig,
+  } = useConfigurationStore()
+  const { smtpServer, port, email, password, setFieldMailServer, saveMailServerConfig, loadMailServerConfig } = useMailServerStore()
+  const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook } = useWebhookStore()
+  const [nestedDialogOpen, setNestedDialogOpen] = useState(false)
+  const [webhookName, setWebhookName] = useState('')
+  const [webhookUrl, setWebhookUrl] = useState('')
+
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language, i18n])
 
-  const { openaiApiKey, svnFolder, sourceFolder, emailPL, webhookMS, setFieldConfiguration, saveConfigurationConfig, loadConfigurationConfig } = useConfigurationStore()
-  const { smtpServer, port, email, password, setFieldMailServer, saveMailServerConfig, loadMailServerConfig } = useMailServerStore()
-
-  const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook } = useWebhookStore()
-
-  const [nestedDialogOpen, setNestedDialogOpen] = useState(false)
-  const [webhookName, setWebhookName] = useState('')
-  const [webhookUrl, setWebhookUrl] = useState('')
+  useEffect(() => {
+    if (open) {
+      console.log('Running load functions...')
+      loadWebhookConfig()
+      loadConfigurationConfig()
+      loadMailServerConfig()
+      setIsDarkMode(themeMode === 'dark')
+    }
+  }, [open])
 
   const handleAddWebhook = async () => {
     if (!webhookName.trim() || !webhookUrl.trim()) {
@@ -78,18 +104,32 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   }
 
-  useEffect(() => {
-    if (open) {
-      console.log('Running load functions...')
-      loadWebhookConfig()
-      loadConfigurationConfig()
-      loadMailServerConfig()
+  const handleSaveOneDriveConfig = async () => {
+    try {
+      await saveConfigurationConfig()
+      toast.success('Configuration saved!')
+    } catch (err) {
+      toast.error('Failed to save configuration')
     }
-  }, [open])
+  }
+
+  const handleDarkModeToggle = (checked: boolean) => {
+    setIsDarkMode(checked)
+
+    const html = document.documentElement
+    html.classList.remove('dark', 'light')
+    if (checked) {
+      html.classList.add('dark')
+      setThemeMode('dark')
+    } else {
+      html.classList.add('light')
+      setThemeMode('light')
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t('title.settings')}</DialogTitle>
           <DialogDescription>{t('settings.description')}</DialogDescription>
@@ -127,39 +167,52 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     <CardTitle>{t('settings.language')}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-2">
-                      {LANGUAGES.map(({ code, label }) => (
-                        <Button
-                          key={code}
-                          variant={buttonVariant}
-                          className={language === code ? 'ring-1 ring-offset-2 ring-primary font-medium' : 'font-normal'}
-                          onClick={() => setLanguage(code as any)}
-                        >
-                          {label}
-                        </Button>
-                      ))}
-                    </div>
+                    <Select value={language} onValueChange={value => setLanguage(value as any)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t('settings.selectLanguage')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map(({ code, label }) => (
+                          <SelectItem key={code} value={code}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </CardContent>
                 </Card>
 
                 {/* Theme Selector */}
                 <Card className="gap-2 py-4">
                   <CardHeader>
-                    <CardTitle>{t('settings.theme')}</CardTitle>
+                    <CardTitle>
+                      <div className="flex items-center justify-between">
+                        {t('settings.theme')}
+                        <div className="flex items-center space-x-2">
+                          <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={handleDarkModeToggle} />
+                          <Label className="cursor-pointer" htmlFor="dark-mode">
+                            {t('settings.darkMode')}
+                          </Label>
+                        </div>
+                      </div>
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['light', 'dark', 'system'].map(t => (
-                        <Button
-                          key={t}
-                          variant={buttonVariant}
-                          className={theme === t ? 'ring-1 ring-offset-2 ring-primary font-medium' : 'font-normal'}
-                          onClick={() => setTheme(t as any)}
-                        >
-                          {t.charAt(0).toUpperCase() + t.slice(1)}
-                        </Button>
-                      ))}
-                    </div>
+                  <CardContent className="space-y-4">
+                    <Select value={theme} onValueChange={value => setTheme(value as Theme)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t('settings.selectTheme')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {THEMES.map((t: string) => (
+                          <SelectItem key={t} value={t}>
+                            {t
+                              .replace(/^theme-/, '')
+                              .replace(/-/g, ' ')
+                              .replace(/^./, c => c.toUpperCase())}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </CardContent>
                 </Card>
               </div>
@@ -172,19 +225,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     <CardTitle>{t('settings.fontFamily')}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-2">
-                      {FONT_FAMILIES.map(f => (
-                        <Button
-                          key={f}
-                          variant={buttonVariant}
-                          className={fontFamily === f ? 'ring-1 ring-offset-2 ring-primary font-medium' : 'font-normal'}
-                          style={{ fontFamily: `var(--font-${f})` }}
-                          onClick={() => setFontFamily(f)}
-                        >
-                          {t(`fontFamily.${f}`)}
-                        </Button>
-                      ))}
-                    </div>
+                    <Select value={fontFamily} onValueChange={value => setFontFamily(value as any)}>
+                      <SelectTrigger className="w-full" style={{ fontFamily: `var(--font-${fontFamily})` }}>
+                        <SelectValue placeholder={t('settings.selectFont')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONT_FAMILIES.map((f: string) => (
+                          <SelectItem key={f} value={f} style={{ fontFamily: `var(--font-${f})` }}>
+                            {f.charAt(0).toUpperCase() + f.slice(1).replace(/-/g, ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </CardContent>
                 </Card>
 
@@ -213,7 +265,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
             {/* Bottom */}
             {/* Button Variant Selector */}
-            <Card className="gap-2 py-4">
+            <Card className="gap-2 py-4 mb-4">
               <CardHeader>
                 <CardTitle>{t('settings.buttonVariant')}</CardTitle>
               </CardHeader>
@@ -392,6 +444,75 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </Button>
                 </div>
               </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* OneDrive Configuration */}
+          <TabsContent value="onedrive">
+            <Card className="gap-2 py-4">
+              <CardHeader className="pb-2">
+                <CardTitle>{t('settings.tab.onedrive')}</CardTitle>
+                <CardDescription>{t('settings.onedrive.description')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-1">
+                  <Label>{t('settings.onedrive.clientId')}</Label>
+                  <Input
+                    type="text"
+                    value={oneDriveClientId}
+                    onChange={e => setFieldConfiguration('oneDriveClientId', e.target.value)}
+                    placeholder={t('settings.onedrive.clientIdPlaceholder')}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>{t('settings.onedrive.tenantId')}</Label>
+                  <Input
+                    type="text"
+                    value={oneDriveTenantId}
+                    onChange={e => setFieldConfiguration('oneDriveTenantId', e.target.value)}
+                    placeholder={t('settings.onedrive.tenantIdPlaceholder')}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>{t('settings.onedrive.clientSecret')}</Label>
+                  <Input
+                    type="password"
+                    value={oneDriveClientSecret}
+                    onChange={e => setFieldConfiguration('oneDriveClientSecret', e.target.value)}
+                    placeholder={t('settings.onedrive.clientSecretPlaceholder')}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>{t('settings.onedrive.refreshToken')}</Label>
+                  <Input
+                    type="password"
+                    value={oneDriveRefreshToken}
+                    onChange={e => setFieldConfiguration('oneDriveRefreshToken', e.target.value)}
+                    placeholder={t('settings.onedrive.refreshTokenPlaceholder')}
+                  />
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <p className="text-sm text-muted-foreground">{t('settings.onedrive.instructions')}</p>
+                  <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
+                    <li>
+                      {t('settings.onedrive.step1')}{' '}
+                      <a href="https://portal.azure.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {t('settings.onedrive.azurePortal')}
+                      </a>
+                    </li>
+                    <li>{t('settings.onedrive.step2')}</li>
+                    <li>{t('settings.onedrive.step3')}</li>
+                    <li>{t('settings.onedrive.step4')}</li>
+                    <li>{t('settings.onedrive.step5')}</li>
+                  </ol>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-center pt-2">
+                <Button variant={buttonVariant} onClick={handleSaveOneDriveConfig}>
+                  {t('common.saveChanges')}
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

@@ -254,10 +254,10 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
             <TabsTrigger value="summary">{t('statisticDialog.tabs.summary')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="commit-by-date" className="h-[500px]">
+          <TabsContent value="commit-by-date" className="h-[550px]">
             <div className="flex flex-col h-full">
               {(statisticsData?.commitsByDate?.length ?? 0) > 0 ? (
-                <Card className="flex flex-col max-w-full sticky h-[500px]">
+                <Card className="flex flex-col max-w-full sticky h-[550px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="flex flex-row items-center justify-between pb-0">
                     <div className="flex flex-col">
@@ -423,10 +423,10 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
             </div>
           </TabsContent>
 
-          <TabsContent value="commit-by-author" className="h-[500px]">
+          <TabsContent value="commit-by-author" className="h-[550px]">
             <div className="flex flex-col h-full">
               {(statisticsData?.commitsByAuthor?.length ?? 0) > 0 ? (
-                <Card className="flex flex-col max-w-full sticky h-[500px]">
+                <Card className="flex flex-col max-w-full sticky h-[550px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="flex flex-row items-center justify-between pb-0">
                     <div className="flex flex-col">
@@ -509,11 +509,11 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
             </div>
           </TabsContent>
 
-          <TabsContent value="authorship" className="h-[500px]">
+          <TabsContent value="authorship" className="h-[550px]">
             <div className="flex flex-col h-full">
               <h3 className="text-lg font-medium mb-2">{t('statisticDialog.authorship.cardTitle')}</h3>
               {(chartData2.length ?? 0) > 0 ? (
-                <Card className="flex flex-col max-w-full sticky h-[500px]">
+                <Card className="flex flex-col max-w-full sticky h-[550px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="items-center pb-0">
                     <CardTitle>{t('statisticDialog.authorship.cardTitle')}</CardTitle>
@@ -537,7 +537,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
             </div>
           </TabsContent>
 
-          <TabsContent value="summary" className="h-[500px]">
+          <TabsContent value="summary" className="h-[550px]">
             <div className="flex flex-col h-full">
               <h3 className="text-lg font-medium mb-2">{t('statisticDialog.summary.title')}</h3>
               <div className="flex-1 border rounded-md p-4 overflow-auto sticky">

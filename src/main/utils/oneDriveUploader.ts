@@ -1,25 +1,31 @@
-import { ClientSecretCredential } from '@azure/identity'
-import { Client } from '@microsoft/microsoft-graph-client'
-import 'isomorphic-fetch'
-import configurationStore from '../store/ConfigurationStore'
+import { ClientSecretCredential } from '@azure/identity';
+import { Client } from '@microsoft/microsoft-graph-client';
+import 'isomorphic-fetch';
+import configurationStore from '../store/ConfigurationStore';
 
 // Tạo một provider xác thực sử dụng ClientSecretCredential
+
 const getAuthProvider = () => {
-  const { oneDriveClientId, oneDriveTenantId, oneDriveClientSecret } = configurationStore.store
-
+  const { oneDriveClientId, oneDriveTenantId, oneDriveClientSecret } = configurationStore.store;
   if (!oneDriveClientId || !oneDriveTenantId || !oneDriveClientSecret) {
-    throw new Error('OneDrive credentials are not configured')
+    throw new Error('OneDrive credentials are not configured');
   }
-
-  const credential = new ClientSecretCredential(oneDriveTenantId, oneDriveClientId, oneDriveClientSecret)
-
+  const credential = new ClientSecretCredential(oneDriveTenantId, oneDriveClientId, oneDriveClientSecret);
   return {
     getAccessToken: async () => {
-      const response = await credential.getToken('https://graph.microsoft.com/.default')
-      return response.token
+      try {
+        const response = await credential.getToken('https://graph.microsoft.com/.default');
+        console.log(response)
+        return response.token;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Failed to get access token: ${error.message}`);
+        }
+        throw new Error('Failed to get access token due to an unknown error');
+      }
     },
-  }
-}
+  };
+};
 
 // Tạo Microsoft Graph client
 const getGraphClient = () => {

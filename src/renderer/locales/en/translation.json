@@ -97,6 +97,7 @@
   "settings": {
     "fontSize": "Font Size",
     "theme": "Theme",
+    "darkMode": "Dark Mode",
     "language": "Language",
     "buttonVariant": "Button Variant",
     "fontFamily": "Font Family",

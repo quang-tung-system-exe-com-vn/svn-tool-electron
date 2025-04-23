@@ -11,10 +11,20 @@ import { CheckCodingRulesToolbar } from './CheckCodingRulesToolbar'
 window.addEventListener('storage', event => {
   if (event.key === 'ui-settings') {
     const storage = JSON.parse(event.newValue || '{}')
-    document.documentElement.setAttribute('data-font-size', storage.state.fontSize)
-    document.documentElement.setAttribute('data-font-family', storage.state.fontFamily)
-    document.documentElement.setAttribute('data-button-variant', storage.state.buttonVariant)
+    const html = document.documentElement
+    html.classList.remove('dark', 'light')
+    html.setAttribute('data-theme-mode', storage.state.themeMode)
+    html.setAttribute('data-font-size', storage.state.fontSize)
+    html.setAttribute('data-font-family', storage.state.fontFamily)
+    html.setAttribute('data-button-variant', storage.state.buttonVariant)
     i18n.changeLanguage(storage.state.language)
+    for (const cls of html.classList) {
+      if (cls.startsWith('theme-')) {
+        html.classList.remove(cls)
+      }
+    }
+    html.classList.add(storage.state.theme)
+    html.classList.add(storage.state.themeMode)
   }
 })
 
