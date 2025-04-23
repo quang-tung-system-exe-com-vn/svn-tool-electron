@@ -3,6 +3,7 @@
     "close": "Đóng",
     "cancel": "Hủy",
     "save": "Lưu",
+    "saveChanges": "Lưu thay đổi",
     "add": "Thêm",
     "delete": "Xóa",
     "install": "Cài đặt",
@@ -104,34 +105,52 @@
     "tab": {
       "appearance": "Giao diện",
       "configuration": "Cấu hình",
-      "mailserver": "Máy chủ gửi mail"
+      "mailserver": "Máy chủ gửi mail",
+      "onedrive": "OneDrive"
     },
-    "config": {
-      "title": "Cấu hình",
+    "configuration": {
       "description": "Cấu hình cài đặt dự án của bạn.",
-      "openaiKey": "Khóa API OpenAI",
-      "openaiKeyPlaceholder": "Nhập khóa API OpenAI của bạn",
+      "openaiApiKey": "Khóa API OpenAI",
+      "openaiApiKeyPlaceholder": "Nhập khóa API OpenAI của bạn",
       "svnFolder": "Thư mục SVN",
       "svnFolderPlaceholder": "Chọn thư mục SVN",
+      "chooseFolder": "Chọn thư mục",
       "sourceFolder": "Thư mục nguồn",
       "sourceFolderPlaceholder": "Chọn thư mục nguồn",
       "emailPL": "Email PL",
       "emailPlaceholder": "Nhập địa chỉ email",
       "webhookMS": "Webhook MS",
-      "webhookPlaceholder": "Chọn Webhook",
-      "addWebhook": "Thêm Webhook mới"
+      "selectWebhook": "Chọn Webhook",
+      "addNewWebhook": "Thêm Webhook mới"
     },
-    "mailServer": {
-      "title": "Cấu hình máy chủ mail",
+    "mailserver": {
       "description": "Cấu hình cài đặt máy chủ mail của bạn.",
       "smtpServer": "Máy chủ SMTP",
-      "smtpPlaceholder": "Nhập máy chủ SMTP của bạn",
+      "smtpServerPlaceholder": "Nhập máy chủ SMTP của bạn",
       "port": "Cổng",
       "portPlaceholder": "Nhập cổng SMTP",
       "email": "Email",
       "emailPlaceholder": "Nhập địa chỉ email của bạn",
       "password": "Mật khẩu",
       "passwordPlaceholder": "Nhập mật khẩu của bạn"
+    },
+    "onedrive": {
+      "description": "Cấu hình Microsoft OneDrive để tải lên hình ảnh.",
+      "clientId": "Client ID",
+      "clientIdPlaceholder": "Nhập Client ID của ứng dụng Microsoft của bạn",
+      "tenantId": "Tenant ID",
+      "tenantIdPlaceholder": "Nhập Tenant ID của Microsoft của bạn",
+      "clientSecret": "Client Secret",
+      "clientSecretPlaceholder": "Nhập Client Secret của ứng dụng Microsoft của bạn",
+      "refreshToken": "Refresh Token (Tùy chọn)",
+      "refreshTokenPlaceholder": "Nhập Refresh Token của bạn (nếu có)",
+      "instructions": "Để sử dụng OneDrive cho việc tải lên hình ảnh, bạn cần đăng ký một ứng dụng trong Azure Portal và cấp cho nó các quyền thích hợp.",
+      "step1": "Truy cập",
+      "azurePortal": "Azure Portal",
+      "step2": "Đăng ký một ứng dụng mới",
+      "step3": "Thêm quyền API cho Microsoft Graph (Files.ReadWrite, Files.ReadWrite.All)",
+      "step4": "Tạo một client secret",
+      "step5": "Nhập Client ID, Tenant ID và Client Secret vào đây"
     }
   },
   "fontSize": {

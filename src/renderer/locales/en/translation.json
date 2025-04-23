@@ -3,6 +3,7 @@
     "close": "Close",
     "cancel": "Cancel",
     "save": "Save changes",
+    "saveChanges": "Save changes",
     "add": "Add",
     "delete": "Delete",
     "install": "Install",
@@ -103,34 +104,52 @@
     "tab": {
       "appearance": "Appearance",
       "configuration": "Configuration",
-      "mailserver": "Mail Server"
+      "mailserver": "Mail Server",
+      "onedrive": "OneDrive"
     },
-    "config": {
-      "title": "Configuration",
+    "configuration": {
       "description": "Configure your project settings.",
-      "openaiKey": "OpenAI API Key",
-      "openaiKeyPlaceholder": "Enter your OpenAI API Key",
+      "openaiApiKey": "OpenAI API Key",
+      "openaiApiKeyPlaceholder": "Enter your OpenAI API Key",
       "svnFolder": "SVN Folder",
       "svnFolderPlaceholder": "Select SVN folder",
+      "chooseFolder": "Choose Folder",
       "sourceFolder": "Source Folder",
       "sourceFolderPlaceholder": "Select source folder",
       "emailPL": "Email PL",
       "emailPlaceholder": "Enter email address",
       "webhookMS": "Webhook MS",
-      "webhookPlaceholder": "Select Webhook",
-      "addWebhook": "Add New Webhook"
+      "selectWebhook": "Select Webhook",
+      "addNewWebhook": "Add New Webhook"
     },
-    "mailServer": {
-      "title": "Mail Server Configuration",
+    "mailserver": {
       "description": "Configure your mail server settings.",
       "smtpServer": "SMTP Server",
-      "smtpPlaceholder": "Enter your SMTP server",
+      "smtpServerPlaceholder": "Enter your SMTP server",
       "port": "Port",
       "portPlaceholder": "Enter SMTP port",
       "email": "Email",
       "emailPlaceholder": "Enter your email address",
       "password": "Password",
       "passwordPlaceholder": "Enter your password"
+    },
+    "onedrive": {
+      "description": "Configure Microsoft OneDrive for image uploads.",
+      "clientId": "Client ID",
+      "clientIdPlaceholder": "Enter your Microsoft App Client ID",
+      "tenantId": "Tenant ID",
+      "tenantIdPlaceholder": "Enter your Microsoft Tenant ID",
+      "clientSecret": "Client Secret",
+      "clientSecretPlaceholder": "Enter your Microsoft App Client Secret",
+      "refreshToken": "Refresh Token (Optional)",
+      "refreshTokenPlaceholder": "Enter your Refresh Token (if available)",
+      "instructions": "To use OneDrive for image uploads, you need to register an application in the Azure Portal and grant it appropriate permissions.",
+      "step1": "Go to the",
+      "azurePortal": "Azure Portal",
+      "step2": "Register a new application",
+      "step3": "Add API permissions for Microsoft Graph (Files.ReadWrite, Files.ReadWrite.All)",
+      "step4": "Create a client secret",
+      "step5": "Enter the Client ID, Tenant ID, and Client Secret here"
     }
   },
   "fontSize": {
