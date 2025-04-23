@@ -3,6 +3,7 @@
     "close": "閉じる",
     "cancel": "キャンセル",
     "save": "変更を保存",
+    "saveChanges": "変更を保存",
     "add": "追加",
     "delete": "削除",
     "install": "インストール",
@@ -104,34 +105,52 @@
     "tab": {
       "appearance": "外観",
       "configuration": "設定",
-      "mailserver": "メールサーバー"
+      "mailserver": "メールサーバー",
+      "onedrive": "OneDrive"
     },
-    "config": {
-      "title": "設定",
+    "configuration": {
       "description": "プロジェクト設定を構成します。",
-      "openaiKey": "OpenAI APIキー",
-      "openaiKeyPlaceholder": "OpenAI APIキーを入力してください",
+      "openaiApiKey": "OpenAI APIキー",
+      "openaiApiKeyPlaceholder": "OpenAI APIキーを入力してください",
       "svnFolder": "SVNフォルダ",
       "svnFolderPlaceholder": "SVNフォルダを選択",
+      "chooseFolder": "フォルダを選択",
       "sourceFolder": "ソースフォルダ",
       "sourceFolderPlaceholder": "ソースフォルダを選択",
       "emailPL": "メールPL",
       "emailPlaceholder": "メールアドレスを入力",
       "webhookMS": "Webhook MS",
-      "webhookPlaceholder": "Webhookを選択",
-      "addWebhook": "新しいWebhookを追加"
+      "selectWebhook": "Webhookを選択",
+      "addNewWebhook": "新しいWebhookを追加"
     },
-    "mailServer": {
-      "title": "メールサーバー設定",
+    "mailserver": {
       "description": "メールサーバー設定を構成します。",
       "smtpServer": "SMTPサーバー",
-      "smtpPlaceholder": "SMTPサーバーを入力してください",
+      "smtpServerPlaceholder": "SMTPサーバーを入力してください",
       "port": "ポート",
       "portPlaceholder": "SMTPポートを入力してください",
       "email": "メール",
       "emailPlaceholder": "メールアドレスを入力してください",
       "password": "パスワード",
       "passwordPlaceholder": "パスワードを入力してください"
+    },
+    "onedrive": {
+      "description": "画像アップロード用のMicrosoft OneDriveを構成します。",
+      "clientId": "クライアントID",
+      "clientIdPlaceholder": "Microsoft アプリのクライアントIDを入力してください",
+      "tenantId": "テナントID",
+      "tenantIdPlaceholder": "Microsoft テナントIDを入力してください",
+      "clientSecret": "クライアントシークレット",
+      "clientSecretPlaceholder": "Microsoft アプリのクライアントシークレットを入力してください",
+      "refreshToken": "リフレッシュトークン（オプション）",
+      "refreshTokenPlaceholder": "リフレッシュトークンを入力してください（利用可能な場合）",
+      "instructions": "画像アップロード用にOneDriveを使用するには、Azure Portalでアプリケーションを登録し、適切な権限を付与する必要があります。",
+      "step1": "アクセス先",
+      "azurePortal": "Azure Portal",
+      "step2": "新しいアプリケーションを登録",
+      "step3": "Microsoft Graph用のAPI権限を追加（Files.ReadWrite、Files.ReadWrite.All）",
+      "step4": "クライアントシークレットを作成",
+      "step5": "クライアントID、テナントID、クライアントシークレットをここに入力"
     }
   },
   "fontSize": {

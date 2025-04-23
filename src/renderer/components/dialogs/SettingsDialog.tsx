@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Mail, Palette, Settings } from 'lucide-react'
+import { Cloud, Mail, Palette, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -95,7 +95,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <DialogDescription>{t('settings.description')}</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="appearance" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="appearance" className="flex items-center">
               <Palette />
               {t('settings.tab.appearance')}
@@ -109,6 +109,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             <TabsTrigger value="mailserver" className="flex items-center">
               <Mail />
               {t('settings.tab.mailserver')}
+            </TabsTrigger>
+
+            <TabsTrigger value="onedrive" className="flex items-center">
+              <Cloud />
+              {t('settings.tab.onedrive') || 'OneDrive'}
             </TabsTrigger>
           </TabsList>
 
@@ -233,21 +238,31 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <TabsContent value="configuration">
             <Card className="gap-2 py-4">
               <CardHeader className="pb-2">
-                <CardTitle>Configuration</CardTitle>
-                <CardDescription>Configure your project settings.</CardDescription>
+                <CardTitle>{t('settings.tab.configuration')}</CardTitle>
+                <CardDescription>{t('settings.configuration.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* OpenAI API Key */}
                 <div className="space-y-1">
-                  <Label>OpenAI API Key</Label>
-                  <Input type="text" placeholder="Enter your OpenAI API Key" value={openaiApiKey} onChange={e => setFieldConfiguration('openaiApiKey', e.target.value)} />
+                  <Label>{t('settings.configuration.openaiApiKey')}</Label>
+                  <Input
+                    type="text"
+                    placeholder={t('settings.configuration.openaiApiKeyPlaceholder')}
+                    value={openaiApiKey}
+                    onChange={e => setFieldConfiguration('openaiApiKey', e.target.value)}
+                  />
                 </div>
 
                 {/* SVN Folder */}
                 <div className="space-y-1">
-                  <Label>SVN Folder</Label>
+                  <Label>{t('settings.configuration.svnFolder')}</Label>
                   <div className="flex items-center space-x-2">
-                    <Input type="text" placeholder="Select SVN folder" value={svnFolder} onChange={e => setFieldConfiguration('svnFolder', e.target.value)} />
+                    <Input
+                      type="text"
+                      placeholder={t('settings.configuration.svnFolderPlaceholder')}
+                      value={svnFolder}
+                      onChange={e => setFieldConfiguration('svnFolder', e.target.value)}
+                    />
                     <Button
                       variant={buttonVariant}
                       onClick={async () => {
@@ -255,15 +270,20 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         if (folder) setFieldConfiguration('svnFolder', folder)
                       }}
                     >
-                      Choose Folder
+                      {t('settings.configuration.chooseFolder')}
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <Label>Source Folder</Label>
+                  <Label>{t('settings.configuration.sourceFolder')}</Label>
                   <div className="flex items-center space-x-2">
-                    <Input type="text" placeholder="Select source folder" value={sourceFolder} onChange={e => setFieldConfiguration('sourceFolder', e.target.value)} />
+                    <Input
+                      type="text"
+                      placeholder={t('settings.configuration.sourceFolderPlaceholder')}
+                      value={sourceFolder}
+                      onChange={e => setFieldConfiguration('sourceFolder', e.target.value)}
+                    />
                     <Button
                       variant={buttonVariant}
                       onClick={async () => {
@@ -271,24 +291,24 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         if (folder) setFieldConfiguration('sourceFolder', folder)
                       }}
                     >
-                      Choose Folder
+                      {t('settings.configuration.chooseFolder')}
                     </Button>
                   </div>
                 </div>
 
                 {/* Email PL */}
                 <div className="space-y-1">
-                  <Label>Email PL</Label>
-                  <Input type="email" placeholder="Enter email address" value={emailPL} onChange={e => setFieldConfiguration('emailPL', e.target.value)} />
+                  <Label>{t('settings.configuration.emailPL')}</Label>
+                  <Input type="email" placeholder={t('settings.configuration.emailPlaceholder')} value={emailPL} onChange={e => setFieldConfiguration('emailPL', e.target.value)} />
                 </div>
 
                 {/* Webhook MS */}
                 <div className="space-y-1">
-                  <Label className="mr-2">Webhook MS</Label>
+                  <Label className="mr-2">{t('settings.configuration.webhookMS')}</Label>
                   <div className="flex items-center justify-between gap-2">
                     <Select value={webhookMS} onValueChange={value => setFieldConfiguration('webhookMS', value)}>
                       <SelectTrigger className="border rounded-md w-full">
-                        <SelectValue placeholder="Select Webhook" />
+                        <SelectValue placeholder={t('settings.configuration.selectWebhook')} />
                       </SelectTrigger>
                       <SelectContent>
                         {webhookList.map(webhook => (
@@ -301,12 +321,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
                     <div className="flex gap-2">
                       <Button variant={buttonVariant} onClick={() => setNestedDialogOpen(true)}>
-                        Add New Webhook
+                        {t('settings.configuration.addNewWebhook')}
                       </Button>
 
                       {webhookMS && (
                         <Button variant="destructive" onClick={() => handleDeleteWebhook(webhookMS)}>
-                          Delete
+                          {t('common.delete')}
                         </Button>
                       )}
                     </div>
@@ -326,7 +346,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </CardContent>
               <CardFooter className="flex justify-center pt-2">
                 <Button variant={buttonVariant} onClick={handleSaveConfigurationConfig}>
-                  Save changes
+                  {t('common.saveChanges')}
                 </Button>
               </CardFooter>
             </Card>
@@ -336,29 +356,39 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <TabsContent value="mailserver">
             <Card className="gap-2 py-4">
               <CardHeader className="pb-2">
-                <CardTitle>Mail Server Configuration</CardTitle>
-                <CardDescription>Configure your mail server settings.</CardDescription>
+                <CardTitle>{t('settings.tab.mailserver')}</CardTitle>
+                <CardDescription>{t('settings.mailserver.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1">
-                  <Label>SMTP Server</Label>
-                  <Input type="text" value={smtpServer} onChange={e => setFieldMailServer('smtpServer', e.target.value)} placeholder="Enter your SMTP server" />
+                  <Label>{t('settings.mailserver.smtpServer')}</Label>
+                  <Input
+                    type="text"
+                    value={smtpServer}
+                    onChange={e => setFieldMailServer('smtpServer', e.target.value)}
+                    placeholder={t('settings.mailserver.smtpServerPlaceholder')}
+                  />
                 </div>
                 <div className="space-y-1">
-                  <Label>Port</Label>
-                  <Input type="text" value={port} onChange={e => setFieldMailServer('port', e.target.value)} placeholder="Enter SMTP port" />
+                  <Label>{t('settings.mailserver.port')}</Label>
+                  <Input type="text" value={port} onChange={e => setFieldMailServer('port', e.target.value)} placeholder={t('settings.mailserver.portPlaceholder')} />
                 </div>
                 <div className="space-y-1">
-                  <Label>Email</Label>
-                  <Input type="email" value={email} onChange={e => setFieldMailServer('email', e.target.value)} placeholder="Enter your email address" />
+                  <Label>{t('settings.mailserver.email')}</Label>
+                  <Input type="email" value={email} onChange={e => setFieldMailServer('email', e.target.value)} placeholder={t('settings.mailserver.emailPlaceholder')} />
                 </div>
                 <div className="space-y-1">
-                  <Label>Password</Label>
-                  <Input type="password" value={password} onChange={e => setFieldMailServer('password', e.target.value)} placeholder="Enter your password" />
+                  <Label>{t('settings.mailserver.password')}</Label>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={e => setFieldMailServer('password', e.target.value)}
+                    placeholder={t('settings.mailserver.passwordPlaceholder')}
+                  />
                 </div>
                 <div className="flex justify-center pt-2">
                   <Button variant={buttonVariant} onClick={handleSaveMailServerConfig}>
-                    Save changes
+                    {t('common.saveChanges')}
                   </Button>
                 </div>
               </CardContent>

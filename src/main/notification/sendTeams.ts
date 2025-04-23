@@ -1,8 +1,9 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
-import { app } from 'electron';
-import os from 'node:os';
-import configurationStore from '../store/ConfigurationStore';
+import os from 'node:os'
+import axios from 'axios'
+import dotenv from 'dotenv'
+import { app } from 'electron'
+import configurationStore from '../store/ConfigurationStore'
+import { uploadImagesToOneDrive } from '../utils/oneDriveUploader'
 dotenv.config()
 
 function createCommitInfoCard(data: CommitInfo) {
@@ -157,8 +158,8 @@ export async function sendTeams(data: CommitInfo): Promise<void> {
   }
 }
 
-function createSupportFeedbackCard(data: SupportFeedback) {
-  const { type, email, message, images } = data
+function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = []) {
+  const { type, email, message } = data
   const cardType = type === 'support' ? 'Support Request' : 'Feedback Submission'
   const cardColor = type === 'support' ? 'warning' : 'accent' // Yellow for support, blue for feedback
 
@@ -193,28 +194,27 @@ function createSupportFeedbackCard(data: SupportFeedback) {
       type: 'TextBlock',
       text: message,
       wrap: true,
-    }
-  ];
+    },
+  ]
 
   // Add images if available
-  if (images && images.length > 0) {
+  if (imageUrls && imageUrls.length > 0) {
     // Add header for images
     bodyElements.push({
       type: 'TextBlock',
       text: '**Attached Images:**',
       wrap: true,
-    });
+    })
 
-    images.forEach((imageData, index) => {
-      if (imageData.startsWith('data:image')) {
-        bodyElements.push({
-          type: 'Image',
-          url: imageData,
-          size: 'Medium',
-          altText: `Image ${index + 1}`,
-        });
-      }
-    });
+    // Thêm các hình ảnh từ OneDrive URLs
+    imageUrls.forEach((imageUrl, index) => {
+      bodyElements.push({
+        type: 'Image',
+        url: imageUrl,
+        size: 'Medium',
+        altText: `Image ${index + 1}`,
+      })
+    })
   }
 
   // Create the final card
@@ -224,20 +224,40 @@ function createSupportFeedbackCard(data: SupportFeedback) {
     version: '1.5',
     msteams: { width: 'Full' },
     body: bodyElements,
-  };
+  }
 }
 
 export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise<{ success: boolean; error?: string }> {
   try {
     console.log('🎯 Sending Support/Feedback card to MS Teams...')
-    const { webhookMS } = configurationStore.store
+    const { webhookMS, oneDriveClientId } = configurationStore.store
 
     if (!webhookMS) {
       console.error('MS Teams Webhook URL is not configured.')
       return { success: false, error: 'MS Teams Webhook URL is not configured.' }
     }
 
-    const adaptiveCard = createSupportFeedbackCard(data)
+    // Kiểm tra xem có hình ảnh không
+    let imageUrls: string[] = []
+    if (data.images && data.images.length > 0) {
+      try {
+        // Kiểm tra xem OneDrive đã được cấu hình chưa
+        if (!oneDriveClientId) {
+          console.warn('OneDrive is not configured. Images will be skipped.')
+        } else {
+          // Upload hình ảnh lên OneDrive
+          console.log(`Uploading ${data.images.length} images to OneDrive...`)
+          imageUrls = await uploadImagesToOneDrive(data.images)
+          console.log(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
+        }
+      } catch (uploadError: any) {
+        console.error('Error uploading images to OneDrive:', uploadError)
+        // Tiếp tục gửi feedback mà không có hình ảnh
+      }
+    }
+
+    // Tạo Adaptive Card với URLs của hình ảnh từ OneDrive
+    const adaptiveCard = createSupportFeedbackCard(data, imageUrls)
     const payload = {
       type: 'message',
       attachments: [

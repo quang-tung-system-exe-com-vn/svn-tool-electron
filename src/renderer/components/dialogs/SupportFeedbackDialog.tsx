@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { ImagePlus, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
@@ -195,10 +196,10 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
             />
           </div>
 
-          {/* <Separator className="my-4" /> */}
+          <Separator className="my-4" />
 
           {/* Images Section */}
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <Label>{t('dialog.supportFeedback.imagesTitle')}</Label>
             <div
               {...getRootProps()}
@@ -227,7 +228,7 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
                 ))}
               </div>
             )}
-          </div> */}
+          </div>
         </div>
 
         <DialogFooter>
