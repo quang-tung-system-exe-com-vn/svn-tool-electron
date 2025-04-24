@@ -330,7 +330,7 @@ export function registerConfigIpcHandlers() {
       const content = await readFile(absolutePath, 'utf-8')
       return content
     } catch (err) {
-      return `Error generating message: ${err}`
+      return `Error reading file: ${err}`
     }
   })
 

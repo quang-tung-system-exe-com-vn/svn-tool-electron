@@ -243,7 +243,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 {/* Font Size Selector */}
                 <Card className="gap-2 py-4">
                   <CardHeader>
-                    <CardTitle>{t('settings.fontSize')}</CardTitle>
+                    <CardTitle>{t('settings.fontSize.title')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-3 gap-2">
@@ -398,7 +398,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </CardContent>
               <CardFooter className="flex justify-center pt-2">
                 <Button variant={buttonVariant} onClick={handleSaveConfigurationConfig}>
-                  {t('common.saveChanges')}
+                  {t('common.save')}
                 </Button>
               </CardFooter>
             </Card>
@@ -440,7 +440,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
                 <div className="flex justify-center pt-2">
                   <Button variant={buttonVariant} onClick={handleSaveMailServerConfig}>
-                    {t('common.saveChanges')}
+                    {t('common.save')}
                   </Button>
                 </div>
               </CardContent>
@@ -464,24 +464,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     placeholder={t('settings.onedrive.clientIdPlaceholder')}
                   />
                 </div>
+                {/* Client Secret */}
                 <div className="space-y-1">
-                  <Label>{t('settings.onedrive.tenantId')}</Label>
+                  <Label>{t('settings.onedrive.clientSecret', 'Client Secret')}</Label> {/* Thêm key translation nếu cần */}
                   <Input
-                    type="text"
-                    value={oneDriveTenantId}
-                    onChange={e => setFieldConfiguration('oneDriveTenantId', e.target.value)}
-                    placeholder={t('settings.onedrive.tenantIdPlaceholder')}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>{t('settings.onedrive.clientSecret')}</Label>
-                  <Input
-                    type="password"
+                    type="password" // Sử dụng type="password" để ẩn giá trị
                     value={oneDriveClientSecret}
                     onChange={e => setFieldConfiguration('oneDriveClientSecret', e.target.value)}
-                    placeholder={t('settings.onedrive.clientSecretPlaceholder')}
-                  />
+                    placeholder={t('settings.onedrive.clientSecretPlaceholder', 'Enter Client Secret')}
+                  />{' '}
+                  {/* Thêm key translation nếu cần */} {/* Đóng thẻ Input đúng cách */}
                 </div>
+                {/* Refresh Token */}
                 <div className="space-y-1">
                   <Label>{t('settings.onedrive.refreshToken')}</Label>
                   <Input
@@ -491,26 +485,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     placeholder={t('settings.onedrive.refreshTokenPlaceholder')}
                   />
                 </div>
-
-                <div className="space-y-2 pt-2">
-                  <p className="text-sm text-muted-foreground">{t('settings.onedrive.instructions')}</p>
-                  <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
-                    <li>
-                      {t('settings.onedrive.step1')}{' '}
-                      <a href="https://portal.azure.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                        {t('settings.onedrive.azurePortal')}
-                      </a>
-                    </li>
-                    <li>{t('settings.onedrive.step2')}</li>
-                    <li>{t('settings.onedrive.step3')}</li>
-                    <li>{t('settings.onedrive.step4')}</li>
-                    <li>{t('settings.onedrive.step5')}</li>
-                  </ol>
-                </div>
               </CardContent>
               <CardFooter className="flex justify-center pt-2">
                 <Button variant={buttonVariant} onClick={handleSaveOneDriveConfig}>
-                  {t('common.saveChanges')}
+                  {t('common.save')}
                 </Button>
               </CardFooter>
             </Card>

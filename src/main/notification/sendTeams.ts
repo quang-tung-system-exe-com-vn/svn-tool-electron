@@ -1,10 +1,8 @@
-import os from 'node:os'
 import axios from 'axios'
-import dotenv from 'dotenv'
 import { app } from 'electron'
+import os from 'node:os'
 import configurationStore from '../store/ConfigurationStore'
 import { uploadImagesToOneDrive } from '../utils/oneDriveUploader'
-dotenv.config()
 
 function createCommitInfoCard(data: CommitInfo) {
   const { commitUser, commitTime, commitMessage, violations, addedFiles, modifiedFiles, deletedFiles } = data
@@ -161,9 +159,8 @@ export async function sendTeams(data: CommitInfo): Promise<void> {
 function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = []) {
   const { type, email, message } = data
   const cardType = type === 'support' ? 'Support Request' : 'Feedback Submission'
-  const cardColor = type === 'support' ? 'warning' : 'accent' // Yellow for support, blue for feedback
+  const cardColor = type === 'support' ? 'warning' : 'accent'
 
-  // Create base card body elements
   const bodyElements: any[] = [
     {
       type: 'TextBlock',
@@ -176,10 +173,10 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
       type: 'FactSet',
       facts: [
         { title: 'From', value: email },
-        { title: 'Type', value: type.charAt(0).toUpperCase() + type.slice(1) }, // Capitalize type
+        { title: 'Type', value: type.charAt(0).toUpperCase() + type.slice(1) },
         { title: 'Timestamp', value: new Date().toLocaleString() },
-        { title: 'OS', value: `${os.type()} ${os.release()}` }, // Add OS info
-        { title: 'Username', value: os.userInfo().username }, // Add system username
+        { title: 'OS', value: `${os.type()} ${os.release()}` },
+        { title: 'Username', value: os.userInfo().username },
         { title: 'Locale', value: Intl.DateTimeFormat().resolvedOptions().locale },
         { title: 'App Version', value: app.getVersion() },
       ],
@@ -197,16 +194,12 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
     },
   ]
 
-  // Add images if available
   if (imageUrls && imageUrls.length > 0) {
-    // Add header for images
     bodyElements.push({
       type: 'TextBlock',
       text: '**Attached Images:**',
       wrap: true,
     })
-
-    // Thêm các hình ảnh từ OneDrive URLs
     imageUrls.forEach((imageUrl, index) => {
       bodyElements.push({
         type: 'Image',
@@ -217,7 +210,6 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
     })
   }
 
-  // Create the final card
   return {
     $schema: 'https://adaptivecards.io/schemas/adaptive-card.json',
     type: 'AdaptiveCard',
@@ -230,33 +222,29 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
 export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise<{ success: boolean; error?: string }> {
   try {
     console.log('🎯 Sending Support/Feedback card to MS Teams...')
-    const { webhookMS, oneDriveClientId } = configurationStore.store
+    const { webhookMS, oneDriveClientId, oneDriveRefreshToken } = configurationStore.store
 
     if (!webhookMS) {
       console.error('MS Teams Webhook URL is not configured.')
       return { success: false, error: 'MS Teams Webhook URL is not configured.' }
     }
 
-    // Kiểm tra xem có hình ảnh không
     let imageUrls: string[] = []
     if (data.images && data.images.length > 0) {
       try {
-        // Kiểm tra xem OneDrive đã được cấu hình chưa
-        if (!oneDriveClientId) {
-          console.warn('OneDrive is not configured. Images will be skipped.')
-        } else {
-          // Upload hình ảnh lên OneDrive
-          console.log(`Uploading ${data.images.length} images to OneDrive...`)
-          imageUrls = await uploadImagesToOneDrive(data.images)
-          console.log(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
+        console.log(oneDriveRefreshToken);
+        if (!oneDriveClientId || !oneDriveRefreshToken) {
+          console.warn('OneDrive is not fully configured. Images will be skipped.')
+          return { success: false, error: 'OneDrive chưa được cấu hình đầy đủ. Vui lòng kiểm tra Client ID và Refresh Token trong phần cài đặt OneDrive.' }
         }
+        console.log(`Uploading ${data.images.length} images to OneDrive...`)
+        imageUrls = await uploadImagesToOneDrive(data.images)
+        console.log(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
       } catch (uploadError: any) {
         console.error('Error uploading images to OneDrive:', uploadError)
-        // Tiếp tục gửi feedback mà không có hình ảnh
       }
     }
 
-    // Tạo Adaptive Card với URLs của hình ảnh từ OneDrive
     const adaptiveCard = createSupportFeedbackCard(data, imageUrls)
     const payload = {
       type: 'message',

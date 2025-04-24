@@ -27,6 +27,11 @@ export function isTextFile(filePath: string, status: string, sourceFolder: strin
   if (status === '!') return false
   if (status === '?') {
     const absolutePath = path.resolve(sourceFolder, filePath.replace(/\\\\/g, '\\'))
+    const isDirectory = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()
+    console.log('isDirectory: ', absolutePath, isDirectory)
+    if (isDirectory) {
+      return false
+    }
     const buffer = fs.readFileSync(absolutePath)
     return isText(fileName, buffer)
   }

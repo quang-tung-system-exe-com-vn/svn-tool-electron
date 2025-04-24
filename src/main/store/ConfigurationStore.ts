@@ -6,9 +6,7 @@ export type Schema = {
   sourceFolder: string
   emailPL: string
   webhookMS: string
-  // OneDrive configuration
   oneDriveClientId: string
-  oneDriveTenantId: string
   oneDriveClientSecret: string
   oneDriveRefreshToken: string
 }
@@ -21,9 +19,7 @@ const config = new Store<Schema>({
     sourceFolder: '',
     emailPL: '',
     webhookMS: '',
-    // OneDrive configuration defaults
     oneDriveClientId: '',
-    oneDriveTenantId: '',
     oneDriveClientSecret: '',
     oneDriveRefreshToken: '',
   },

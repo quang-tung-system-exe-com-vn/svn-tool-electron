@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Download, Eraser, FileText, Info, LifeBuoy, Minus, RefreshCw, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { CircleArrowDown, Download, Eraser, FileText, Info, LifeBuoy, Minus, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,8 +11,8 @@ import { NewRevisionDialog } from '../dialogs/NewRevisionDialog'
 import { SettingsDialog } from '../dialogs/SettingsDialog'
 import { SupportFeedbackDialog } from '../dialogs/SupportFeedbackDialog'
 import type { SvnStatusCode } from '../shared/constants'
+import { useButtonVariant } from '../stores/useAppearanceStore'
 import { GlowLoader } from '../ui-elements/GlowLoader'
-import { RoundIcon } from '../ui-elements/RoundIcon'
 import ToastMessageFunctions from '../ui-elements/ToastMessage'
 
 interface TitleBarProps {
@@ -30,6 +30,7 @@ type SvnInfo = {
 
 export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   const { t } = useTranslation()
+  const variant = useButtonVariant()
   const [showSettings, setShowSettings] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const [showClean, setShowClean] = useState(false)
@@ -63,94 +64,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     }
   }, [])
 
-  const showUpdateToast = (version?: string) => {
-    toast.custom(
-      id => (
-        <div className="bg-card p-4 rounded-lg shadow-lg border max-w-md">
-          <h3 className="flex flex-row gap-2 items-center font-semibold mb-2">
-            <Download className="w-4 h-4" />
-            {t('New Update Available')}
-          </h3>
-          <p className="mb-2 text-[0.85rem]">
-            {t('A new version of the application is available:')} {version && `${version}`}
-          </p>
-          <div className="flex justify-end gap-2 pt-5">
-            <Button variant="outline" size="sm" onClick={() => toast.dismiss(id)}>
-              {t('Cancel')}
-            </Button>
-            <Button
-              size="sm"
-              onClick={async () => {
-                try {
-                  await window.api.updater.install_updates()
-                } catch (error) {
-                  ToastMessageFunctions.error(error)
-                }
-                toast.dismiss(id)
-              }}
-            >
-              {t('Install')}
-            </Button>
-          </div>
-        </div>
-      ),
-      {
-        duration: Number.POSITIVE_INFINITY,
-        position: 'top-center',
-      }
-    )
-  }
-
-  const checkForUpdates = async () => {
-    if (status === 'downloaded') {
-      showUpdateToast(appVersion)
-      return
-    }
-  }
-
-  const onUpdateSvn = () => {
-    if (!isLoading) {
-      ToastMessageFunctions.info(t('Updating SVN...'))
-      window.api.svn
-        .update()
-        .then(result => {
-          if (result.status === 'success') {
-            ToastMessageFunctions.success(t('SVN updated successfully'))
-            setResetSvnUpdateIndicator(prev => !prev)
-            tableRef.current?.reloadData()
-          } else {
-            ToastMessageFunctions.error(result.message)
-          }
-        })
-        .catch((error: Error) => {
-          ToastMessageFunctions.error(error.message || 'Error updating SVN')
-        })
-    }
-  }
-
-  const openSettingsDialog = () => {
-    setShowSettings(true)
-  }
-
-  const openInfoDialog = () => {
-    setShowInfo(true)
-  }
-
-  const openCleanDialog = () => {
-    setShowClean(true)
-  }
-  const openShowLogWindow = () => {
-    if (!isLoading) {
-      window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
-    }
-  }
-  const openSupportFeedbackDialog = () => {
-    setShowSupportFeedback(true)
-  }
-  const openSvnUpdateDialog = () => {
-    setShowSvnUpdateDialog(true)
-  }
-
   useEffect(() => {
     const checkAppUpdates = async () => {
       try {
@@ -162,8 +75,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         console.error('Error checking for app updates:', error)
       }
     }
-
-    // Check for SVN updates
     const checkSvnUpdates = async () => {
       try {
         const { status, data, message } = await window.api.svn.info('.')
@@ -183,28 +94,91 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         console.error('Error checking for SVN updates:', error)
       }
     }
-
-    // Initial check
     checkAppUpdates()
     checkSvnUpdates()
-
-    // Set up interval for periodic checks
     const interval = setInterval(() => {
       checkAppUpdates()
       checkSvnUpdates()
     }, 300000) // Check every 5 minutes
-
     return () => clearInterval(interval)
   }, [])
 
-  // Reset SVN update indicator when requested
   useEffect(() => {
     if (resetSvnUpdateIndicator) {
       setHasSvnUpdate(false)
     }
   }, [resetSvnUpdateIndicator])
 
-  // Handle SVN update from dialog
+  const showUpdateToast = (version?: string) => {
+    toast.custom(
+      id => (
+        <div className="bg-card p-4 rounded-lg shadow-lg border max-w-md">
+          <h3 className="flex flex-row gap-2 items-center font-semibold mb-2">
+            <Download className="w-4 h-4" />
+            {t('dialog.appVersion.title')}
+          </h3>
+          <p className="mb-2 text-[0.85rem]">{t('dialog.appVersion.appVersion', { 0: version })}</p>
+          <div className="flex justify-end gap-2 pt-5">
+            <Button variant={variant} size="sm" onClick={() => toast.dismiss(id)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant={variant}
+              size="sm"
+              onClick={async () => {
+                try {
+                  await window.api.updater.install_updates()
+                } catch (error) {
+                  ToastMessageFunctions.error(error)
+                }
+                toast.dismiss(id)
+              }}
+            >
+              {t('common.install')}
+            </Button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Number.POSITIVE_INFINITY,
+        position: 'top-center',
+      }
+    )
+  }
+
+  const checkForUpdates = async () => {
+    if (status === 'downloaded') {
+      showUpdateToast(appVersion)
+      return
+    }
+  }
+
+  const openSettingsDialog = () => {
+    setShowSettings(true)
+  }
+
+  const openInfoDialog = () => {
+    setShowInfo(true)
+  }
+
+  const openCleanDialog = () => {
+    setShowClean(true)
+  }
+
+  const openShowLogWindow = () => {
+    if (!isLoading) {
+      window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
+    }
+  }
+
+  const openSupportFeedbackDialog = () => {
+    setShowSupportFeedback(true)
+  }
+
+  const openSvnUpdateDialog = () => {
+    setShowSvnUpdateDialog(true)
+  }
+
   const handleSvnUpdate = () => {
     ToastMessageFunctions.info(t('Updating SVN...'))
     window.api.svn
@@ -222,6 +196,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         ToastMessageFunctions.error(error.message || 'Error updating SVN')
       })
   }
+
   const handleCurRevisionUpdate = (revision: string) => {
     setSvnInfo(prev => ({
       ...prev,
@@ -255,9 +230,11 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         }
       >
         {/* Left Section (Menu) */}
-        <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <div className="w-10 h-6 flex justify-center">{isLoading ? <GlowLoader className="w-8 h-6 py-1" /> : <RoundIcon className="w-8 h-6 py-1" />}</div>
-          <div className="flex items-center h-full">
+        <div className="flex items-center h-full">
+          <div className="w-15 h-6 flex justify-center pt-1.5 pl-1">
+            {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5" />}
+          </div>
+          <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
             <div className="flex items-center gap-1 pt-0.5">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -295,7 +272,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     onClick={checkForUpdates}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                   >
-                    <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    <CircleArrowDown strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                     {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                   </Button>
                 </TooltipTrigger>
@@ -318,8 +295,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
             </div>
           </div>
         </div>
-
-        {/* Center Section (Title) */}
 
         {/* Right Section (Window Controls) */}
         <div className="flex gap-1 items-center justify-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>

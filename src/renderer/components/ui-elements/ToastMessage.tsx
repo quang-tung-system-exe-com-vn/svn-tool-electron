@@ -18,7 +18,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ message, type }) => {
 
   return (
     <div className="flex justify-between items-center">
-      <div className="whitespace-pre-wrap">{message}</div>
+      <div className="whitespace-pre-wrap text-[var(--foreground)]">{message}</div>
       {type === 'error' && (
         <div className="flex justify-end mt-1">
           <CustomTooltip content="Copy to clipboard">

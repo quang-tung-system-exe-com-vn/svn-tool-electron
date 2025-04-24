@@ -89,7 +89,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
       }
     } catch (error) {
       console.error('Error loading statistics data:', error)
-      toast.error(t('statisticDialog.statisticDialog.errorLoading')) // Translate error toast
+      toast.error(t('dialog.statisticSvn.dialog.statisticSvn.errorLoading')) // Translate error toast
     } finally {
       setIsLoadingStatistics(false)
     }
@@ -187,7 +187,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
 
   const totalCountChartConfig = useMemo(() => {
     return {
-      count: { label: t('statisticDialog.commitCountLabel', 'Commits'), color: 'hsl(var(--chart-1))' },
+      count: { label: t('dialog.statisticSvn.commitCountLabel', 'Commits'), color: 'hsl(var(--chart-1))' },
     }
   }, [t])
 
@@ -243,15 +243,15 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="table">
         <DialogHeader className="w-[750px]">
-          <DialogTitle>{t('statisticDialog.title')}</DialogTitle>
+          <DialogTitle>{t('dialog.statisticSvn.title')}</DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
           <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="commit-by-date">{t('statisticDialog.tabs.commitByDate')}</TabsTrigger>
-            <TabsTrigger value="commit-by-author">{t('statisticDialog.tabs.commitByAuthor')}</TabsTrigger>
-            <TabsTrigger value="authorship">{t('statisticDialog.tabs.authorship')}</TabsTrigger>
-            <TabsTrigger value="summary">{t('statisticDialog.tabs.summary')}</TabsTrigger>
+            <TabsTrigger value="commit-by-date">{t('dialog.statisticSvn.tabs.commitByDate')}</TabsTrigger>
+            <TabsTrigger value="commit-by-author">{t('dialog.statisticSvn.tabs.commitByAuthor')}</TabsTrigger>
+            <TabsTrigger value="authorship">{t('dialog.statisticSvn.tabs.authorship')}</TabsTrigger>
+            <TabsTrigger value="summary">{t('dialog.statisticSvn.tabs.summary')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="commit-by-date" className="h-[550px]">
@@ -261,15 +261,15 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="flex flex-row items-center justify-between pb-0">
                     <div className="flex flex-col">
-                      <CardTitle>{t('statisticDialog.commitByDate.cardTitle')}</CardTitle>
-                      <CardDescription>{t('statisticDialog.commitByDate.cardDescription')}</CardDescription>
+                      <CardTitle>{t('dialog.statisticSvn.commitByDate.cardTitle')}</CardTitle>
+                      <CardDescription>{t('dialog.statisticSvn.commitByDate.cardDescription')}</CardDescription>
                     </div>
                     <div className="flex gap-2">
                       <Button
                         size="icon"
                         variant={commitByDateChartType === 'bar-multiple' ? 'default' : 'outline'}
                         onClick={() => setCommitByDateChartType('bar-multiple')}
-                        title={t('statisticDialog.commitByDate.chartTypes.barMultiple')}
+                        title={t('dialog.statisticSvn.commitByDate.chartTypes.barMultiple')}
                       >
                         <BarChartIcon className="h-4 w-4" />
                       </Button>
@@ -277,7 +277,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         size="icon"
                         variant={commitByDateChartType === 'bar-horizontal' ? 'default' : 'outline'}
                         onClick={() => setCommitByDateChartType('bar-horizontal')}
-                        title={t('statisticDialog.commitByDate.chartTypes.barHorizontal')}
+                        title={t('dialog.statisticSvn.commitByDate.chartTypes.barHorizontal')}
                       >
                         <BarChart2 className="h-4 w-4" />
                       </Button>
@@ -285,7 +285,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         size="icon"
                         variant={commitByDateChartType === 'bar-stacked' ? 'default' : 'outline'}
                         onClick={() => setCommitByDateChartType('bar-stacked')}
-                        title={t('statisticDialog.commitByDate.chartTypes.barStacked')}
+                        title={t('dialog.statisticSvn.commitByDate.chartTypes.barStacked')}
                       >
                         <BarChart3 className="h-4 w-4" />
                       </Button>
@@ -293,7 +293,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         size="icon"
                         variant={commitByDateChartType === 'line-multiple' ? 'default' : 'outline'}
                         onClick={() => setCommitByDateChartType('line-multiple')}
-                        title={t('statisticDialog.commitByDate.chartTypes.lineMultiple')}
+                        title={t('dialog.statisticSvn.commitByDate.chartTypes.lineMultiple')}
                       >
                         <LineChartIcon className="h-4 w-4" />
                       </Button>
@@ -301,7 +301,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         size="icon"
                         variant={commitByDateChartType === 'area-multiple' ? 'default' : 'outline'}
                         onClick={() => setCommitByDateChartType('area-multiple')}
-                        title={t('statisticDialog.commitByDate.chartTypes.areaMultiple')}
+                        title={t('dialog.statisticSvn.commitByDate.chartTypes.areaMultiple')}
                       >
                         <AreaChartIcon className="h-4 w-4" />
                       </Button>
@@ -410,14 +410,14 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         )
                       }
 
-                      return <div>{t('statisticDialog.selectChartType')}</div>
+                      return <div>{t('dialog.statisticSvn.selectChartType')}</div>
                     })()}
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('dialog.statisticSvn.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
+                  <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
                 </div>
               )}
             </div>
@@ -430,15 +430,15 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="flex flex-row items-center justify-between pb-0">
                     <div className="flex flex-col">
-                      <CardTitle>{t('statisticDialog.commitByAuthor.cardTitle')}</CardTitle>
-                      <CardDescription>{t('statisticDialog.commitByAuthor.cardDescription')}</CardDescription>
+                      <CardTitle>{t('dialog.statisticSvn.commitByAuthor.cardTitle')}</CardTitle>
+                      <CardDescription>{t('dialog.statisticSvn.commitByAuthor.cardDescription')}</CardDescription>
                     </div>
                     <div className="flex gap-2">
                       <Button
                         size="icon"
                         variant={commitByAuthorChartType === 'bar-vertical' ? 'default' : 'outline'}
                         onClick={() => setCommitByAuthorChartType('bar-vertical')}
-                        title={t('statisticDialog.commitByAuthor.chartTypes.barVertical')}
+                        title={t('dialog.statisticSvn.commitByAuthor.chartTypes.barVertical')}
                       >
                         <BarChartIcon className="h-4 w-4" />
                       </Button>
@@ -446,7 +446,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         size="icon"
                         variant={commitByAuthorChartType === 'bar-horizontal' ? 'default' : 'outline'}
                         onClick={() => setCommitByAuthorChartType('bar-horizontal')}
-                        title={t('statisticDialog.commitByAuthor.chartTypes.barHorizontal')}
+                        title={t('dialog.statisticSvn.commitByAuthor.chartTypes.barHorizontal')}
                       >
                         <BarChart2 className="h-4 w-4" />
                       </Button>
@@ -499,11 +499,11 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                       </ChartContainer>
                     )}
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('dialog.statisticSvn.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
+                  <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
                 </div>
               )}
             </div>
@@ -511,13 +511,13 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
 
           <TabsContent value="authorship" className="h-[550px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">{t('statisticDialog.authorship.cardTitle')}</h3>
+              <h3 className="text-lg font-medium mb-2">{t('dialog.statisticSvn.authorship.cardTitle')}</h3>
               {(chartData2.length ?? 0) > 0 ? (
                 <Card className="flex flex-col max-w-full sticky h-[550px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>{t('statisticDialog.authorship.cardTitle')}</CardTitle>
-                    <CardDescription>{t('statisticDialog.authorship.cardDescription')}</CardDescription>
+                    <CardTitle>{t('dialog.statisticSvn.authorship.cardTitle')}</CardTitle>
+                    <CardDescription>{t('dialog.statisticSvn.authorship.cardDescription')}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0 overflow-hidden">
                     <ChartContainer config={chartConfig1} className="w-full mx-auto h-[350px]">
@@ -527,11 +527,11 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                       </PieChart>
                     </ChartContainer>
                   </CardContent>
-                  <CardFooter className="text-sm text-muted-foreground">{t('statisticDialog.cardFooter')}</CardFooter>
+                  <CardFooter className="text-sm text-muted-foreground">{t('dialog.statisticSvn.cardFooter')}</CardFooter>
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
+                  <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
                 </div>
               )}
             </div>
@@ -539,16 +539,16 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
 
           <TabsContent value="summary" className="h-[550px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">{t('statisticDialog.summary.title')}</h3>
+              <h3 className="text-lg font-medium mb-2">{t('dialog.statisticSvn.summary.title')}</h3>
               <div className="flex-1 border rounded-md p-4 overflow-auto sticky">
                 <OverlayLoader isLoading={isLoadingStatistics} />
                 {(statisticsData?.summary?.length ?? 0) > 0 ? (
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">{t('statisticDialog.summary.author')}</th>
-                        <th className="text-right p-2">{t('statisticDialog.summary.commitCount')}</th>
-                        <th className="text-right p-2">{t('statisticDialog.summary.percentage')}</th>
+                        <th className="text-left p-2">{t('dialog.statisticSvn.summary.author')}</th>
+                        <th className="text-right p-2">{t('dialog.statisticSvn.summary.commitCount')}</th>
+                        <th className="text-right p-2">{t('dialog.statisticSvn.summary.percentage')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -560,7 +560,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                         </tr>
                       ))}
                       <tr className="font-bold border-t">
-                        <td className="p-2">{t('statisticDialog.summary.total')}</td>
+                        <td className="p-2">{t('dialog.statisticSvn.summary.total')}</td>
                         <td className="text-right p-2">{statisticsData?.totalCommits ?? 0}</td>
                         <td className="text-right p-2">100%</td>
                       </tr>
@@ -568,7 +568,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   </table>
                 ) : (
                   <div className="h-full flex items-center justify-center">
-                    <p className="text-muted-foreground">{t('statisticDialog.noData')}</p>
+                    <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
                   </div>
                 )}
               </div>

@@ -3,7 +3,6 @@
     "close": "Close",
     "cancel": "Cancel",
     "save": "Save changes",
-    "saveChanges": "Save changes",
     "add": "Add",
     "delete": "Delete",
     "install": "Install",
@@ -80,22 +79,48 @@
     "selectLanguage": "Select language...",
     "noLanguage": "No language found."
   },
-  "theme": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System"
+  "toast": {
+    "success": "Success",
+    "error": "Error",
+    "info": "Info",
+    "warning": "Warning",
+    "commitSuccess": "Commit successful",
+    "commitError": "Commit error",
+    "checkSuccess": "Analysis successful",
+    "checkError": "Analysis error",
+    "generateSuccess": "Commit message generated successfully",
+    "generateError": "Commit message generation error",
+    "updateAvailable": "New update available!",
+    "checkUpdates": "Check for Updates",
+    "updatingMessage": "Updating SVN...",
+    "updateSuccess": "SVN updated successfully",
+    "updateError": "Error updating SVN",
+    "spotbugsError": "Error running SpotBugs: {{0}}",
+    "spotbugsSuccess": "SpotBugs analysis completed: {{0}} issues found",
+    "refreshingSpotbugs": "Refreshing SpotBugs analysis...",
+    "leastOneJavaFile": "Please select at least one Java file"
   },
-  "aboutDialog": {
-    "title": "SVN Tool",
-    "description": "This application is developed to assist in generating meaningful commit messages from SVN diffs and enforce coding standards.",
-    "developer": "Developer",
-    "version": "Version",
-    "email": "Email",
-    "github": "GitHub",
-    "close": "Close"
+  "svn": {
+    "status": {
+      "added": "Added",
+      "modified": "Modified",
+      "deleted": "Deleted",
+      "replaced": "Replaced",
+      "conflicted": "Conflicted",
+      "external": "External",
+      "ignored": "Ignored",
+      "unversioned": "Unversioned",
+      "missing": "Missing",
+      "typeChanged": "Type Changed"
+    }
   },
   "settings": {
-    "fontSize": "Font Size",
+    "fontSize": {
+      "title": "Font Size",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
     "theme": "Theme",
     "darkMode": "Dark Mode",
     "language": "Language",
@@ -153,80 +178,110 @@
       "step5": "Enter the Client ID, Tenant ID, and Client Secret here"
     }
   },
-  "fontSize": {
-    "small": "Small",
-    "medium": "Medium",
-    "large": "Large"
-  },
-  "fontFamily": {
-    "sans": "Sans",
-    "serif": "Serif",
-    "mono": "Monospace"
-  },
-  "toast": {
-    "success": "Success",
-    "error": "Error",
-    "info": "Info",
-    "warning": "Warning",
-    "commitSuccess": "Commit successful",
-    "commitError": "Commit error",
-    "checkSuccess": "Check successful",
-    "checkError": "Check error",
-    "generateSuccess": "Commit message generated successfully",
-    "generateError": "Commit message generation error",
-    "updateAvailable": "New update available!",
-    "checkUpdates": "Check for Updates",
-    "updatingMessage": "Updating SVN...",
-    "updateSuccess": "SVN updated successfully",
-    "updateError": "Error updating SVN",
-    "spotbugsError": "Error running SpotBugs: {{0}}",
-    "spotbugsSuccess": "SpotBugs analysis completed: {{0}} issues found",
-    "refreshingSpotbugs": "Refreshing SpotBugs analysis...",
-    "leastOneJavaFile": "Please select at least one Java file"
-  },
-  "codingRules": {
-    "title": "Coding Rules Analysis",
-    "refresh": "Refresh",
-    "noResults": "No analysis results yet."
-  },
-  "cleanDialog": {
-    "title": "SVN Cleanup Options",
-    "description": "Select cleanup options for your working copy:",
-    "options": {
-      "externals": {
-        "label": "Clean up externals",
-        "description": "Also clean up externals"
-      },
-      "unversioned": {
-        "label": "Delete unversioned files and directories",
-        "description": "Delete all unversioned files and directories from working copy"
-      },
-      "ignored": {
-        "label": "Delete ignored files and directories",
-        "description": "Delete all ignored files and directories from working copy"
-      },
-      "unused": {
-        "label": "Delete unused pristine copies",
-        "description": "Delete all pristine copies of files that are not referenced in the working copy"
-      },
-      "metadata": {
-        "label": "Clean up working copy status",
-        "description": "Refresh the status of the working copy"
-      },
-      "locks": {
-        "label": "Break locks",
-        "description": "Break and steal any locks in working copy"
-      },
-      "fixTimestamps": {
-        "label": "Fix timestamps",
-        "description": "Fix timestamps of working copy files"
-      }
+  "dialog": {
+    "aboutDialog": {
+      "title": "SVN Tool",
+      "description": "This application is developed to assist in generating meaningful commit messages from SVN diffs and enforce coding standards.",
+      "developer": "Developer",
+      "version": "Version",
+      "email": "Email",
+      "github": "GitHub",
+      "close": "Close"
     },
-    "clean": "Clean",
-    "cleanSuccess": "SVN cleanup completed successfully",
-    "cleanError": "Error during cleanup"
-  },
-  "ui": {
+    "codingRules": {
+      "title": "Coding Rules Analysis",
+      "refresh": "Refresh",
+      "noResults": "No analysis results yet."
+    },
+    "cleanSvn": {
+      "title": "SVN Cleanup Options",
+      "description": "Select cleanup options for your working copy:",
+      "options": {
+        "externals": {
+          "label": "Clean up externals",
+          "description": "Also clean up externals"
+        },
+        "unversioned": {
+          "label": "Delete unversioned files and directories",
+          "description": "Delete all unversioned files and directories from working copy"
+        },
+        "ignored": {
+          "label": "Delete ignored files and directories",
+          "description": "Delete all ignored files and directories from working copy"
+        },
+        "unused": {
+          "label": "Delete unused pristine copies",
+          "description": "Delete all pristine copies of files that are not referenced in the working copy"
+        },
+        "metadata": {
+          "label": "Clean up working copy status",
+          "description": "Refresh the status of the working copy"
+        },
+        "locks": {
+          "label": "Break locks",
+          "description": "Break and steal any locks in working copy"
+        },
+        "fixTimestamps": {
+          "label": "Fix timestamps",
+          "description": "Fix timestamps of working copy files"
+        }
+      },
+      "clean": "Clean",
+      "cleanSuccess": "SVN cleanup completed successfully",
+      "cleanError": "Error during cleanup"
+    },
+    "statisticSvn": {
+      "title": "Statistics",
+      "selectPeriodPlaceholder": "Select period",
+      "period": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "year": "Year",
+        "all": "All"
+      },
+      "tabs": {
+        "commitByDate": "Commits by Date",
+        "commitByAuthor": "Commits by Author",
+        "authorship": "Authorship Rate",
+        "summary": "Summary Table"
+      },
+      "commitByDate": {
+        "cardTitle": "Commits Over Time",
+        "cardDescription": "Chart of commit counts by date",
+        "selectChartType": "Select a chart type",
+        "chartTypes": {
+          "barMultiple": "Bar Chart - Multiple",
+          "barHorizontal": "Bar Chart - Horizontal",
+          "barStacked": "Bar Chart - Stacked",
+          "lineMultiple": "Line Chart - Multiple",
+          "areaMultiple": "Area Chart - Multiple"
+        }
+      },
+      "commitByAuthor": {
+        "cardTitle": "Commits by Author",
+        "cardDescription": "Chart of commit counts by author",
+        "chartTypes": {
+          "barVertical": "Bar Chart - Vertical",
+          "barHorizontal": "Bar Chart - Horizontal"
+        }
+      },
+      "authorship": {
+        "title": "Author Contribution Rate",
+        "cardTitle": "Commits by Author",
+        "cardDescription": "Author contribution rate"
+      },
+      "summary": {
+        "title": "Summary Table",
+        "author": "Author",
+        "commitCount": "Commit Count",
+        "percentage": "Percentage",
+        "total": "Total"
+      },
+      "cardFooter": "Commit data for the selected period",
+      "noData": "No data available",
+      "errorLoading": "Error loading statistics data"
+    },
     "spotbugs": {
       "title": "SpotBugs Analysis",
       "filesAnalyzed": "Files Analyzed",
@@ -250,6 +305,7 @@
       "primary": "primary"
     },
     "diffViewer": {
+      "title": "Diff Viewer",
       "language": {
         "select": "Select language...",
         "notFound": "No language found."
@@ -269,73 +325,7 @@
       "placeholderSearch": "Search for revision, author, message...",
       "totalEntries": "{{0}} total entries",
       "page": "Page {{0}} of {{1}}"
-    }
-  },
-  "statisticDialog": {
-    "title": "Statistics",
-    "selectPeriodPlaceholder": "Select period",
-    "period": {
-      "day": "Day",
-      "week": "Week",
-      "month": "Month",
-      "year": "Year",
-      "all": "All"
     },
-    "tabs": {
-      "commitByDate": "Commits by Date",
-      "commitByAuthor": "Commits by Author",
-      "authorship": "Authorship Rate",
-      "summary": "Summary Table"
-    },
-    "commitByDate": {
-      "cardTitle": "Commits Over Time",
-      "cardDescription": "Chart of commit counts by date",
-      "selectChartType": "Select a chart type",
-      "chartTypes": {
-        "barMultiple": "Bar Chart - Multiple",
-        "barHorizontal": "Bar Chart - Horizontal",
-        "barStacked": "Bar Chart - Stacked",
-        "lineMultiple": "Line Chart - Multiple",
-        "areaMultiple": "Area Chart - Multiple"
-      }
-    },
-    "commitByAuthor": {
-      "cardTitle": "Commits by Author",
-      "cardDescription": "Chart of commit counts by author",
-      "chartTypes": {
-        "barVertical": "Bar Chart - Vertical",
-        "barHorizontal": "Bar Chart - Horizontal"
-      }
-    },
-    "authorship": {
-      "title": "Author Contribution Rate",
-      "cardTitle": "Commits by Author",
-      "cardDescription": "Author contribution rate"
-    },
-    "summary": {
-      "title": "Summary Table",
-      "author": "Author",
-      "commitCount": "Commit Count",
-      "percentage": "Percentage",
-      "total": "Total"
-    },
-    "cardFooter": "Commit data for the selected period",
-    "noData": "No data available",
-    "errorLoading": "Error loading statistics data"
-  },
-  "svnStatus": {
-    "added": "Added",
-    "modified": "Modified",
-    "deleted": "Deleted",
-    "replaced": "Replaced",
-    "conflicted": "Conflicted",
-    "external": "External",
-    "ignored": "Ignored",
-    "unversioned": "Unversioned",
-    "missing": "Missing",
-    "typeChanged": "Type Changed"
-  },
-  "dialog": {
     "supportFeedback": {
       "title": "Support & Feedback",
       "description": "Submit a support request or provide feedback.",
@@ -369,6 +359,18 @@
       "action": "Action",
       "path": "Path",
       "commitMessage": "Commit Message"
+    },
+    "updateApp": {
+      "title": "New Update Available",
+      "appVersion": "A new version of the application is available: {{0}}"
+    },
+    "newWebhook": {
+      "title": "Add New Webhook",
+      "description": "Enter a name and URL for the webhook you'd like to add.",
+      "msgRequiredName": "Webhook name is required.",
+      "msgRequiredUrl": "Webhook URL is required.",
+      "placeholderName": "Enter webhook name",
+      "placeholderUrl": "Enter webhook URL"
     }
   }
 }

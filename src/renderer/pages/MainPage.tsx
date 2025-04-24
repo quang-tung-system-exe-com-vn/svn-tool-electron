@@ -63,7 +63,7 @@ export function MainPage() {
       if (commitMessageRef.current) {
         commitMessageRef.current.value = openai_result
       }
-      ToastMessageFunctions.success(t('toast.commitMessageGenerated'))
+      ToastMessageFunctions.success(t('toast.generateSuccess'))
       await updateProgress(50, 100, 1000)
       setLoadingGenerate(false)
     } else {
@@ -108,7 +108,7 @@ export function MainPage() {
     if (status === 'success') {
       await updateProgress(50, 100, 1000)
       setLoadingCommit(false)
-      ToastMessageFunctions.success(t('toast.commitSuccess'))
+      ToastMessageFunctions.success(t('toast.generateSuccess'))
       if (tableRef.current) {
         tableRef.current.reloadData()
         setTimeout(() => {

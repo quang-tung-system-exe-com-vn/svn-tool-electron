@@ -1,16 +1,16 @@
 export type SvnStatusCode = 'A' | 'M' | 'D' | 'R' | 'C' | 'X' | 'I' | '?' | '!' | '~'
 
 export const STATUS_TEXT: Record<SvnStatusCode, string> = {
-  A: 'svnStatus.added',
-  M: 'svnStatus.modified',
-  D: 'svnStatus.deleted',
-  R: 'svnStatus.replaced',
-  C: 'svnStatus.conflicted',
-  X: 'svnStatus.external',
-  I: 'svnStatus.ignored',
-  '?': 'svnStatus.unversioned',
-  '!': 'svnStatus.missing',
-  '~': 'svnStatus.typeChanged',
+  A: 'svn.status.added',
+  M: 'svn.status.modified',
+  D: 'svn.status.deleted',
+  R: 'svn.status.replaced',
+  C: 'svn.status.conflicted',
+  X: 'svn.status.external',
+  I: 'svn.status.ignored',
+  '?': 'svn.status.unversioned',
+  '!': 'svn.status.missing',
+  '~': 'svn.status.typeChanged',
 }
 
 export const STATUS_COLOR_CLASS_MAP = {

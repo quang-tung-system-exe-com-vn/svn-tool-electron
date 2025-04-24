@@ -1,167 +1,184 @@
-import { getGraphClient, testGraphConnection } from './graph'
+import { randomUUID } from 'node:crypto'
+import { getGraphClient } from './graph'
 
-// Kiểm tra kết nối OneDrive trước khi tải lên
-const checkOneDriveConnection = async (): Promise<void> => {
-  try {
-    // Kiểm tra kết nối với Graph API
-    const isConnected = await testGraphConnection()
+const UPLOAD_FOLDER = 'SVNTool_Uploads'
+const APPROOT_PATH = '/me/drive/special/approot'
+const SIMPLE_LIMIT = 4 * 1024 * 1024        // 4 MB
+const RESUMABLE_CHUNK_SIZE = 5 * 1024 * 1024        // 5 MB
 
-    if (!isConnected) {
-      throw new Error('Không thể kết nối với Microsoft Graph API. Vui lòng kiểm tra cài đặt OneDrive và kết nối mạng.')
-    }
-  } catch (error: any) {
-    console.error('❌ Lỗi khi kiểm tra kết nối OneDrive:', error)
-    throw error
-  }
-}
-
-// Hàm retry cho các hoạt động Graph API
-const retryOperation = async <T>(operation: () => Promise<T>, maxRetries = 3, initialDelay = 1000): Promise<T> => {
+export const retryOperation = async <T>(
+  op: () => Promise<T>,
+  max = 3,
+  initDelay = 1_000
+): Promise<T> => {
+  let delay = initDelay
   let lastError: any
-  let currentDelay = initialDelay
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let i = 1; i <= max; i++) {
     try {
-      return await operation()
-    } catch (error: any) {
-      lastError = error
-
-      // Không retry cho lỗi xác thực hoặc quyền
-      if (error.statusCode === 401 || error.statusCode === 403) {
-        throw error
-      }
-
-      // Chỉ retry cho lỗi mạng hoặc lỗi server (5xx)
-      if (error.name !== 'FetchError' && !(error.statusCode && error.statusCode >= 500)) {
-        throw error
-      }
-
-      console.log(`Lần thử ${attempt}/${maxRetries} thất bại, thử lại sau ${currentDelay}ms...`)
-      await new Promise(resolve => setTimeout(resolve, currentDelay))
-      currentDelay *= 2 // Tăng thời gian chờ theo cấp số nhân
+      return await op()
+    } catch (err: any) {
+      lastError = err
+      const sc = err?.statusCode
+      if (sc && sc !== 429 && sc < 500) throw err
+      console.warn(`Retry ${i}/${max} sau ${delay} ms ...`)
+      await new Promise(r => setTimeout(r, delay))
+      delay *= 2
     }
   }
-
   throw lastError
 }
 
-export const uploadImageToOneDrive = async (imageData: string, fileName: string): Promise<string> => {
-  try {
-    // Kiểm tra kết nối trước khi tải lên
-    await checkOneDriveConnection()
+export const uploadImageToOneDrive = async (
+  dataUrl: string,
+  originalName: string
+): Promise<string> => {
+  const graph = await getGraphClient()
 
-    const graphClient = await getGraphClient()
-
-    const base64Data = imageData.split(',')[1]
-    const buffer = Buffer.from(base64Data, 'base64')
-    const uniqueFileName = `${Date.now()}_${fileName}`
-    const folderPath = '/drive/special/approot/SVNTool_Uploads'
-
-    // Kiểm tra và tạo thư mục nếu cần
-    try {
-      await retryOperation(() => graphClient.api(folderPath).get())
-    } catch (error: any) {
-      if (error.statusCode === 404) {
-        // Thư mục không tồn tại, tạo mới
-        await retryOperation(() =>
-          graphClient.api('/drive/special/approot/children').post({
-            name: 'SVNTool_Uploads',
-            folder: {},
-          })
-        )
-      } else {
-        throw error
-      }
-    }
-
-    // Tải lên file
-    await retryOperation(() => graphClient.api(`${folderPath}/${uniqueFileName}:/content`).put(buffer))
-
-    // Tạo link chia sẻ
-    const sharingResponse = await retryOperation(() =>
-      graphClient.api(`${folderPath}/${uniqueFileName}:/createLink`).post({
-        type: 'view',
-        scope: 'anonymous', // dùng 'anonymous' để chia sẻ ngoài, cá nhân không có 'organization'
-      })
+  const { mimeType, binary } = parseBase64(dataUrl)
+  await ensureUploadFolder(graph)
+  const safe = sanitizeFileName(originalName)
+  const unique = `${Date.now()}_${randomUUID()}_${safe}`
+  const itemPath = `${APPROOT_PATH}/${UPLOAD_FOLDER}/${unique}`
+  let uploadResult: any
+  if (binary.byteLength <= SIMPLE_LIMIT) {
+    uploadResult = await retryOperation(() =>
+      graph
+        .api(`${APPROOT_PATH}:/${UPLOAD_FOLDER}/${unique}:/content`)
+        .headers({ 'Content-Type': mimeType })
+        .put(binary)
     )
-
-    console.log('✅ Upload thành công')
-    return sharingResponse.link.webUrl
-  } catch (error: any) {
-    console.error('❌ Upload thất bại:', error)
-
-    // Xử lý lỗi xác thực
-    if (error.statusCode === 401 || error.name === 'AuthenticationRequiredError' || error.message?.includes('invalid_grant') || error.message?.includes('unauthorized')) {
-      console.error('Lỗi xác thực với Microsoft Graph API. Vui lòng kiểm tra cài đặt OneDrive.')
-      throw new Error('Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt trong phần OneDrive và đảm bảo thông tin đăng nhập chính xác.')
-    }
-
-    // Xử lý lỗi quyền
-    if (error.statusCode === 403 || error.message?.includes('permission') || error.message?.includes('access denied')) {
-      console.error('Lỗi quyền truy cập OneDrive. Ứng dụng không có đủ quyền.')
-      throw new Error('Lỗi quyền truy cập OneDrive. Vui lòng kiểm tra quyền của ứng dụng trong Azure Portal.')
-    }
-
-    // Xử lý lỗi mạng
-    if (error.name === 'FetchError' || error.message?.includes('network')) {
-      throw new Error('Lỗi kết nối mạng khi tải lên OneDrive. Vui lòng kiểm tra kết nối internet của bạn.')
-    }
-
-    // Xử lý lỗi giới hạn tốc độ
-    if (error.statusCode === 429) {
-      throw new Error('Đã vượt quá giới hạn yêu cầu OneDrive. Vui lòng thử lại sau.')
-    }
-
-    // Các lỗi khác
-    throw new Error(`Lỗi khi tải lên OneDrive: ${error.message || 'Lỗi không xác định'}`)
+  } else {
+    await resumableUpload(graph, itemPath, mimeType, binary)
   }
+
+  const itemId = uploadResult?.id
+  if (!itemId) throw new Error('Không thể lấy itemId sau khi upload.')
+
+  const share = await retryOperation(() =>
+    graph.api(`/me/drive/items/${itemId}/createLink`)
+      .headers({ 'Content-Type': 'application/json' })
+      .post({ type: 'view', scope: 'anonymous' })
+  )
+  console.log(share)
+
+  console.log('✅ Upload thành công:', unique)
+  return share?.link?.webUrl as string
 }
 
 export const uploadImagesToOneDrive = async (images: string[]): Promise<string[]> => {
-  const results: string[] = []
+  const urls: string[] = []
 
-  try {
-    // Kiểm tra kết nối trước khi bắt đầu tải lên nhiều hình ảnh
-    await checkOneDriveConnection()
+  for (let i = 0; i < images.length; i++) {
+    try {
+      const mime = images[i].match(/^data:(.*?);base64,/)?.[1] ?? 'image/png'
+      const ext = mime.split('/')[1] || 'png'
+      const name = `image_${i + 1}.${ext}`
 
-    for (let i = 0; i < images.length; i++) {
-      try {
-        const match = images[i].match(/^data:image\/(\w+);base64,/)
-        const ext = match ? match[1] : 'png'
-        const fileName = `image_${i + 1}.${ext}`
-        const url = await uploadImageToOneDrive(images[i], fileName)
-        results.push(url)
-        console.log(`✅ Đã tải lên hình ảnh ${i + 1}/${images.length}`)
-      } catch (error: any) {
-        console.error(`❌ Lỗi khi tải lên hình ảnh ${i + 1}:`, error)
-
-        // Nếu lỗi xác thực hoặc quyền, dừng toàn bộ quá trình
-        if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('xác thực') || error.message?.includes('quyền')) {
-          throw error
-        }
-
-        // Tiếp tục với hình ảnh tiếp theo cho các lỗi khác
-      }
+      const url = await uploadImageToOneDrive(images[i], name)
+      urls.push(url)
+    } catch (err: any) {
+      console.error(`❌ Upload ảnh ${i + 1} thất bại:`, err?.message || err)
+      if (err?.statusCode === 401 || err?.statusCode === 403) throw err
     }
-
-    if (results.length === 0 && images.length > 0) {
-      // Nếu không có hình ảnh nào được tải lên thành công
-      throw new Error('Không thể tải lên bất kỳ hình ảnh nào. Vui lòng kiểm tra cài đặt OneDrive và kết nối mạng.')
-    }
-
-    return results
-  } catch (error: any) {
-    console.error('❌ Lỗi khi tải lên nhiều hình ảnh:', error)
-
-    // Cung cấp thông báo lỗi chi tiết hơn
-    if (error.message?.includes('xác thực') || error.statusCode === 401) {
-      throw new Error('Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt trong phần OneDrive và đảm bảo thông tin đăng nhập chính xác.')
-    }
-
-    if (error.message?.includes('quyền') || error.statusCode === 403) {
-      throw new Error('Lỗi quyền truy cập OneDrive. Vui lòng kiểm tra quyền của ứng dụng trong Azure Portal.')
-    }
-
-    throw error
   }
+
+  if (!urls.length && images.length) {
+    throw new Error('Không thể tải lên bất kỳ hình ảnh nào!')
+  }
+  return urls
+}
+
+function parseBase64(dataUrl: string): { mimeType: string; binary: Buffer | ArrayBuffer } {
+  const m = dataUrl.match(/^data:(.*?);base64,(.*)$/);
+  if (!m) throw new Error('Chuỗi base64 không hợp lệ');
+
+  let [, mimeType, b64] = m;
+
+  // Ràng buộc MIME chỉ nhận các định dạng ảnh phổ biến
+  const validImageMimeTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+  if (!validImageMimeTypes.includes(mimeType)) {
+    console.warn(`⚠️ MIME không hợp lệ (${mimeType}), fallback về image/png`);
+    mimeType = 'image/png';
+  }
+
+  if (typeof Buffer !== 'undefined') {
+    return { mimeType, binary: Buffer.from(b64, 'base64') };
+  }
+  const raw = atob(b64);
+  const len = raw.length;
+  const u8 = new Uint8Array(len);
+  for (let i = 0; i < len; i++) u8[i] = raw.charCodeAt(i);
+  return { mimeType, binary: u8.buffer };
+}
+
+function sanitizeFileName(name: string): string {
+  const CONTROL_CHARS = String.fromCharCode(...Array(32).fill(0).map((_, i) => i));
+  const forbidden = `<>\:"/\\\\|?*${CONTROL_CHARS.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')}`;
+  const forbiddenRegex = new RegExp(`[${forbidden}]`, 'g');
+  const cleaned = name.replace(forbiddenRegex, '').trim();
+  return cleaned.replace(/[. ]+$/, '') || 'untitled';
+}
+
+async function ensureUploadFolder(graph: any): Promise<void> {
+  const path = `${APPROOT_PATH}/${UPLOAD_FOLDER}`
+  try {
+    await retryOperation(() => graph.api(path).get())
+  } catch (err: any) {
+    if (err?.statusCode !== 404) throw err
+    await retryOperation(() =>
+      graph.api(`${APPROOT_PATH}/children`)
+        .headers({ 'Content-Type': 'application/json' })
+        .post({
+          name: UPLOAD_FOLDER,
+          folder: {},
+          '@microsoft.graph.conflictBehavior': 'rename'
+        })
+    )
+  }
+}
+
+async function resumableUpload(
+  graph: any,
+  itemPath: string,
+  mimeType: string,
+  binary: Buffer | ArrayBuffer
+): Promise<void> {
+  console.log('resumableUpload')
+  const session = await retryOperation(() =>
+    graph.api(`${itemPath}:/createUploadSession`)
+      .headers({ 'Content-Type': 'application/json' })
+      .post({
+        item: { '@microsoft.graph.conflictBehavior': 'fail' }
+      })
+  ) as { uploadUrl: string }
+  const uploadUrl = session.uploadUrl
+  const total = binary.byteLength
+  let start = 0
+  while (start < total) {
+    const end = Math.min(start + RESUMABLE_CHUNK_SIZE, total) - 1
+    const chunk = sliceBinary(binary, start, end + 1)
+    const range = `bytes ${start}-${end}/${total}`
+    await retryOperation(() =>
+      graph
+        .api(uploadUrl)
+        .headers({
+          'Content-Length': `${chunk.byteLength}`,
+          'Content-Range': range,
+          'Content-Type': mimeType
+        })
+        .put(chunk)
+    )
+    start = end + 1
+  }
+}
+
+function sliceBinary(
+  data: Buffer | ArrayBuffer,
+  from: number,
+  to: number
+): Buffer | ArrayBuffer {
+  return typeof Buffer !== 'undefined'
+    ? (data as Buffer).subarray(from, to)
+    : (data as ArrayBuffer).slice(from, to)
 }

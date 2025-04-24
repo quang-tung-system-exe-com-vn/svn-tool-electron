@@ -145,40 +145,40 @@ export function SpotBugs() {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <Bug className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-semibold">{t('ui.spotbugs.title')}</h2>
+              <h2 className="text-xl font-semibold">{t('dialog.spotbugs.title')}</h2>
             </div>
           </div>
 
           <div className="flex gap-4 mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t('ui.spotbugs.filesAnalyzed')}:</span>
+              <span className="text-sm font-medium">{t('dialog.spotbugs.filesAnalyzed')}:</span>
               <Badge variant="outline" className="rounded-md">
                 {filePaths.length}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t('ui.spotbugs.totalIssues')}:</span>
+              <span className="text-sm font-medium">{t('dialog.spotbugs.totalIssues')}:</span>
               <Badge variant="outline" className="rounded-md">
                 {spotbugsResult.totalBugs}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span className="text-sm font-medium">{t('ui.spotbugs.high')}:</span>
+              <span className="text-sm font-medium">{t('dialog.spotbugs.high')}:</span>
               <Badge variant="outline" className="rounded-md bg-destructive/10 text-destructive border-destructive/20">
                 {spotbugsResult.bugsBySeverity.high}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-warning" />
-              <span className="text-sm font-medium">{t('ui.spotbugs.medium')}:</span>
+              <span className="text-sm font-medium">{t('dialog.spotbugs.medium')}:</span>
               <Badge variant="outline" className="rounded-md bg-warning/10 text-warning border-warning/20">
                 {spotbugsResult.bugsBySeverity.medium}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-info" />
-              <span className="text-sm font-medium">{t('ui.spotbugs.low')}:</span>
+              <span className="text-sm font-medium">{t('dialog.spotbugs.low')}:</span>
               <Badge variant="outline" className="rounded-md bg-info/10 text-info border-info/20">
                 {spotbugsResult.bugsBySeverity.low}
               </Badge>
@@ -187,15 +187,15 @@ export function SpotBugs() {
 
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <TabsList>
-              <TabsTrigger value="all">{t('ui.spotbugs.allIssues')}</TabsTrigger>
-              <TabsTrigger value="high">{t('ui.spotbugs.high')}</TabsTrigger>
-              <TabsTrigger value="medium">{t('ui.spotbugs.medium')}</TabsTrigger>
-              <TabsTrigger value="low">{t('ui.spotbugs.low')}</TabsTrigger>
+              <TabsTrigger value="all">{t('dialog.spotbugs.allIssues')}</TabsTrigger>
+              <TabsTrigger value="high">{t('dialog.spotbugs.high')}</TabsTrigger>
+              <TabsTrigger value="medium">{t('dialog.spotbugs.medium')}</TabsTrigger>
+              <TabsTrigger value="low">{t('dialog.spotbugs.low')}</TabsTrigger>
             </TabsList>
             <TabsContent value={activeTab} className="flex-1 flex flex-col">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
                 <div className="flex flex-col border rounded-md overflow-hidden">
-                  <div className="bg-muted p-2 font-medium">{t('ui.spotbugs.issues')}</div>
+                  <div className="bg-muted p-2 font-medium">{t('dialog.spotbugs.issues')}</div>
                   <ScrollArea className="flex-1">
                     <OverlayLoader isLoading={isLoading} />
                     <Table>
@@ -250,7 +250,7 @@ export function SpotBugs() {
                     <div className="border rounded-md overflow-hidden">
                       <div className="bg-muted p-2 font-medium flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span>{t('ui.spotbugs.bugDetails')}</span>
+                          <span>{t('dialog.spotbugs.bugDetails')}</span>
                           <Badge className={`${getSeverityColor(selectedBug.severity)}`}>{selectedBug.severity}</Badge>
                         </div>
                       </div>
@@ -259,16 +259,16 @@ export function SpotBugs() {
                         <TabsList className="w-full justify-start px-2 pt-2">
                           <TabsTrigger value="issue" className="flex items-center gap-1">
                             <AlertCircle className="h-4 w-4" />
-                            <span>{t('ui.spotbugs.issueDetails')}</span>
+                            <span>{t('dialog.spotbugs.issueDetails')}</span>
                           </TabsTrigger>
                           <TabsTrigger value="location" className="flex items-center gap-1">
                             <FileCode className="h-4 w-4" />
-                            <span>{t('ui.spotbugs.location')}</span>
+                            <span>{t('dialog.spotbugs.location')}</span>
                           </TabsTrigger>
                           {((selectedBug.localVariables && selectedBug.localVariables.length > 0) || (selectedBug.properties && selectedBug.properties.length > 0)) && (
                             <TabsTrigger value="details" className="flex items-center gap-1">
                               <Bug className="h-4 w-4" />
-                              <span>{t('ui.spotbugs.bugDetails')}</span>
+                              <span>{t('dialog.spotbugs.bugDetails')}</span>
                             </TabsTrigger>
                           )}
                         </TabsList>
@@ -328,12 +328,12 @@ export function SpotBugs() {
                                   <div className="flex gap-2 flex-wrap">
                                     {selectedBug.isStatic && (
                                       <Badge variant="outline" className="text-xs">
-                                        {t('ui.spotbugs.static')}
+                                        {t('dialog.spotbugs.static')}
                                       </Badge>
                                     )}
                                     {selectedBug.isPrimary && (
                                       <Badge variant="outline" className="text-xs">
-                                        {t('ui.spotbugs.primary')}
+                                        {t('dialog.spotbugs.primary')}
                                       </Badge>
                                     )}
                                   </div>
@@ -343,10 +343,10 @@ export function SpotBugs() {
 
                               {selectedBug.methodInfo && (
                                 <div>
-                                  <h3 className="text-sm font-medium">{t('ui.spotbugs.methodLocation')}</h3>
+                                  <h3 className="text-sm font-medium">{t('dialog.spotbugs.methodLocation')}</h3>
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium">{t('ui.spotbugs.lines')}</span>
+                                      <span className="text-xs font-medium">{t('dialog.spotbugs.lines')}</span>
                                       <span className="text-xs font-mono">
                                         {selectedBug.methodInfo.startLine} - {selectedBug.methodInfo.endLine}
                                       </span>
@@ -365,13 +365,13 @@ export function SpotBugs() {
                               <div className="p-4 space-y-4">
                                 {selectedBug.localVariables && selectedBug.localVariables.length > 0 && (
                                   <div>
-                                    <h3 className="text-sm font-medium">{t('ui.spotbugs.localVariables')}</h3>
+                                    <h3 className="text-sm font-medium">{t('dialog.spotbugs.localVariables')}</h3>
                                     <div className="mt-2 space-y-2">
                                       {selectedBug.localVariables?.map((variable, index) => (
                                         <div key={index} className="border rounded p-2 bg-muted/30">
                                           <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium">{t('ui.spotbugs.name')}</span>
-                                            <span className="text-xs font-mono font-bold">{variable.name || t('ui.spotbugs.notAvailable')}</span>
+                                            <span className="text-xs font-medium">{t('dialog.spotbugs.name')}</span>
+                                            <span className="text-xs font-mono font-bold">{variable.name || t('dialog.spotbugs.notAvailable')}</span>
                                           </div>
                                           {variable.message && (
                                             <div className="mt-1">
@@ -387,17 +387,17 @@ export function SpotBugs() {
 
                                 {selectedBug.properties && selectedBug.properties.length > 0 && (
                                   <div>
-                                    <h3 className="text-sm font-medium">{t('ui.spotbugs.properties')}</h3>
+                                    <h3 className="text-sm font-medium">{t('dialog.spotbugs.properties')}</h3>
                                     <div className="mt-2 space-y-2">
                                       {selectedBug.properties.map((property, index) => (
                                         <div key={index} className="border rounded p-2 bg-muted/30">
                                           <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium">{t('ui.spotbugs.name')}</span>
-                                            <span className="text-xs font-mono font-bold">{property.name || t('ui.spotbugs.notAvailable')}</span>
+                                            <span className="text-xs font-medium">{t('dialog.spotbugs.name')}</span>
+                                            <span className="text-xs font-mono font-bold">{property.name || t('dialog.spotbugs.notAvailable')}</span>
                                           </div>
                                           {property.value && (
                                             <div className="mt-1">
-                                              <span className="text-xs font-medium">{t('ui.spotbugs.value')}</span>
+                                              <span className="text-xs font-medium">{t('dialog.spotbugs.value')}</span>
                                               <p className="text-xs font-mono mt-1">{property.value}</p>
                                             </div>
                                           )}

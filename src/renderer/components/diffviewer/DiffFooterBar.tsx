@@ -88,14 +88,14 @@ export function DiffFooterBar({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" aria-expanded={open} className="h-full justify-between border-0 rounded-none">
-              {languages.find(item => item.value === language)?.label ?? t('ui.diffViewer.language.select')}
+              {languages.find(item => item.value === language)?.label ?? t('dialog.diffViewer.language.select')}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[120px] p-0">
             <Command>
               <CommandInput placeholder={t('placeholder.search')} />
               <CommandList>
-                <CommandEmpty>{t('ui.diffViewer.language.notFound')}</CommandEmpty>
+                <CommandEmpty>{t('dialog.diffViewer.language.notFound')}</CommandEmpty>
                 <CommandGroup>
                   {languages.map(lang => (
                     <CommandItem

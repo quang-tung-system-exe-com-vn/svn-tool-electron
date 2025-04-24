@@ -1,7 +1,7 @@
+import { isTextFile } from 'main/utils/utils'
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { isTextFile } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
 interface SelectedFile {
   status: string
@@ -81,7 +81,7 @@ export async function getDiff(selectedFiles: SelectedFile[]) {
         resolve({ status: 'success', data: diffResult.trim() })
       })
     } catch (err) {
-      console.error('❌ SVN status error:', err)
+      console.error('❌ getDiff - SVN status error:', err)
       resolve({ status: 'error', message: err })
     }
   })

@@ -28,32 +28,32 @@ export function CleanDialog({ open, onOpenChange }: CleanDialogProps) {
   const optionMeta = useMemo(
     () => ({
       externals: {
-        label: t('cleanDialog.options.externals.label'),
-        description: t('cleanDialog.options.externals.description'),
+        label: t('dialog.cleanSvn.options.externals.label'),
+        description: t('dialog.cleanSvn.options.externals.description'),
       },
       unversioned: {
-        label: t('cleanDialog.options.unversioned.label'),
-        description: t('cleanDialog.options.unversioned.description'),
+        label: t('dialog.cleanSvn.options.unversioned.label'),
+        description: t('dialog.cleanSvn.options.unversioned.description'),
       },
       ignored: {
-        label: t('cleanDialog.options.ignored.label'),
-        description: t('cleanDialog.options.ignored.description'),
+        label: t('dialog.cleanSvn.options.ignored.label'),
+        description: t('dialog.cleanSvn.options.ignored.description'),
       },
       unused: {
-        label: t('cleanDialog.options.unused.label'),
-        description: t('cleanDialog.options.unused.description'),
+        label: t('dialog.cleanSvn.options.unused.label'),
+        description: t('dialog.cleanSvn.options.unused.description'),
       },
       metadata: {
-        label: t('cleanDialog.options.metadata.label'),
-        description: t('cleanDialog.options.metadata.description'),
+        label: t('dialog.cleanSvn.options.metadata.label'),
+        description: t('dialog.cleanSvn.options.metadata.description'),
       },
       locks: {
-        label: t('cleanDialog.options.locks.label'),
-        description: t('cleanDialog.options.locks.description'),
+        label: t('dialog.cleanSvn.options.locks.label'),
+        description: t('dialog.cleanSvn.options.locks.description'),
       },
       fixTimestamps: {
-        label: t('cleanDialog.options.fixTimestamps.label'),
-        description: t('cleanDialog.options.fixTimestamps.description'),
+        label: t('dialog.cleanSvn.options.fixTimestamps.label'),
+        description: t('dialog.cleanSvn.options.fixTimestamps.description'),
       },
     }),
     [t, i18n.language]
@@ -97,9 +97,9 @@ export function CleanDialog({ open, onOpenChange }: CleanDialogProps) {
       if (onOpenChange) {
         onOpenChange(false)
       }
-      ToastMessageFunctions.success(t('cleanDialog.cleanSuccess'))
+      ToastMessageFunctions.success(t('dialog.cleanSvn.cleanSuccess'))
     } catch (error) {
-      ToastMessageFunctions.error(t('cleanDialog.cleanError'))
+      ToastMessageFunctions.error(t('dialog.cleanSvn.cleanError'))
     } finally {
       setIsLoading(false)
     }
@@ -111,12 +111,12 @@ export function CleanDialog({ open, onOpenChange }: CleanDialogProps) {
         <DialogHeader>
           <div className="flex items-center gap-3">
             <Trash2 className="h-6 w-6 text-primary" />
-            <DialogTitle>{t('cleanDialog.title')}</DialogTitle>
+            <DialogTitle>{t('dialog.cleanSvn.title')}</DialogTitle>
           </div>
         </DialogHeader>
         <div className="border rounded-md p-4 flex-1 overflow-auto">
           <OverlayLoader isLoading={isLoading} />
-          <p className="text-muted-foreground mb-4">{t('cleanDialog.description')}</p>
+          <p className="text-muted-foreground mb-4">{t('dialog.cleanSvn.description')}</p>
           <div className="space-y-4">
             {options.map(option => (
               <div key={option.id} className="flex items-start space-x-2">
@@ -136,7 +136,7 @@ export function CleanDialog({ open, onOpenChange }: CleanDialogProps) {
             {t('common.cancel')}
           </Button>
           <Button variant={variant} onClick={handleClean} disabled={isLoading || !options.some(option => option.checked)}>
-            {t('cleanDialog.clean')}
+            {t('dialog.cleanSvn.clean')}
           </Button>
         </DialogFooter>
       </DialogContent>

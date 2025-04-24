@@ -94,10 +94,9 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
 
     setIsSending(true)
     try {
-      // Call the IPC handler to send data to the main process
       const result = await window.api.notification.send_support_feedback({
         type,
-        name: email, // Use email in place of name for backward compatibility
+        name: email,
         message,
         images,
       })
@@ -107,11 +106,10 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         setEmail('')
         setMessage('')
         setImages([])
-        onOpenChange(false) // Close dialog on success
+        onOpenChange(false)
       } else {
         console.error('Error sending feedback:', result.message)
 
-        // Hiển thị thông báo lỗi cụ thể hơn cho người dùng
         if (result.message?.includes('OneDrive') || result.message?.includes('xác thực')) {
           ToastMessageFunctions.error(t('dialog.supportFeedback.oneDriveAuthError') || 'Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt OneDrive trong phần Cài đặt.')
         } else {
@@ -121,7 +119,6 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
     } catch (error: any) {
       console.error('Error sending feedback IPC:', error)
 
-      // Xử lý lỗi cụ thể
       if (error.message?.includes('OneDrive') || error.message?.includes('xác thực')) {
         ToastMessageFunctions.error(t('dialog.supportFeedback.oneDriveAuthError') || 'Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt OneDrive trong phần Cài đặt.')
       } else if (error.message?.includes('network') || error.message?.includes('kết nối')) {
@@ -138,10 +135,8 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
     onOpenChange(false)
   }
 
-  // Reset state when dialog closes
   const handleOpenChange = (newOpenState: boolean) => {
     if (!newOpenState) {
-      // Reset fields when closing
       setType('support')
       setEmail('')
       setEmailError(false)
@@ -257,4 +252,3 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
     </Dialog>
   )
 }
-// Remove duplicated code from lines 132 to 211

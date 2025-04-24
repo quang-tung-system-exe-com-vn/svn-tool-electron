@@ -2,39 +2,42 @@ import i18n from '@/lib/i18n'
 import { DiffEditor, type DiffOnMount, useMonaco } from '@monaco-editor/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { useAppearanceStore } from '../stores/useAppearanceStore'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
 import { DiffFooterBar } from './DiffFooterBar'
 import { DiffToolbar } from './DiffToolbar'
 
-window.addEventListener('storage', event => {
-  if (event.key === 'ui-settings') {
-    const storage = JSON.parse(event.newValue || '{}')
-    const html = document.documentElement
-    html.classList.remove('dark', 'light')
-    html.setAttribute('data-theme-mode', storage.state.themeMode)
-    html.setAttribute('data-font-size', storage.state.fontSize)
-    html.setAttribute('data-font-family', storage.state.fontFamily)
-    html.setAttribute('data-button-variant', storage.state.buttonVariant)
-    i18n.changeLanguage(storage.state.language)
-    for (const cls of html.classList) {
-      if (cls.startsWith('theme-')) {
-        html.classList.remove(cls)
-      }
-    }
-    html.classList.add(storage.state.theme)
-    html.classList.add(storage.state.themeMode)
-  }
-})
-
 export function CodeDiffViewer() {
   const monaco = useMonaco()
   const { resolvedTheme } = useTheme()
+  const { themeMode, setThemeMode } = useAppearanceStore()
   const [originalCode, setOriginalCode] = useState('')
   const [modifiedCode, setModifiedCode] = useState('')
   const [filePath, setFilePath] = useState('')
   const [language, setLanguage] = useState('javascript')
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
   const [isLoading, setIsLoading] = useState(false)
+
+  window.addEventListener('storage', event => {
+    if (event.key === 'ui-settings') {
+      const storage = JSON.parse(event.newValue || '{}')
+      const html = document.documentElement
+      html.classList.remove('dark', 'light')
+      html.setAttribute('data-theme-mode', storage.state.themeMode)
+      html.setAttribute('data-font-size', storage.state.fontSize)
+      html.setAttribute('data-font-family', storage.state.fontFamily)
+      html.setAttribute('data-button-variant', storage.state.buttonVariant)
+      i18n.changeLanguage(storage.state.language)
+      for (const cls of html.classList) {
+        if (cls.startsWith('theme-')) {
+          html.classList.remove(cls)
+        }
+      }
+      html.classList.add(storage.state.theme)
+      html.classList.add(storage.state.themeMode)
+      setThemeMode(storage.state.themeMode)
+    }
+  })
 
   const getExtension = (filePath: string): string => {
     const fileName = filePath.split('/').pop() || ''
@@ -174,6 +177,7 @@ export function CodeDiffViewer() {
     const handler = (_event: any, { filePath }: any) => {
       setFilePath(filePath)
       setLanguage(detectLanguage(filePath))
+      handleRefresh(filePath)
     }
     window.api.on('load-diff-data', handler)
   }, [])
@@ -211,10 +215,10 @@ export function CodeDiffViewer() {
       },
     })
 
-    const selectedTheme = resolvedTheme === 'dark' ? 'custom-dark' : 'custom-light'
+    console.log(themeMode)
+    const selectedTheme = themeMode === 'dark' ? 'custom-dark' : 'custom-light'
     monaco.editor.setTheme(selectedTheme)
-    handleRefresh()
-  }, [monaco, resolvedTheme])
+  }, [monaco, themeMode, resolvedTheme])
 
   const handleEditorMount: DiffOnMount = (editor, monaco) => {
     const modifiedEditor = editor.getModifiedEditor()
@@ -229,12 +233,15 @@ export function CodeDiffViewer() {
     })
   }
 
-  // Toolbar actions
-  const handleRefresh = async () => {
+  const onRefresh = async () => {
+    handleRefresh(filePath)
+  }
+
+  const handleRefresh = async (path: string) => {
     try {
       setIsLoading(true)
-      const originalCode = await window.api.svn.cat(filePath)
-      const modifiedCode = await window.api.system.read_file(filePath)
+      const originalCode = await window.api.svn.cat(path)
+      const modifiedCode = await window.api.system.read_file(path)
       setOriginalCode(originalCode.data)
       setModifiedCode(modifiedCode)
     } catch (error) {
@@ -252,14 +259,14 @@ export function CodeDiffViewer() {
   return (
     <div className="flex flex-col w-full h-full">
       <OverlayLoader isLoading={isLoading} />
-      <DiffToolbar onRefresh={handleRefresh} onSwapSides={handleSwap} isLoading={isLoading} />
+      <DiffToolbar onRefresh={onRefresh} onSwapSides={handleSwap} isLoading={isLoading} />
       <div className="flex-1 overflow-hidden">
         <DiffEditor
           height="100%"
           language={language}
           original={originalCode}
           modified={modifiedCode}
-          theme={resolvedTheme === 'dark' ? 'custom-dark' : 'custom-light'}
+          theme={themeMode === 'dark' ? 'custom-dark' : 'custom-light'}
           onMount={handleEditorMount}
           options={{
             readOnly: false,

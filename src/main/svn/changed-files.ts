@@ -64,7 +64,6 @@ export async function changedFiles() {
       const fileType = path.extname(filePath).toLowerCase()
       const isFile = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()
       const isDirectory = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()
-      console.log(absolutePath)
       if ((status === '?' || status === 'D') && isDirectory) {
         changedFiles.push({
           status,
@@ -112,7 +111,7 @@ export async function changedFiles() {
     console.log('✅ SVN status successfully retrieved with all files and folders')
     return { status: 'success', data: changedFiles }
   } catch (error) {
-    console.error('❌ SVN status error:', error)
+    console.error('❌ changedFiles - SVN status error:', error)
     return { status: 'error', message: error }
   }
 }

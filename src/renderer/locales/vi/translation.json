@@ -3,7 +3,6 @@
     "close": "Đóng",
     "cancel": "Hủy",
     "save": "Lưu",
-    "saveChanges": "Lưu thay đổi",
     "add": "Thêm",
     "delete": "Xóa",
     "install": "Cài đặt",
@@ -60,7 +59,7 @@
   },
   "table": {
     "status": "Trạng thái",
-    "filePath": "Đường dẫn tập tin",
+    "filePath": "Đường dẫn",
     "extension": "Phần mở rộng",
     "severity": "Mức độ nghiêm trọng",
     "issue": "Vấn đề",
@@ -81,22 +80,47 @@
     "selectLanguage": "Chọn ngôn ngữ...",
     "noLanguage": "Không tìm thấy ngôn ngữ."
   },
-  "theme": {
-    "light": "Sáng",
-    "dark": "Tối",
-    "system": "Hệ thống"
+  "toast": {
+    "success": "Thành công",
+    "error": "Lỗi",
+    "info": "Thông tin",
+    "warning": "Cảnh báo",
+    "commitSuccess": "Commit thành công",
+    "commitError": "Lỗi commit",
+    "checkSuccess": "Phân tích thành công",
+    "checkError": "Lỗi phân tích",
+    "generateSuccess": "Tạo thông điệp commit thành công",
+    "generateError": "Lỗi tạo thông điệp commit",
+    "updateAvailable": "Có bản cập nhật mới!",
+    "checkUpdates": "Kiểm tra cập nhật",
+    "updatingMessage": "Đang cập nhật SVN...",
+    "updateSuccess": "Cập nhật SVN thành công",
+    "updateError": "Lỗi khi cập nhật SVN",
+    "spotbugsError": "Lỗi khi chạy SpotBugs: {{0}}",
+    "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {{0}} vấn đề được tìm thấy",
+    "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs..."
   },
-  "aboutDialog": {
-    "title": "SVN Tool",
-    "description": "Ứng dụng này được phát triển nhằm hỗ trợ sinh commit message từ SVN diff và kiểm tra tiêu chuẩn mã nguồn.",
-    "developer": "Người phát triển",
-    "version": "Phiên bản",
-    "email": "Email",
-    "github": "GitHub",
-    "close": "Đóng"
+  "svn": {
+    "status": {
+      "added": "Đã thêm",
+      "modified": "Đã sửa đổi",
+      "deleted": "Đã xóa",
+      "replaced": "Đã thay thế",
+      "conflicted": "Xung đột",
+      "external": "Bên ngoài",
+      "ignored": "Bị bỏ qua",
+      "unversioned": "Chưa được quản lý phiên bản",
+      "missing": "Thiếu",
+      "typeChanged": "Đã thay đổi kiểu"
+    }
   },
   "settings": {
-    "fontSize": "Cỡ chữ",
+    "fontSize": {
+      "title": "Cỡ chữ",
+      "small": "Nhỏ",
+      "medium": "Trung bình",
+      "large": "Lớn"
+    },
     "theme": "Chủ đề",
     "language": "Ngôn ngữ",
     "buttonVariant": "Biến thể nút",
@@ -153,79 +177,110 @@
       "step5": "Nhập Client ID, Tenant ID và Client Secret vào đây"
     }
   },
-  "fontSize": {
-    "small": "Nhỏ",
-    "medium": "Trung bình",
-    "large": "Lớn"
-  },
-  "fontFamily": {
-    "sans": "Sans",
-    "serif": "Serif",
-    "mono": "Monospace"
-  },
-  "toast": {
-    "success": "Thành công",
-    "error": "Lỗi",
-    "info": "Thông tin",
-    "warning": "Cảnh báo",
-    "commitSuccess": "Commit thành công",
-    "commitError": "Lỗi commit",
-    "checkSuccess": "Kiểm tra thành công",
-    "checkError": "Lỗi kiểm tra",
-    "generateSuccess": "Tạo thông điệp commit thành công",
-    "generateError": "Lỗi tạo thông điệp commit",
-    "updateAvailable": "Có bản cập nhật mới!",
-    "checkUpdates": "Kiểm tra cập nhật",
-    "updatingMessage": "Đang cập nhật SVN...",
-    "updateSuccess": "Cập nhật SVN thành công",
-    "updateError": "Lỗi khi cập nhật SVN",
-    "spotbugsError": "Lỗi khi chạy SpotBugs: {{0}}",
-    "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {{0}} vấn đề được tìm thấy",
-    "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs..."
-  },
-  "codingRules": {
-    "title": "Phân tích quy tắc mã nguồn",
-    "refresh": "Làm mới",
-    "noResults": "Chưa có kết quả phân tích."
-  },
-  "cleanDialog": {
-    "title": "Tùy chọn dọn dẹp SVN",
-    "description": "Chọn các tùy chọn dọn dẹp cho bản sao làm việc của bạn:",
-    "options": {
-      "externals": {
-        "label": "Dọn dẹp các thành phần bên ngoài",
-        "description": "Dọn dẹp cả các thành phần bên ngoài"
-      },
-      "unversioned": {
-        "label": "Xoá tệp và thư mục chưa được quản lý",
-        "description": "Xoá tất cả tệp và thư mục chưa được quản lý khỏi bản sao làm việc"
-      },
-      "ignored": {
-        "label": "Xoá tệp và thư mục bị bỏ qua",
-        "description": "Xoá tất cả tệp và thư mục bị bỏ qua khỏi bản sao làm việc"
-      },
-      "unused": {
-        "label": "Xoá các bản sao pristine không sử dụng",
-        "description": "Xoá tất cả các bản sao pristine không được tham chiếu trong bản sao làm việc"
-      },
-      "metadata": {
-        "label": "Làm mới trạng thái bản sao làm việc",
-        "description": "Làm mới trạng thái của bản sao làm việc"
-      },
-      "locks": {
-        "label": "Phá khoá",
-        "description": "Phá và chiếm các khoá trong bản sao làm việc"
-      },
-      "fixTimestamps": {
-        "label": "Sửa dấu thời gian",
-        "description": "Sửa dấu thời gian của các tệp trong bản sao làm việc"
-      }
+  "dialog": {
+    "aboutDialog": {
+      "title": "SVN Tool",
+      "description": "Ứng dụng này được phát triển nhằm hỗ trợ sinh commit message từ SVN diff và kiểm tra tiêu chuẩn mã nguồn.",
+      "developer": "Người phát triển",
+      "version": "Phiên bản",
+      "email": "Email",
+      "github": "GitHub",
+      "close": "Đóng"
     },
-    "clean": "Dọn dẹp",
-    "cleanSuccess": "Dọn dẹp SVN thành công",
-    "cleanError": "Lỗi trong quá trình dọn dẹp"
-  },
-  "ui": {
+    "codingRules": {
+      "title": "Phân tích quy tắc mã nguồn",
+      "refresh": "Làm mới",
+      "noResults": "Chưa có kết quả phân tích."
+    },
+    "cleanSvn": {
+      "title": "Tùy chọn dọn dẹp SVN",
+      "description": "Chọn các tùy chọn dọn dẹp cho bản sao làm việc của bạn:",
+      "options": {
+        "externals": {
+          "label": "Dọn dẹp các thành phần bên ngoài",
+          "description": "Dọn dẹp cả các thành phần bên ngoài"
+        },
+        "unversioned": {
+          "label": "Xoá tệp và thư mục chưa được quản lý",
+          "description": "Xoá tất cả tệp và thư mục chưa được quản lý khỏi bản sao làm việc"
+        },
+        "ignored": {
+          "label": "Xoá tệp và thư mục bị bỏ qua",
+          "description": "Xoá tất cả tệp và thư mục bị bỏ qua khỏi bản sao làm việc"
+        },
+        "unused": {
+          "label": "Xoá các bản sao pristine không sử dụng",
+          "description": "Xoá tất cả các bản sao pristine không được tham chiếu trong bản sao làm việc"
+        },
+        "metadata": {
+          "label": "Làm mới trạng thái bản sao làm việc",
+          "description": "Làm mới trạng thái của bản sao làm việc"
+        },
+        "locks": {
+          "label": "Phá khoá",
+          "description": "Phá và chiếm các khoá trong bản sao làm việc"
+        },
+        "fixTimestamps": {
+          "label": "Sửa dấu thời gian",
+          "description": "Sửa dấu thời gian của các tệp trong bản sao làm việc"
+        }
+      },
+      "clean": "Dọn dẹp",
+      "cleanSuccess": "Dọn dẹp SVN thành công",
+      "cleanError": "Lỗi trong quá trình dọn dẹp"
+    },
+    "statisticSvn": {
+      "title": "Thống kê",
+      "selectPeriodPlaceholder": "Chọn khoảng thời gian",
+      "period": {
+        "day": "Ngày",
+        "week": "Tuần",
+        "month": "Tháng",
+        "year": "Năm",
+        "all": "Tất cả"
+      },
+      "tabs": {
+        "commitByDate": "Commit theo ngày",
+        "commitByAuthor": "Commit theo tác giả",
+        "authorship": "Tỷ lệ tác giả",
+        "summary": "Bảng tổng hợp"
+      },
+      "commitByDate": {
+        "cardTitle": "Commits theo thời gian",
+        "cardDescription": "Biểu đồ số lượng commit theo ngày",
+        "selectChartType": "Chọn một loại biểu đồ",
+        "chartTypes": {
+          "barMultiple": "Biểu đồ cột - Nhiều cột",
+          "barHorizontal": "Biểu đồ cột - Ngang",
+          "barStacked": "Biểu đồ cột - Chồng",
+          "lineMultiple": "Biểu đồ đường - Nhiều đường",
+          "areaMultiple": "Biểu đồ vùng - Nhiều vùng"
+        }
+      },
+      "commitByAuthor": {
+        "cardTitle": "Commits theo tác giả",
+        "cardDescription": "Biểu đồ số lượng commit theo tác giả",
+        "chartTypes": {
+          "barVertical": "Biểu đồ cột - Dọc",
+          "barHorizontal": "Biểu đồ cột - Ngang"
+        }
+      },
+      "authorship": {
+        "title": "Tỷ lệ đóng góp của tác giả",
+        "cardTitle": "Commits theo tác giả",
+        "cardDescription": "Tỷ lệ đóng góp của tác giả"
+      },
+      "summary": {
+        "title": "Bảng tổng hợp",
+        "author": "Người cập nhật",
+        "commitCount": "Số lượng commit",
+        "percentage": "Tỷ lệ",
+        "total": "Tổng cộng"
+      },
+      "cardFooter": "Dữ liệu commit trong khoảng thời gian được chọn",
+      "noData": "Không có dữ liệu",
+      "errorLoading": "Lỗi khi tải dữ liệu thống kê"
+    },
     "spotbugs": {
       "title": "Phân tích SpotBugs",
       "filesAnalyzed": "Các tập tin đã phân tích",
@@ -268,73 +323,7 @@
       "placeholderSearch": "Tìm kiếm phiên bản, tác giả, thông điệp...",
       "totalEntries": "{{0}} mục tổng cộng",
       "page": "Trang {{0}} của {{1}}"
-    }
-  },
-  "statisticDialog": {
-    "title": "Thống kê",
-    "selectPeriodPlaceholder": "Chọn khoảng thời gian",
-    "period": {
-      "day": "Ngày",
-      "week": "Tuần",
-      "month": "Tháng",
-      "year": "Năm",
-      "all": "Tất cả"
     },
-    "tabs": {
-      "commitByDate": "Commit theo ngày",
-      "commitByAuthor": "Commit theo tác giả",
-      "authorship": "Tỷ lệ tác giả",
-      "summary": "Bảng tổng hợp"
-    },
-    "commitByDate": {
-      "cardTitle": "Commits theo thời gian",
-      "cardDescription": "Biểu đồ số lượng commit theo ngày",
-      "selectChartType": "Chọn một loại biểu đồ",
-      "chartTypes": {
-        "barMultiple": "Biểu đồ cột - Nhiều cột",
-        "barHorizontal": "Biểu đồ cột - Ngang",
-        "barStacked": "Biểu đồ cột - Chồng",
-        "lineMultiple": "Biểu đồ đường - Nhiều đường",
-        "areaMultiple": "Biểu đồ vùng - Nhiều vùng"
-      }
-    },
-    "commitByAuthor": {
-      "cardTitle": "Commits theo tác giả",
-      "cardDescription": "Biểu đồ số lượng commit theo tác giả",
-      "chartTypes": {
-        "barVertical": "Biểu đồ cột - Dọc",
-        "barHorizontal": "Biểu đồ cột - Ngang"
-      }
-    },
-    "authorship": {
-      "title": "Tỷ lệ đóng góp của tác giả",
-      "cardTitle": "Commits theo tác giả",
-      "cardDescription": "Tỷ lệ đóng góp của tác giả"
-    },
-    "summary": {
-      "title": "Bảng tổng hợp",
-      "author": "Người cập nhật",
-      "commitCount": "Số lượng commit",
-      "percentage": "Tỷ lệ",
-      "total": "Tổng cộng"
-    },
-    "cardFooter": "Dữ liệu commit trong khoảng thời gian được chọn",
-    "noData": "Không có dữ liệu",
-    "errorLoading": "Lỗi khi tải dữ liệu thống kê"
-  },
-  "svnStatus": {
-    "added": "Đã thêm",
-    "modified": "Đã sửa đổi",
-    "deleted": "Đã xóa",
-    "replaced": "Đã thay thế",
-    "conflicted": "Xung đột",
-    "external": "Bên ngoài",
-    "ignored": "Bị bỏ qua",
-    "unversioned": "Chưa được quản lý phiên bản",
-    "missing": "Thiếu",
-    "typeChanged": "Đã thay đổi kiểu"
-  },
-  "dialog": {
     "supportFeedback": {
       "title": "Hỗ trợ & Phản hồi",
       "description": "Gửi yêu cầu hỗ trợ hoặc cung cấp phản hồi.",
@@ -368,6 +357,14 @@
       "action": "Hành động",
       "path": "Đường dẫn",
       "commitMessage": "Thông điệp commit"
+    },
+    "newWebhook_vi": {
+      "title": "Thêm Webhook Mới",
+      "description": "Nhập tên và URL cho webhook bạn muốn thêm.",
+      "msgRequiredName": "Tên webhook là bắt buộc.",
+      "msgRequiredUrl": "URL của webhook là bắt buộc.",
+      "placeholderName": "Nhập tên webhook",
+      "placeholderUrl": "Nhập URL của webhook"
     }
   }
 }

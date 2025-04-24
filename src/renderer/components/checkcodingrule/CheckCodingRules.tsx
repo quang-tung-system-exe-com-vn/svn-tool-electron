@@ -63,7 +63,7 @@ export function CheckCodingRules() {
       const openai_result = await window.api.openai.send_message(params)
       setResult(openai_result)
       setIsLoading(false)
-      ToastMessageFunctions.success(t('toast.checkViolationsSuccess'))
+      ToastMessageFunctions.success(t('toast.checkSuccess'))
     } else {
       ToastMessageFunctions.error(message)
       setIsLoading(false)
@@ -78,7 +78,7 @@ export function CheckCodingRules() {
           <div className="flex-1 border rounded-md overflow-hidden">
             <ScrollArea className="h-full">
               <OverlayLoader isLoading={isLoading} />
-              <pre className="p-4 whitespace-pre-wrap font-mono text-sm">{result || 'No analysis results yet.'}</pre>
+              <pre className="p-4 whitespace-pre-wrap font-mono text-sm">{result || t('dialog.codingRules.noResults')}</pre>
             </ScrollArea>
           </div>
         </div>

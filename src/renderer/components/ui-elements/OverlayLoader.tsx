@@ -13,12 +13,7 @@ type OverlayLoaderProps = {
   delayMs?: number
 }
 
-export function OverlayLoader({
-  isLoading,
-  size = 50,
-  speed = 2.5,
-  delayMs = 400, // Delay để giữ loader lâu hơn
-}: OverlayLoaderProps) {
+export function OverlayLoader({ isLoading, size = 50, speed = 2.5, delayMs = 400 }: OverlayLoaderProps) {
   const { themeMode } = useAppearanceStore()
   const loaderColor = themeMode === 'dark' ? '#fff' : '#000'
 

@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
 import { GlowLoader } from '../ui-elements/GlowLoader'
-import { RoundIcon } from '../ui-elements/RoundIcon'
 
 interface ShowlogProps {
   onRefresh: () => void
@@ -53,75 +52,98 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
         } as React.CSSProperties
       }
     >
-      <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <div className="w-10 h-6 flex justify-center">{isLoading ? <GlowLoader className="w-8 h-6 py-1" /> : <RoundIcon className="w-8 h-6 py-1" />}</div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="link" disabled={isLoading} size="sm" onClick={onRefresh} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('common.refresh')}</TooltipContent>
-        </Tooltip>
+      <div className="flex items-center h-full">
+        <div className="w-15 h-6 flex justify-center pt-1.5 pl-1">
+          {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5" />}
+        </div>
+        <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+          <div className="flex items-center gap-1 pt-0.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="link"
+                  disabled={isLoading}
+                  size="sm"
+                  onClick={onRefresh}
+                  className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('common.refresh')}</TooltipContent>
+            </Tooltip>
 
-        {onOpenStatistic && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="link" disabled={isLoading} size="sm" onClick={onOpenStatistic} className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0">
-                <BarChart3 className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('statisticDialog.title')}</TooltipContent>
-          </Tooltip>
-        )}
+            {onOpenStatistic && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="link"
+                    disabled={isLoading}
+                    size="sm"
+                    onClick={onOpenStatistic}
+                    className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('dialog.statisticSvn.title')}</TooltipContent>
+              </Tooltip>
+            )}
 
-        {/* Date Range Picker */}
-        {setDateRange && (
-          <div className="ml-2">
-            {/* Thêm state open */}
-            {(() => {
-              return (
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" disabled={isLoading} className={cn('justify-start text-left font-normal h-7 px-2', !dateRange && 'text-muted-foreground')}>
-                      <CalendarIcon className="mr-2 h-3 w-3" />
-                      {dateRange?.from ? (
-                        dateRange.to ? (
-                          <>
-                            {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
-                          </>
-                        ) : (
-                          format(dateRange.from, 'dd/MM/yyyy')
-                        )
-                      ) : (
-                        <span>{t('statisticDialog.selectPeriodPlaceholder')}</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
-                    <div className="flex justify-end">
-                      <Button
-                        className="mr-2 mb-3"
-                        onClick={() => {
-                          setDateRange(date)
-                          setOpen(false)
-                        }}
-                      >
-                        Xác nhận
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )
-            })()}
+            {/* Date Range Picker */}
+            {setDateRange && (
+              <div className="ml-2">
+                {/* Thêm state open */}
+                {(() => {
+                  return (
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isLoading}
+                          className={cn('justify-start text-left font-normal h-7 px-2', !dateRange && 'text-muted-foreground')}
+                        >
+                          <CalendarIcon className="mr-2 h-3 w-3" />
+                          {dateRange?.from ? (
+                            dateRange.to ? (
+                              <>
+                                {format(dateRange.from, 'dd/MM/yyyy')} - {format(dateRange.to, 'dd/MM/yyyy')}
+                              </>
+                            ) : (
+                              format(dateRange.from, 'dd/MM/yyyy')
+                            )
+                          ) : (
+                            <span>{t('dialog.statisticSvn.selectPeriodPlaceholder')}</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
+                        <div className="flex justify-end">
+                          <Button
+                            className="mr-2 mb-3"
+                            onClick={() => {
+                              setDateRange(date)
+                              setOpen(false)
+                            }}
+                          >
+                            Xác nhận
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )
+                })()}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs">
-        {filePath !== '.' ? t('ui.showLogs.titleWithPath', { 0: filePath }) : t('ui.showLogs.title')}
+        {filePath !== '.' ? t('dialog.showLogs.titleWithPath', { 0: filePath }) : t('dialog.showLogs.title')}
       </Button>
 
       {/* Right Section (Window Controls) */}

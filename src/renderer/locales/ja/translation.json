@@ -3,7 +3,6 @@
     "close": "閉じる",
     "cancel": "キャンセル",
     "save": "変更を保存",
-    "saveChanges": "変更を保存",
     "add": "追加",
     "delete": "削除",
     "install": "インストール",
@@ -81,22 +80,47 @@
     "selectLanguage": "言語を選択...",
     "noLanguage": "言語が見つかりません。"
   },
-  "theme": {
-    "light": "ライト",
-    "dark": "ダーク",
-    "system": "システム"
+  "toast": {
+    "success": "成功",
+    "error": "エラー",
+    "info": "情報",
+    "warning": "警告",
+    "commitSuccess": "コミットが成功しました",
+    "commitError": "コミット中にエラーが発生しました",
+    "checkSuccess": "コーディングルールの確認が成功しました",
+    "checkError": "コーディングルールの確認中にエラーが発生しました",
+    "generateSuccess": "コミットメッセージの生成が成功しました",
+    "generateError": "コミットメッセージの生成中にエラーが発生しました",
+    "updateAvailable": "新しいアップデートが利用可能です！",
+    "checkUpdates": "アップデートを確認",
+    "updatingMessage": "SVNを更新中...",
+    "updateSuccess": "SVNの更新が成功しました",
+    "updateError": "SVNの更新中にエラーが発生しました",
+    "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {{0}}",
+    "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました",
+    "refreshingSpotbugs": "SpotBugs分析を更新中..."
   },
-  "aboutDialog": {
-    "title": "SVN Tool",
-    "description": "このアプリケーションは、SVNの差分から意味のあるコミットメッセージを生成し、コーディング規約をチェックするために開発されました。",
-    "developer": "開発者",
-    "version": "バージョン",
-    "email": "メール",
-    "github": "GitHub",
-    "close": "閉じる"
+  "svn": {
+    "status": {
+      "added": "追加済み",
+      "modified": "変更済み",
+      "deleted": "削除済み",
+      "replaced": "置換済み",
+      "conflicted": "コンフリクト",
+      "external": "外部",
+      "ignored": "無視された",
+      "unversioned": "バージョン管理外",
+      "missing": "欠落",
+      "typeChanged": "タイプ変更"
+    }
   },
   "settings": {
-    "fontSize": "文字サイズ",
+    "fontSize": {
+      "title": "文字サイズ",
+      "small": "小",
+      "medium": "中",
+      "large": "大"
+    },
     "theme": "テーマ",
     "language": "言語",
     "buttonVariant": "ボタンのバリアント",
@@ -153,37 +177,110 @@
       "step5": "クライアントID、テナントID、クライアントシークレットをここに入力"
     }
   },
-  "fontSize": {
-    "small": "小",
-    "medium": "中",
-    "large": "大"
-  },
-  "fontFamily": {
-    "sans": "Sans",
-    "serif": "Serif",
-    "mono": "Monospace"
-  },
-  "toast": {
-    "success": "成功",
-    "error": "エラー",
-    "info": "情報",
-    "warning": "警告",
-    "commitSuccess": "コミットが成功しました",
-    "commitError": "コミット中にエラーが発生しました",
-    "checkSuccess": "コーディングルールの確認が成功しました",
-    "checkError": "コーディングルールの確認中にエラーが発生しました",
-    "generateSuccess": "コミットメッセージの生成が成功しました",
-    "generateError": "コミットメッセージの生成中にエラーが発生しました",
-    "updateAvailable": "新しいアップデートが利用可能です！",
-    "checkUpdates": "アップデートを確認",
-    "updatingMessage": "SVNを更新中...",
-    "updateSuccess": "SVNの更新が成功しました",
-    "updateError": "SVNの更新中にエラーが発生しました",
-    "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {{0}}",
-    "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました",
-    "refreshingSpotbugs": "SpotBugs分析を更新中..."
-  },
-  "ui": {
+  "dialog": {
+    "aboutDialog": {
+      "title": "SVN Tool",
+      "description": "このアプリケーションは、SVNの差分から意味のあるコミットメッセージを生成し、コーディング規約をチェックするために開発されました。",
+      "developer": "開発者",
+      "version": "バージョン",
+      "email": "メール",
+      "github": "GitHub",
+      "close": "閉じる"
+    },
+    "codingRules": {
+      "title": "コーディングルール分析",
+      "refresh": "更新",
+      "noResults": "分析結果はまだありません。"
+    },
+    "cleanSvn": {
+      "title": "SVNクリーンアップオプション",
+      "description": "作業コピーに対してクリーンアップオプションを選択してください：",
+      "options": {
+        "externals": {
+          "label": "外部をクリーンアップ",
+          "description": "外部もクリーンアップします"
+        },
+        "unversioned": {
+          "label": "バージョン管理外のファイルとディレクトリを削除",
+          "description": "作業コピーからすべてのバージョン管理外のファイルとディレクトリを削除します"
+        },
+        "ignored": {
+          "label": "無視されたファイルとディレクトリを削除",
+          "description": "作業コピーからすべての無視されたファイルとディレクトリを削除します"
+        },
+        "unused": {
+          "label": "未使用のpristineコピーを削除",
+          "description": "作業コピーで参照されていないすべてのpristineコピーを削除します"
+        },
+        "metadata": {
+          "label": "作業コピーのステータスを更新",
+          "description": "作業コピーのステータスをリフレッシュします"
+        },
+        "locks": {
+          "label": "ロックを解除",
+          "description": "作業コピー内のロックを解除・奪取します"
+        },
+        "fixTimestamps": {
+          "label": "タイムスタンプを修正",
+          "description": "作業コピー内のファイルのタイムスタンプを修正します"
+        }
+      },
+      "clean": "クリーンアップ",
+      "cleanSuccess": "SVNクリーンアップが正常に完了しました",
+      "cleanError": "クリーンアップ中にエラーが発生しました"
+    },
+    "statisticSvn": {
+      "title": "統計",
+      "selectPeriodPlaceholder": "期間を選択",
+      "period": {
+        "day": "日",
+        "week": "週",
+        "month": "月",
+        "year": "年",
+        "all": "すべて"
+      },
+      "tabs": {
+        "commitByDate": "日付別コミット",
+        "commitByAuthor": "作成者別コミット",
+        "authorship": "作成者比率",
+        "summary": "概要テーブル"
+      },
+      "commitByDate": {
+        "cardTitle": "期間別コミット",
+        "cardDescription": "日付別コミット数のグラフ",
+        "selectChartType": "グラフの種類を選択",
+        "chartTypes": {
+          "barMultiple": "棒グラフ - 複数",
+          "barHorizontal": "棒グラフ - 横",
+          "barStacked": "棒グラフ - 積み上げ",
+          "lineMultiple": "折れ線グラフ - 複数",
+          "areaMultiple": "面グラフ - 複数"
+        }
+      },
+      "commitByAuthor": {
+        "cardTitle": "作成者別コミット",
+        "cardDescription": "作成者別コミット数のグラフ",
+        "chartTypes": {
+          "barVertical": "棒グラフ - 縦",
+          "barHorizontal": "棒グラフ - 横"
+        }
+      },
+      "authorship": {
+        "title": "作成者貢献率",
+        "cardTitle": "作成者別コミット",
+        "cardDescription": "作成者貢献率"
+      },
+      "summary": {
+        "title": "概要テーブル",
+        "author": "作成者",
+        "commitCount": "コミット数",
+        "percentage": "割合",
+        "total": "合計"
+      },
+      "cardFooter": "選択した期間のコミットデータ",
+      "noData": "データがありません",
+      "errorLoading": "統計データの読み込みエラー"
+    },
     "spotbugs": {
       "title": "SpotBugs分析",
       "filesAnalyzed": "分析されたファイル",
@@ -226,115 +323,7 @@
       "placeholderSearch": "リビジョン、更新者、メッセージを検索...",
       "totalEntries": "{{0}}件のエントリ",
       "page": "ページ{{0}} / {{1}}"
-    }
-  },
-  "codingRules": {
-    "title": "コーディングルール分析",
-    "refresh": "更新",
-    "noResults": "分析結果はまだありません。"
-  },
-  "cleanDialog": {
-    "title": "SVNクリーンアップオプション",
-    "description": "作業コピーに対してクリーンアップオプションを選択してください：",
-    "options": {
-      "externals": {
-        "label": "外部をクリーンアップ",
-        "description": "外部もクリーンアップします"
-      },
-      "unversioned": {
-        "label": "バージョン管理外のファイルとディレクトリを削除",
-        "description": "作業コピーからすべてのバージョン管理外のファイルとディレクトリを削除します"
-      },
-      "ignored": {
-        "label": "無視されたファイルとディレクトリを削除",
-        "description": "作業コピーからすべての無視されたファイルとディレクトリを削除します"
-      },
-      "unused": {
-        "label": "未使用のpristineコピーを削除",
-        "description": "作業コピーで参照されていないすべてのpristineコピーを削除します"
-      },
-      "metadata": {
-        "label": "作業コピーのステータスを更新",
-        "description": "作業コピーのステータスをリフレッシュします"
-      },
-      "locks": {
-        "label": "ロックを解除",
-        "description": "作業コピー内のロックを解除・奪取します"
-      },
-      "fixTimestamps": {
-        "label": "タイムスタンプを修正",
-        "description": "作業コピー内のファイルのタイムスタンプを修正します"
-      }
     },
-    "clean": "クリーンアップ",
-    "cleanSuccess": "SVNクリーンアップが正常に完了しました",
-    "cleanError": "クリーンアップ中にエラーが発生しました"
-  },
-  "statisticDialog": {
-    "title": "統計",
-    "selectPeriodPlaceholder": "期間を選択",
-    "period": {
-      "day": "日",
-      "week": "週",
-      "month": "月",
-      "year": "年",
-      "all": "すべて"
-    },
-    "tabs": {
-      "commitByDate": "日付別コミット",
-      "commitByAuthor": "作成者別コミット",
-      "authorship": "作成者比率",
-      "summary": "概要テーブル"
-    },
-    "commitByDate": {
-      "cardTitle": "期間別コミット",
-      "cardDescription": "日付別コミット数のグラフ",
-      "selectChartType": "グラフの種類を選択",
-      "chartTypes": {
-        "barMultiple": "棒グラフ - 複数",
-        "barHorizontal": "棒グラフ - 横",
-        "barStacked": "棒グラフ - 積み上げ",
-        "lineMultiple": "折れ線グラフ - 複数",
-        "areaMultiple": "面グラフ - 複数"
-      }
-    },
-    "commitByAuthor": {
-      "cardTitle": "作成者別コミット",
-      "cardDescription": "作成者別コミット数のグラフ",
-      "chartTypes": {
-        "barVertical": "棒グラフ - 縦",
-        "barHorizontal": "棒グラフ - 横"
-      }
-    },
-    "authorship": {
-      "title": "作成者貢献率",
-      "cardTitle": "作成者別コミット",
-      "cardDescription": "作成者貢献率"
-    },
-    "summary": {
-      "title": "概要テーブル",
-      "author": "作成者",
-      "commitCount": "コミット数",
-      "percentage": "割合",
-      "total": "合計"
-    },
-    "cardFooter": "選択した期間のコミットデータ",
-    "noData": "データがありません",
-    "errorLoading": "統計データの読み込みエラー"
-  },
-  "svnStatus": {
-    "added": "追加済み",
-    "modified": "変更済み",
-    "deleted": "削除済み",
-    "replaced": "置換済み",
-    "conflicted": "コンフリクト",
-    "external": "外部",
-    "ignored": "無視された",
-    "unversioned": "バージョン管理外",
-    "missing": "欠落",
-    "typeChanged": "タイプ変更"
-  },
-  "dialog": {
     "supportFeedback": {
       "title": "サポートとフィードバック",
       "description": "サポートリクエストを送信するか、フィードバックを提供してください。",
@@ -368,6 +357,14 @@
       "action": "アクション",
       "path": "パス",
       "commitMessage": "コミットメッセージ"
+    },
+    "newWebhook_ja": {
+      "title": "新しいWebhookを追加",
+      "description": "追加したいWebhookの名前とURLを入力してください。",
+      "msgRequiredName": "Webhook名は必須です。",
+      "msgRequiredUrl": "WebhookのURLは必須です。",
+      "placeholderName": "Webhook名を入力",
+      "placeholderUrl": "WebhookのURLを入力"
     }
   }
 }

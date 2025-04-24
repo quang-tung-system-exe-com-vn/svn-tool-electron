@@ -64,7 +64,7 @@ export function ShowLog() {
       maxSize: 30,
       header: ({ column }) => (
         <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-          {t('ui.showLogs.revision')}
+          {t('dialog.showLogs.revision')}
           {!column.getIsSorted() && <ArrowUpDown />}
           {column.getIsSorted() === 'asc' && <ArrowUp />}
           {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -80,7 +80,7 @@ export function ShowLog() {
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            {t('ui.showLogs.date')}
+            {t('dialog.showLogs.date')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -96,7 +96,7 @@ export function ShowLog() {
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            {t('ui.showLogs.author')}
+            {t('dialog.showLogs.author')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -111,7 +111,7 @@ export function ShowLog() {
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            {t('ui.showLogs.action')}
+            {t('dialog.showLogs.action')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -136,7 +136,7 @@ export function ShowLog() {
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-            {t('ui.showLogs.message')}
+            {t('dialog.showLogs.message')}
             {!column.getIsSorted() && <ArrowUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp />}
             {column.getIsSorted() === 'desc' && <ArrowDown />}
@@ -456,7 +456,7 @@ export function ShowLog() {
                   <div className="mb-2 flex items-center gap-2">
                     <div className="relative flex-1">
                       <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input placeholder={t('ui.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
+                      <Input placeholder={t('dialog.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
                     </div>
                   </div>
                   <ScrollArea className="flex-1 border-1 rounded-md">
@@ -522,8 +522,8 @@ export function ShowLog() {
                       <span className="flex-1 text-xs pl-1">
                         {isLoading
                           ? 'Loading...'
-                          : `${t('ui.showLogs.totalEntries', { 0: totalEntriesFromBackend })} ${
-                              searchTerm.trim() ? `(${t('ui.showLogs.filtered', { 0: filteredLogData.length })})` : ''
+                          : `${t('dialog.showLogs.totalEntries', { 0: totalEntriesFromBackend })} ${
+                              searchTerm.trim() ? `(${t('dialog.showLogs.filtered', { 0: filteredLogData.length })})` : ''
                             }`}
                       </span>
                       {!isLoading && (
@@ -531,7 +531,7 @@ export function ShowLog() {
                           <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
                             {t('common.back')}
                           </Button>
-                          <span>{t('ui.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
+                          <span>{t('dialog.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
                           <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
                             {t('common.next')}
                           </Button>
@@ -549,7 +549,7 @@ export function ShowLog() {
             <ResizablePanel defaultSize={50} minSize={30}>
               <ResizablePanelGroup direction="vertical" className="h-full">
                 <ResizablePanel defaultSize={40} minSize={20}>
-                  <div className="p-2 font-medium pb-[11px]">{t('ui.showLogs.commitMessage')}</div>
+                  <div className="p-2 font-medium pb-[11px]">{t('dialog.showLogs.commitMessage')}</div>
                   <div className="h-full pb-[2.8rem]">
                     <ScrollArea className="h-full border-1 rounded-md">
                       <Textarea className="w-full h-full resize-none border-none cursor-default break-all" readOnly={true} value={commitMessage} spellCheck={false} />
@@ -563,7 +563,7 @@ export function ShowLog() {
 
                 <ResizablePanel defaultSize={60} minSize={20} className="flex flex-col">
                   <div className="p-2 font-medium flex justify-between items-center">
-                    <span>{t('ui.showLogs.changedFiles')}</span>
+                    <span>{t('dialog.showLogs.changedFiles')}</span>
                     <div className="flex gap-2">
                       {Object.entries(statusSummary).map(([code, count]) =>
                         count > 0 ? (
@@ -580,8 +580,8 @@ export function ShowLog() {
                       <Table wrapperClassName={cn('overflow-clip', changedFiles.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                           <TableRow>
-                            <TableHead className="w-24">{t('ui.showLogs.action')}</TableHead>
-                            <TableHead>{t('ui.showLogs.path')}</TableHead>
+                            <TableHead className="w-24">{t('dialog.showLogs.action')}</TableHead>
+                            <TableHead>{t('dialog.showLogs.path')}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody className={changedFiles.length === 0 ? 'h-full' : ''}>
