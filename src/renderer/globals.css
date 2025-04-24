@@ -1,13 +1,13 @@
 @import "tailwindcss";
 @plugin 'tailwindcss-animate';
 @plugin "@tailwindcss/typography";
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme-mode="dark"] *));
 
 @layer utilities {
   .dark\:hover\:bg-accent\/50 {
     @media (hover: hover) {
       @supports (color: color-mix(in lab, red, red)) {
-        .dark & {
+        [data-theme-mode="dark"] & {
           &:hover {
             background-color: color-mix(in oklab, var(--accent) 50%, transparent);
             color: oklch(0.985 0 0);
@@ -19,7 +19,8 @@
 }
 
 :root {
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-roboto: "Roboto", sans-serif;
@@ -1119,7 +1120,17 @@
   kbd,
   pre,
   samp {
-    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+    font-family: var(
+      --default-mono-font-family,
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace
+    );
     font-feature-settings: var(--default-mono-font-feature-settings, normal);
     font-variation-settings: var(--default-mono-font-variation-settings, normal);
     font-size: 1em;

@@ -267,7 +267,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     onClick={openSettingsDialog}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                   >
-                    <Settings2 strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    <Settings2 strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{t('title.settings')}</TooltipContent>
@@ -281,7 +281,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     onClick={openInfoDialog}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                   >
-                    <Info strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    <Info strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{t('title.about')}</TooltipContent>
@@ -295,7 +295,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     onClick={checkForUpdates}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                   >
-                    <RefreshCw strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                     {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                   </Button>
                 </TooltipTrigger>
@@ -310,7 +310,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                     onClick={openSupportFeedbackDialog}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                   >
-                    <LifeBuoy strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    <LifeBuoy strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{t('title.supportFeedback')}</TooltipContent>
@@ -332,7 +332,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                   onClick={openSvnUpdateDialog}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
                 >
-                  <SquareArrowDown strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                  <SquareArrowDown strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                   {hasSvnUpdate && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                 </Button>
               </TooltipTrigger>
@@ -349,7 +349,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                   onClick={openCleanDialog}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                 >
-                  <Eraser strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                  <Eraser strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{t('title.cleanSvn')}</TooltipContent>
@@ -363,7 +363,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                   onClick={openShowLogWindow}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                 >
-                  <FileText strokeWidth={0.75} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                  <FileText strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{t('title.showLogsSvn')}</TooltipContent>

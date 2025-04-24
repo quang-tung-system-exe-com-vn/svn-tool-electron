@@ -110,11 +110,25 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         onOpenChange(false) // Close dialog on success
       } else {
         console.error('Error sending feedback:', result.message)
-        ToastMessageFunctions.error(result.message || t('dialog.supportFeedback.sendError'))
+
+        // Hiển thị thông báo lỗi cụ thể hơn cho người dùng
+        if (result.message?.includes('OneDrive') || result.message?.includes('xác thực')) {
+          ToastMessageFunctions.error(t('dialog.supportFeedback.oneDriveAuthError') || 'Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt OneDrive trong phần Cài đặt.')
+        } else {
+          ToastMessageFunctions.error(result.message || t('dialog.supportFeedback.sendError'))
+        }
       }
     } catch (error: any) {
       console.error('Error sending feedback IPC:', error)
-      ToastMessageFunctions.error(error.message || t('dialog.supportFeedback.sendError'))
+
+      // Xử lý lỗi cụ thể
+      if (error.message?.includes('OneDrive') || error.message?.includes('xác thực')) {
+        ToastMessageFunctions.error(t('dialog.supportFeedback.oneDriveAuthError') || 'Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt OneDrive trong phần Cài đặt.')
+      } else if (error.message?.includes('network') || error.message?.includes('kết nối')) {
+        ToastMessageFunctions.error(t('dialog.supportFeedback.networkError') || 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet của bạn.')
+      } else {
+        ToastMessageFunctions.error(error.message || t('dialog.supportFeedback.sendError'))
+      }
     } finally {
       setIsSending(false)
     }

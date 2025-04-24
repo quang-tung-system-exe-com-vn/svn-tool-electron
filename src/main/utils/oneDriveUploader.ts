@@ -1,121 +1,167 @@
-import { ClientSecretCredential } from '@azure/identity';
-import { Client } from '@microsoft/microsoft-graph-client';
-import 'isomorphic-fetch';
-import configurationStore from '../store/ConfigurationStore';
+import { getGraphClient, testGraphConnection } from './graph'
 
-// Tạo một provider xác thực sử dụng ClientSecretCredential
-
-const getAuthProvider = () => {
-  const { oneDriveClientId, oneDriveTenantId, oneDriveClientSecret } = configurationStore.store;
-  if (!oneDriveClientId || !oneDriveTenantId || !oneDriveClientSecret) {
-    throw new Error('OneDrive credentials are not configured');
-  }
-  const credential = new ClientSecretCredential(oneDriveTenantId, oneDriveClientId, oneDriveClientSecret);
-  return {
-    getAccessToken: async () => {
-      try {
-        const response = await credential.getToken('https://graph.microsoft.com/.default');
-        console.log(response)
-        return response.token;
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Failed to get access token: ${error.message}`);
-        }
-        throw new Error('Failed to get access token due to an unknown error');
-      }
-    },
-  };
-};
-
-// Tạo Microsoft Graph client
-const getGraphClient = () => {
+// Kiểm tra kết nối OneDrive trước khi tải lên
+const checkOneDriveConnection = async (): Promise<void> => {
   try {
-    const authProvider = getAuthProvider()
-    return Client.initWithMiddleware({
-      authProvider,
-    })
-  } catch (error) {
-    console.error('Error initializing Graph client:', error)
+    // Kiểm tra kết nối với Graph API
+    const isConnected = await testGraphConnection()
+
+    if (!isConnected) {
+      throw new Error('Không thể kết nối với Microsoft Graph API. Vui lòng kiểm tra cài đặt OneDrive và kết nối mạng.')
+    }
+  } catch (error: any) {
+    console.error('❌ Lỗi khi kiểm tra kết nối OneDrive:', error)
     throw error
   }
 }
 
-/**
- * Upload hình ảnh lên OneDrive
- * @param imageData Base64 string của hình ảnh (bao gồm cả data:image/xxx;base64,)
- * @param fileName Tên file (nên bao gồm extension)
- * @returns URL của hình ảnh đã upload
- */
+// Hàm retry cho các hoạt động Graph API
+const retryOperation = async <T>(operation: () => Promise<T>, maxRetries = 3, initialDelay = 1000): Promise<T> => {
+  let lastError: any
+  let currentDelay = initialDelay
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error: any) {
+      lastError = error
+
+      // Không retry cho lỗi xác thực hoặc quyền
+      if (error.statusCode === 401 || error.statusCode === 403) {
+        throw error
+      }
+
+      // Chỉ retry cho lỗi mạng hoặc lỗi server (5xx)
+      if (error.name !== 'FetchError' && !(error.statusCode && error.statusCode >= 500)) {
+        throw error
+      }
+
+      console.log(`Lần thử ${attempt}/${maxRetries} thất bại, thử lại sau ${currentDelay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, currentDelay))
+      currentDelay *= 2 // Tăng thời gian chờ theo cấp số nhân
+    }
+  }
+
+  throw lastError
+}
+
 export const uploadImageToOneDrive = async (imageData: string, fileName: string): Promise<string> => {
   try {
-    console.log(`🔄 Uploading image to OneDrive: ${fileName}`)
+    // Kiểm tra kết nối trước khi tải lên
+    await checkOneDriveConnection()
 
-    // Tạo Graph client
-    const graphClient = getGraphClient()
+    const graphClient = await getGraphClient()
 
-    // Xử lý base64 string để lấy dữ liệu nhị phân
     const base64Data = imageData.split(',')[1]
     const buffer = Buffer.from(base64Data, 'base64')
-
-    // Tạo tên file duy nhất để tránh trùng lặp
     const uniqueFileName = `${Date.now()}_${fileName}`
-
-    // Đường dẫn đến thư mục trên OneDrive - có thể thay đổi tùy theo nhu cầu
-    // Ví dụ: '/drive/special/approot/SVNTool_Uploads'
     const folderPath = '/drive/special/approot/SVNTool_Uploads'
 
-    // Tạo thư mục nếu chưa tồn tại
+    // Kiểm tra và tạo thư mục nếu cần
     try {
-      await graphClient.api(folderPath).get()
-    } catch (error) {
-      // Nếu thư mục không tồn tại, tạo mới
-      console.log('Creating upload folder in OneDrive...')
-      await graphClient.api('/drive/special/approot/children').post({
-        name: 'SVNTool_Uploads',
-        folder: {},
-      })
+      await retryOperation(() => graphClient.api(folderPath).get())
+    } catch (error: any) {
+      if (error.statusCode === 404) {
+        // Thư mục không tồn tại, tạo mới
+        await retryOperation(() =>
+          graphClient.api('/drive/special/approot/children').post({
+            name: 'SVNTool_Uploads',
+            folder: {},
+          })
+        )
+      } else {
+        throw error
+      }
     }
 
-    // Upload file
-    const uploadResponse = await graphClient.api(`${folderPath}/${uniqueFileName}:/content`).put(buffer)
+    // Tải lên file
+    await retryOperation(() => graphClient.api(`${folderPath}/${uniqueFileName}:/content`).put(buffer))
 
-    // Lấy link chia sẻ
-    const sharingResponse = await graphClient.api(`${folderPath}/${uniqueFileName}:/createLink`).post({
-      type: 'view',
-      scope: 'organization',
-    })
+    // Tạo link chia sẻ
+    const sharingResponse = await retryOperation(() =>
+      graphClient.api(`${folderPath}/${uniqueFileName}:/createLink`).post({
+        type: 'view',
+        scope: 'anonymous', // dùng 'anonymous' để chia sẻ ngoài, cá nhân không có 'organization'
+      })
+    )
 
-    console.log('✅ Image uploaded to OneDrive successfully!')
+    console.log('✅ Upload thành công')
     return sharingResponse.link.webUrl
-  } catch (error) {
-    console.error('Error uploading image to OneDrive:', error)
-    throw error
+  } catch (error: any) {
+    console.error('❌ Upload thất bại:', error)
+
+    // Xử lý lỗi xác thực
+    if (error.statusCode === 401 || error.name === 'AuthenticationRequiredError' || error.message?.includes('invalid_grant') || error.message?.includes('unauthorized')) {
+      console.error('Lỗi xác thực với Microsoft Graph API. Vui lòng kiểm tra cài đặt OneDrive.')
+      throw new Error('Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt trong phần OneDrive và đảm bảo thông tin đăng nhập chính xác.')
+    }
+
+    // Xử lý lỗi quyền
+    if (error.statusCode === 403 || error.message?.includes('permission') || error.message?.includes('access denied')) {
+      console.error('Lỗi quyền truy cập OneDrive. Ứng dụng không có đủ quyền.')
+      throw new Error('Lỗi quyền truy cập OneDrive. Vui lòng kiểm tra quyền của ứng dụng trong Azure Portal.')
+    }
+
+    // Xử lý lỗi mạng
+    if (error.name === 'FetchError' || error.message?.includes('network')) {
+      throw new Error('Lỗi kết nối mạng khi tải lên OneDrive. Vui lòng kiểm tra kết nối internet của bạn.')
+    }
+
+    // Xử lý lỗi giới hạn tốc độ
+    if (error.statusCode === 429) {
+      throw new Error('Đã vượt quá giới hạn yêu cầu OneDrive. Vui lòng thử lại sau.')
+    }
+
+    // Các lỗi khác
+    throw new Error(`Lỗi khi tải lên OneDrive: ${error.message || 'Lỗi không xác định'}`)
   }
 }
 
-/**
- * Upload nhiều hình ảnh lên OneDrive
- * @param images Mảng các base64 string của hình ảnh
- * @returns Mảng các URL của hình ảnh đã upload
- */
 export const uploadImagesToOneDrive = async (images: string[]): Promise<string[]> => {
+  const results: string[] = []
+
   try {
-    if (!images || images.length === 0) {
-      return []
+    // Kiểm tra kết nối trước khi bắt đầu tải lên nhiều hình ảnh
+    await checkOneDriveConnection()
+
+    for (let i = 0; i < images.length; i++) {
+      try {
+        const match = images[i].match(/^data:image\/(\w+);base64,/)
+        const ext = match ? match[1] : 'png'
+        const fileName = `image_${i + 1}.${ext}`
+        const url = await uploadImageToOneDrive(images[i], fileName)
+        results.push(url)
+        console.log(`✅ Đã tải lên hình ảnh ${i + 1}/${images.length}`)
+      } catch (error: any) {
+        console.error(`❌ Lỗi khi tải lên hình ảnh ${i + 1}:`, error)
+
+        // Nếu lỗi xác thực hoặc quyền, dừng toàn bộ quá trình
+        if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('xác thực') || error.message?.includes('quyền')) {
+          throw error
+        }
+
+        // Tiếp tục với hình ảnh tiếp theo cho các lỗi khác
+      }
     }
 
-    const uploadPromises = images.map((imageData, index) => {
-      // Xác định loại file từ base64 string
-      const match = imageData.match(/^data:image\/(\w+);base64,/)
-      const fileExtension = match ? match[1] : 'png'
-      const fileName = `image_${index + 1}.${fileExtension}`
+    if (results.length === 0 && images.length > 0) {
+      // Nếu không có hình ảnh nào được tải lên thành công
+      throw new Error('Không thể tải lên bất kỳ hình ảnh nào. Vui lòng kiểm tra cài đặt OneDrive và kết nối mạng.')
+    }
 
-      return uploadImageToOneDrive(imageData, fileName)
-    })
+    return results
+  } catch (error: any) {
+    console.error('❌ Lỗi khi tải lên nhiều hình ảnh:', error)
 
-    return await Promise.all(uploadPromises)
-  } catch (error) {
-    console.error('Error uploading images to OneDrive:', error)
+    // Cung cấp thông báo lỗi chi tiết hơn
+    if (error.message?.includes('xác thực') || error.statusCode === 401) {
+      throw new Error('Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt trong phần OneDrive và đảm bảo thông tin đăng nhập chính xác.')
+    }
+
+    if (error.message?.includes('quyền') || error.statusCode === 403) {
+      throw new Error('Lỗi quyền truy cập OneDrive. Vui lòng kiểm tra quyền của ứng dụng trong Azure Portal.')
+    }
+
     throw error
   }
 }
