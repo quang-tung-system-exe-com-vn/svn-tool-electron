@@ -1,8 +1,9 @@
+import os from 'node:os'
 import axios from 'axios'
 import { app } from 'electron'
-import os from 'node:os'
 import configurationStore from '../store/ConfigurationStore'
 import { uploadImagesToOneDrive } from '../utils/oneDriveUploader'
+import { randomUUID } from 'node:crypto'
 
 function createCommitInfoCard(data: CommitInfo) {
   const { commitUser, commitTime, commitMessage, violations, addedFiles, modifiedFiles, deletedFiles } = data
@@ -200,12 +201,14 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
       text: '**Attached Images:**',
       wrap: true,
     })
+
+    // Thay vì sử dụng thẻ Image, sử dụng TextBlock với URL dạng text
     imageUrls.forEach((imageUrl, index) => {
       bodyElements.push({
-        type: 'Image',
-        url: imageUrl,
-        size: 'Medium',
-        altText: `Image ${index + 1}`,
+        type: 'TextBlock',
+        text: `[Image ${index + 1}](${imageUrl})`,
+        wrap: true,
+        isSubtle: false,
       })
     })
   }
@@ -232,13 +235,17 @@ export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise
     let imageUrls: string[] = []
     if (data.images && data.images.length > 0) {
       try {
-        console.log(oneDriveRefreshToken);
         if (!oneDriveClientId || !oneDriveRefreshToken) {
           console.warn('OneDrive is not fully configured. Images will be skipped.')
           return { success: false, error: 'OneDrive chưa được cấu hình đầy đủ. Vui lòng kiểm tra Client ID và Refresh Token trong phần cài đặt OneDrive.' }
         }
-        console.log(`Uploading ${data.images.length} images to OneDrive...`)
-        imageUrls = await uploadImagesToOneDrive(data.images)
+
+        // Tạo UUID cho feedback này
+        const feedbackUuid = randomUUID()
+        console.log(`Uploading ${data.images.length} images to OneDrive folder with UUID: ${feedbackUuid}...`)
+
+        // Sử dụng UUID khi upload ảnh để tất cả ảnh được lưu trong cùng một thư mục
+        imageUrls = await uploadImagesToOneDrive(data.images, feedbackUuid)
         console.log(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
       } catch (uploadError: any) {
         console.error('Error uploading images to OneDrive:', uploadError)

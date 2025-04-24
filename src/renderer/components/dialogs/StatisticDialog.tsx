@@ -310,7 +310,6 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   <CardContent className="flex-1 pb-0 overflow-hidden pt-4">
                     {(() => {
                       const authorKeys = Object.keys(commitByDateChartConfig)
-
                       if (commitByDateChartType === 'bar-multiple') {
                         return (
                           <ChartContainer config={commitByDateChartConfig} className="w-full mx-auto h-[350px]">

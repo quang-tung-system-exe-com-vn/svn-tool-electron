@@ -18,7 +18,6 @@ interface SupportFeedbackDialogProps {
 
 type FeedbackType = 'support' | 'feedback'
 
-// Simple email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDialogProps) => {
@@ -30,23 +29,17 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
   const [images, setImages] = useState<string[]>([])
   const [isSending, setIsSending] = useState(false)
 
-  // Handle file drop
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      // Limit to 5 images
       const filesToProcess = images.length + acceptedFiles.length > 5 ? acceptedFiles.slice(0, 5 - images.length) : acceptedFiles
-
       if (images.length + acceptedFiles.length > 5) {
         ToastMessageFunctions.warning(t('dialog.supportFeedback.tooManyImages'))
       }
-
-      // Process each file using for...of instead of forEach
       for (const file of filesToProcess) {
         if (!file.type.startsWith('image/')) {
           ToastMessageFunctions.warning(t('dialog.supportFeedback.onlyImages'))
           continue
         }
-
         const reader = new FileReader()
         reader.onload = () => {
           setImages(prev => [...prev, reader.result as string])
@@ -57,28 +50,24 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
     [images, t]
   )
 
-  // Configure dropzone
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif'],
     },
-    maxSize: 5242880, // 5MB
+    maxSize: 5242880,
   })
 
-  // Remove image
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index))
   }
 
-  // Validate email
   const validateEmail = (email: string) => {
     const isValid = EMAIL_REGEX.test(email)
     setEmailError(!isValid)
     return isValid
   }
 
-  // Handle email change
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value
     setEmail(newEmail)
@@ -86,7 +75,6 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
   }
 
   const handleSend = async () => {
-    // Validate email
     if (!validateEmail(email) || !message) {
       ToastMessageFunctions.warning(t('dialog.supportFeedback.validationWarning'))
       return
@@ -100,7 +88,6 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         message,
         images,
       })
-
       if (result.status === 'success') {
         ToastMessageFunctions.success(t('dialog.supportFeedback.sendSuccess'))
         setEmail('')
@@ -109,23 +96,11 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         onOpenChange(false)
       } else {
         console.error('Error sending feedback:', result.message)
-
-        if (result.message?.includes('OneDrive') || result.message?.includes('xác thực')) {
-          ToastMessageFunctions.error(t('dialog.supportFeedback.oneDriveAuthError') || 'Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt OneDrive trong phần Cài đặt.')
-        } else {
-          ToastMessageFunctions.error(result.message || t('dialog.supportFeedback.sendError'))
-        }
+        ToastMessageFunctions.error(result.message)
       }
     } catch (error: any) {
       console.error('Error sending feedback IPC:', error)
-
-      if (error.message?.includes('OneDrive') || error.message?.includes('xác thực')) {
-        ToastMessageFunctions.error(t('dialog.supportFeedback.oneDriveAuthError') || 'Lỗi xác thực OneDrive. Vui lòng kiểm tra cài đặt OneDrive trong phần Cài đặt.')
-      } else if (error.message?.includes('network') || error.message?.includes('kết nối')) {
-        ToastMessageFunctions.error(t('dialog.supportFeedback.networkError') || 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet của bạn.')
-      } else {
-        ToastMessageFunctions.error(error.message || t('dialog.supportFeedback.sendError'))
-      }
+      ToastMessageFunctions.error(error.message)
     } finally {
       setIsSending(false)
     }
@@ -156,7 +131,6 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         </DialogHeader>
 
         <div className="space-y-4 min-h-[450px]">
-          {/* Basic Info Section */}
           <div className="space-y-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">
@@ -172,7 +146,6 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
                 </SelectContent>
               </Select>
             </div>
-
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right">
                 {t('dialog.supportFeedback.emailLabel')}*

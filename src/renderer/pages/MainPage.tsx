@@ -182,7 +182,7 @@ export function MainPage() {
           {/* Footer Buttons */}
           <div className="flex justify-center gap-2">
             <Button
-              className={`relative w-50 ${isLoadingGenerate ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative ${isLoadingGenerate ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -194,7 +194,7 @@ export function MainPage() {
             </Button>
 
             <Button
-              className={`relative w-50 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -205,7 +205,7 @@ export function MainPage() {
               {t('action.check')}
             </Button>
             <Button
-              className={`relative w-50 ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {
@@ -228,7 +228,7 @@ export function MainPage() {
               {t('SpotBugs')}
             </Button>
             <Button
-              className={`relative w-50 ${isLoadingCommit ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
+              className={`relative ${isLoadingCommit ? 'border-effect' : ''} ${isAnyLoading ? 'cursor-progress' : ''}`}
               variant={variant}
               onClick={() => {
                 if (!isAnyLoading) {

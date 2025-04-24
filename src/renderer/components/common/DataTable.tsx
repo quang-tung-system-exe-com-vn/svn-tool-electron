@@ -10,10 +10,11 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { cn } from '@/lib/utils'
 import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
-import { ArrowDown, ArrowUp, ArrowUpDown, File, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
+import { StatusIcon } from '../ui-elements/StatusIcon'
 
 export type SvnFile = {
   filePath: string
@@ -67,7 +68,11 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
         const className = STATUS_COLOR_CLASS_MAP[statusCode]
         return (
           <div className={cn('flex items-center gap-2', className)}>
-            {row.getValue('isFile') ? <File strokeWidth={1.25} className={cn('w-4 h-4', className)} /> : <Folder strokeWidth={1.25} className={cn('w-4 h-4', className)} />}
+            {row.getValue('isFile') ? (
+              <StatusIcon code={statusCode as SvnStatusCode} />
+            ) : (
+              <Folder fill="#F5A623" color="#F5A623" strokeWidth={1} className={cn('w-4 h-4', className)} />
+            )}
             {row.getValue('filePath')}
           </div>
         )
@@ -87,13 +92,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
         )
       },
       cell: ({ row }) => {
-        const statusCode = row.getValue('status') as SvnStatusCode
-        const className = STATUS_COLOR_CLASS_MAP[statusCode]
-        return (
-          <div className={className}>
-            <div>{row.getValue('isFile') ? 'Yes' : 'No'}</div>
-          </div>
-        )
+        return <div>{row.getValue('isFile') ? 'Yes' : 'No'}</div>
       },
     },
     {

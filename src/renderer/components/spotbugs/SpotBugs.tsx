@@ -129,6 +129,15 @@ export function SpotBugs() {
     }
   }
 
+  // Hàm lấy màu sắc cho rank bug
+  const getRankColor = (rank: number) => {
+    if (rank <= 4) return 'bg-destructive/10 text-destructive border-destructive/20' // Scariest (1-4)
+    if (rank <= 9) return 'bg-warning/10 text-warning border-warning/20' // Scary (5-9)
+    if (rank <= 14) return 'bg-amber-500/10 text-amber-500 border-amber-500/20' // Troubling (10-14)
+    if (rank <= 20) return 'bg-info/10 text-info border-info/20' // Concern (15-20)
+    return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' // Of concern (21+)
+  }
+
   const filteredBugs = spotbugsResult.bugInstances.filter(bug => {
     if (activeTab === 'all') return true
     if (activeTab === 'high') return bug.severity === 'High'
@@ -165,21 +174,21 @@ export function SpotBugs() {
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-destructive" />
               <span className="text-sm font-medium">{t('dialog.spotbugs.high')}:</span>
-              <Badge variant="outline" className="rounded-md bg-destructive/10 text-destructive border-destructive/20">
+              <Badge variant="outline" className="rounded-md bg-destructive/10 text-destructive border-destructive/20 font-bold">
                 {spotbugsResult.bugsBySeverity.high}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-warning" />
               <span className="text-sm font-medium">{t('dialog.spotbugs.medium')}:</span>
-              <Badge variant="outline" className="rounded-md bg-warning/10 text-warning border-warning/20">
+              <Badge variant="outline" className="rounded-md bg-warning/10 text-warning border-warning/20 font-bold">
                 {spotbugsResult.bugsBySeverity.medium}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-info" />
               <span className="text-sm font-medium">{t('dialog.spotbugs.low')}:</span>
-              <Badge variant="outline" className="rounded-md bg-info/10 text-info border-info/20">
+              <Badge variant="outline" className="rounded-md bg-info/10 text-info border-info/20 font-bold">
                 {spotbugsResult.bugsBySeverity.low}
               </Badge>
             </div>
@@ -303,7 +312,9 @@ export function SpotBugs() {
                                 </div>
                                 <div>
                                   <h3 className="text-sm font-medium">{t('table.rank')}</h3>
-                                  <Badge variant="outline">{selectedBug.rank}</Badge>
+                                  <Badge variant="outline" className={`${getRankColor(selectedBug.rank)}`}>
+                                    {selectedBug.rank}
+                                  </Badge>
                                 </div>
                               </div>
                             </div>

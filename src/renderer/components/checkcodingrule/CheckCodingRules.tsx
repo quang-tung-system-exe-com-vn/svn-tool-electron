@@ -77,7 +77,7 @@ export function CheckCodingRules() {
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
           <div className="flex-1 border rounded-md overflow-hidden">
             <ScrollArea className="h-full">
-              <OverlayLoader isLoading={isLoading} />
+              <OverlayLoader isLoading={true} />
               <pre className="p-4 whitespace-pre-wrap font-mono text-sm">{result || t('dialog.codingRules.noResults')}</pre>
             </ScrollArea>
           </div>

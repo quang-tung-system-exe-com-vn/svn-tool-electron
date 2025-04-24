@@ -102,16 +102,16 @@
   },
   "svn": {
     "status": {
-      "added": "Đã thêm",
-      "modified": "Đã sửa đổi",
-      "deleted": "Đã xóa",
-      "replaced": "Đã thay thế",
+      "added": "Thêm",
+      "modified": "Sửa",
+      "deleted": "Xóa",
+      "replaced": "Thay thế",
       "conflicted": "Xung đột",
       "external": "Bên ngoài",
-      "ignored": "Bị bỏ qua",
-      "unversioned": "Chưa được quản lý phiên bản",
+      "ignored": "Bỏ qua",
+      "unversioned": "Chưa quản lý",
       "missing": "Thiếu",
-      "typeChanged": "Đã thay đổi kiểu"
+      "typeChanged": "Thay đổi kiểu"
     }
   },
   "settings": {

@@ -16,7 +16,7 @@ export const StatusIcon = ({ code, className }: Props) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Icon strokeWidth={1.5} className={`${className ?? 'w-4 h-4'} ${colorClass}`} />
+        <Icon strokeWidth={1} className={`${className ?? 'w-4 h-4'} ${colorClass}`} />
       </TooltipTrigger>
       <TooltipContent>{t(STATUS_TEXT[code])}</TooltipContent>
     </Tooltip>

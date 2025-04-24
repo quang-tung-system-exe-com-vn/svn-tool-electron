@@ -41,7 +41,7 @@ export const FONT_FAMILIES = [
   'merriweather',
   'fira-code',
   'source-code-pro',
-  'ubuntu'
+  'ubuntu',
 ] as const
 export const THEMES = [
   'theme-default',
@@ -49,12 +49,13 @@ export const THEMES = [
   'theme-dracula',
   'theme-solarized',
   'theme-github',
+  'theme-daylight',
   'theme-monokai',
   'theme-material',
   'theme-gruvbox',
   'theme-catppuccin',
   'theme-tokyo-night',
-  'theme-rose-pine'
+  'theme-rose-pine',
 ] as const
 export const BUTTON_VARIANTS = ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link'] as const
 export const LANGUAGES = [

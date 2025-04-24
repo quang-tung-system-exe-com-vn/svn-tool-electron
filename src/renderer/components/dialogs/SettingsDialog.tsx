@@ -254,7 +254,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                           className={fontSize === size ? 'ring-1 ring-offset-2 ring-primary font-medium' : 'font-normal'}
                           onClick={() => setFontSize(size)}
                         >
-                          {t(`fontSize.${size}`)}
+                          {t(`settings.fontSize.${size}`)}
                         </Button>
                       ))}
                     </div>
