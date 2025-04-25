@@ -109,9 +109,9 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         <div className="bg-card p-4 rounded-lg shadow-lg border max-w-md">
           <h3 className="flex flex-row gap-2 items-center font-semibold mb-2">
             <Download className="w-4 h-4" />
-            {t('dialog.appVersion.title')}
+            {t('dialog.updateApp.title')}
           </h3>
-          <p className="mb-2 text-[0.85rem]">{t('dialog.appVersion.appVersion', { 0: version })}</p>
+          <p className="mb-2 text-[0.85rem]">{t('dialog.updateApp.appVersion', { 0: version })}</p>
           <div className="flex justify-end gap-2 pt-5">
             <Button variant={variant} size="sm" onClick={() => sonner.dismiss(id)}>
               {t('common.cancel')}
