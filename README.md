@@ -1,15 +1,18 @@
 # SVNTool
 
 <!-- Optional: Badges -->
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Code Style: Biome](https://img.shields.io/badge/code%20style-biome-brightgreen)](https://biomejs.dev)
-[![Electron](https://img.shields.io/badge/Electron-143D66?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
-[![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white&style=flat)](https://reactjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-F26D20?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Electron](https://img.shields.io/badge/Electron-2C2E3B?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-20232a?logo=react&logoColor=61DAFB)](https://reactjs.org)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-0f172a?logo=tailwindcss&logoColor=white)](https://ui.shadcn.dev/)
+[![Biome](https://img.shields.io/badge/Biome-00C292?logo=data&logoColor=white)](https://biomejs.dev/)
+[![SVN](https://img.shields.io/badge/SVN-809CC9?logo=subversion&logoColor=white)](https://subversion.apache.org/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)](https://openai.com/)
+[![Microsoft Teams](https://img.shields.io/badge/MS%20Teams-6264A7?logo=microsoft-teams&logoColor=white)](https://teams.microsoft.com/)
+[![Email Support](https://img.shields.io/badge/Email-red?logo=gmail&logoColor=white)](mailto:quang-tung@system-exe.com.vn)
 
 <!-- Add other relevant badges if available/desired -->
 
