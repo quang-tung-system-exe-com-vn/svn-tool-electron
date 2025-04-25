@@ -5,7 +5,7 @@ import { LANGUAGES } from '@/components/shared/constants'
 import { useAppearanceStore, useButtonVariant } from '@/components/stores/useAppearanceStore'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
-import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
@@ -42,7 +42,7 @@ export function MainPage() {
       status: row.original.status,
     }))
     if (selectedFiles.length === 0) {
-      ToastMessageFunctions.warning(t('message.noFilesWarning'))
+      toast.warning(t('message.noFilesWarning'))
       return
     }
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
@@ -63,11 +63,11 @@ export function MainPage() {
       if (commitMessageRef.current) {
         commitMessageRef.current.value = openai_result
       }
-      ToastMessageFunctions.success(t('toast.generateSuccess'))
+      toast.success(t('toast.generateSuccess'))
       await updateProgress(50, 100, 1000)
       setLoadingGenerate(false)
     } else {
-      ToastMessageFunctions.error(message)
+      toast.error(message)
       if (commitMessageRef.current) {
         commitMessageRef.current.value = message ?? ''
       }
@@ -87,7 +87,7 @@ export function MainPage() {
   const commitCode = async () => {
     setProgress(0)
     if (!commitMessage.current) {
-      ToastMessageFunctions.warning(t('message.commitMessageWarning'))
+      toast.warning(t('message.commitMessageWarning'))
       return
     }
     const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
@@ -96,7 +96,7 @@ export function MainPage() {
       status: row.original.status,
     }))
     if (selectedFiles.length === 0) {
-      ToastMessageFunctions.warning(t('message.noFilesWarning'))
+      toast.warning(t('message.noFilesWarning'))
       return
     }
     setLoadingCommit(true)
@@ -108,7 +108,7 @@ export function MainPage() {
     if (status === 'success') {
       await updateProgress(50, 100, 1000)
       setLoadingCommit(false)
-      ToastMessageFunctions.success(t('toast.generateSuccess'))
+      toast.success(t('toast.generateSuccess'))
       if (tableRef.current) {
         tableRef.current.reloadData()
         setTimeout(() => {
@@ -119,7 +119,7 @@ export function MainPage() {
         commitMessageRef.current.value = ''
       }
     } else {
-      ToastMessageFunctions.error(message)
+      toast.error(message)
       setLoadingCommit(false)
     }
   }
@@ -218,7 +218,7 @@ export function MainPage() {
                     .map((row: any) => row.original.filePath)
 
                   if (selectedFiles.length === 0) {
-                    ToastMessageFunctions.warning(t('message.leastOneJavaFile'))
+                    toast.warning(t('message.leastOneJavaFile'))
                     return
                   }
                   window.api.electron.send(IPC.WINDOW.SPOTBUGS, selectedFiles)

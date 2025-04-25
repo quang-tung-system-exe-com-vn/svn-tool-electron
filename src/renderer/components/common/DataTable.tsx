@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
-import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
+import toast from '@/components/ui-elements/Toast'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import { t } from 'i18next'
@@ -141,7 +141,7 @@ async function changedFiles(): Promise<SvnFile[]> {
   const result = await window.api.svn.changed_files()
   const { status, message, data } = result
   if (status === 'error') {
-    ToastMessageFunctions.error(message)
+    toast.error(message)
     return [] as SvnFile[]
   }
   return data as SvnFile[]
@@ -186,7 +186,7 @@ export const DataTable = forwardRef((props, ref) => {
       const result = await changedFiles()
       setData(result)
     } catch (err) {
-      ToastMessageFunctions.error(err)
+      toast.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -255,7 +255,7 @@ export const DataTable = forwardRef((props, ref) => {
     try {
       window.api.svn.open_diff(filePath)
     } catch (error) {
-      ToastMessageFunctions.error(error)
+      toast.error(error)
     }
   }
 
@@ -267,9 +267,9 @@ export const DataTable = forwardRef((props, ref) => {
     const result = await window.api.svn.info(filePath)
     const { status, message, data } = result
     if (status === 'success') {
-      return ToastMessageFunctions.info(data)
+      return toast.info(data)
     }
-    ToastMessageFunctions.error(message)
+    toast.error(message)
   }
 
   const showLog = (filePath: string) => {
@@ -280,28 +280,28 @@ export const DataTable = forwardRef((props, ref) => {
     try {
       const result = await window.api.svn.revert(filePath)
       if (result.status === 'success') {
-        ToastMessageFunctions.success(`Reverted: ${filePath}`)
+        toast.success(`Reverted: ${filePath}`)
         reloadData()
       } else {
-        ToastMessageFunctions.error(result.message)
+        toast.error(result.message)
       }
     } catch (error) {
-      ToastMessageFunctions.error(`Error reverting file: ${error}`)
+      toast.error(`Error reverting file: ${error}`)
     }
   }
 
   const updateFile = async (filePath: string) => {
     try {
-      ToastMessageFunctions.info(`Updating: ${filePath}`)
+      toast.info(`Updating: ${filePath}`)
       const result = await window.api.svn.update(filePath)
       if (result.status === 'success') {
-        ToastMessageFunctions.success(`Updated: ${filePath}`)
+        toast.success(`Updated: ${filePath}`)
         reloadData()
       } else {
-        ToastMessageFunctions.error(result.message)
+        toast.error(result.message)
       }
     } catch (error) {
-      ToastMessageFunctions.error(`Error updating file: ${error}`)
+      toast.error(`Error updating file: ${error}`)
     }
   }
 

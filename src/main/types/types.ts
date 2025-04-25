@@ -37,5 +37,5 @@ type SupportFeedback = {
   type: 'support' | 'feedback'
   email: string
   message: string
-  images: string[] // Mảng các đường dẫn hình ảnh hoặc base64 string
+  images: string[]
 }

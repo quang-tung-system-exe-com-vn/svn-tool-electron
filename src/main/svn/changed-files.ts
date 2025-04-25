@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
+import log from 'electron-log'
 import configurationStore from '../store/ConfigurationStore'
 
 const execFileAsync = promisify(execFile)
@@ -108,10 +109,10 @@ export async function changedFiles() {
         })
       }
     }
-    console.log('✅ SVN status successfully retrieved with all files and folders')
+    log.info('✅ SVN status successfully retrieved with all files and folders')
     return { status: 'success', data: changedFiles }
   } catch (error) {
-    console.error('❌ changedFiles - SVN status error:', error)
+    log.error('❌ changedFiles - SVN status error:', error)
     return { status: 'error', message: error }
   }
 }

@@ -1,7 +1,8 @@
-import { isTextFile } from 'main/utils/utils'
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import log from 'electron-log'
+import { isTextFile } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
 interface SelectedFile {
   status: string
@@ -31,7 +32,7 @@ export async function getDiff(selectedFiles: SelectedFile[]) {
               diffResult += 'This file is empty. No content available.\n\n'
             }
           } catch (e: any) {
-            console.log(`⚠️ Error reading ${file}: ${e.message}`, 'error')
+            log.error(`⚠️ Error reading ${file}: ${e.message}`)
           }
         }
       }
@@ -81,7 +82,7 @@ export async function getDiff(selectedFiles: SelectedFile[]) {
         resolve({ status: 'success', data: diffResult.trim() })
       })
     } catch (err) {
-      console.error('❌ getDiff - SVN status error:', err)
+      log.error('❌ getDiff - SVN status error:', err)
       resolve({ status: 'error', message: err })
     }
   })

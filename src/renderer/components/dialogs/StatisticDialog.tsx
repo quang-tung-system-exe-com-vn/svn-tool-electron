@@ -1,13 +1,14 @@
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import logger from '@/services/logger'
 import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartIcon, LineChart as LineChartIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, Pie, PieChart, XAxis, YAxis } from 'recharts'
-import { toast } from 'sonner'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '../ui/chart'
 
@@ -68,8 +69,6 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
 
     try {
       setIsLoadingStatistics(true)
-      console.log(data)
-      // setStatisticsData(data)
       let options: any = { period: statisticsPeriod }
       if (dateRange?.from) {
         const dateFrom = dateRange.from.toISOString()
@@ -82,14 +81,14 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
       const result = await window.api.svn.statistics(filePath, options)
 
       if (result.status === 'success') {
-        console.log('Statistics data:', result.data, 'Options:', options)
+        logger.info('Statistics data:', result.data, 'Options:', options)
         setStatisticsData(result.data)
       } else {
         toast.error(result.message)
       }
     } catch (error) {
-      console.error('Error loading statistics data:', error)
-      toast.error(t('dialog.statisticSvn.dialog.statisticSvn.errorLoading')) // Translate error toast
+      logger.error('Error loading statistics data:', error)
+      toast.error(t('dialog.statisticSvn.dialog.statisticSvn.errorLoading'))
     } finally {
       setIsLoadingStatistics(false)
     }
@@ -102,9 +101,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
   }, [statisticsPeriod, isOpen, loadStatisticsData])
 
   const processedTotalDateData = useMemo(() => {
-    return [...(statisticsData?.commitsByDate ?? [])]
-      .map(item => ({ date: item.date, count: item.totalCount })) // Chỉ lấy date và totalCount (đổi tên thành count)
-      .sort((a, b) => a.date.localeCompare(b.date))
+    return [...(statisticsData?.commitsByDate ?? [])].map(item => ({ date: item.date, count: item.totalCount })).sort((a, b) => a.date.localeCompare(b.date))
   }, [statisticsData?.commitsByDate])
 
   const processedStackedDateData = useMemo(() => {

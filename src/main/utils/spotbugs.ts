@@ -1,10 +1,10 @@
-import { app } from 'electron'
-import log from 'electron-log'
-import { XMLParser } from 'fast-xml-parser'
 import { exec } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
+import { app } from 'electron'
+import log from 'electron-log'
+import { XMLParser } from 'fast-xml-parser'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
@@ -37,13 +37,11 @@ export async function runSpotBugs(filePaths: string[]): Promise<any> {
     }
     const absolutePaths = javaFiles.map(file => path.resolve(sourceFolder, file))
     const spotbugsPath = getSpotBugsPath()
-    const spotbugsExecutable = process.platform === 'win32'
-      ? path.join(spotbugsPath, 'bin', 'spotbugs.bat')
-      : path.join(spotbugsPath, 'bin', 'spotbugs')
+    const spotbugsExecutable = process.platform === 'win32' ? path.join(spotbugsPath, 'bin', 'spotbugs.bat') : path.join(spotbugsPath, 'bin', 'spotbugs')
     if (!fs.existsSync(spotbugsExecutable)) {
       return {
         status: 'error',
-        message: `SpotBugs executable not found at: ${spotbugsExecutable}`
+        message: `SpotBugs executable not found at: ${spotbugsExecutable}`,
       }
     }
     const outputXml = path.join(outputDir, 'spotbugs-result.xml')
@@ -68,7 +66,7 @@ export async function runSpotBugs(filePaths: string[]): Promise<any> {
       path.join(projectBaseDir, 'classes'),
       path.join(projectBaseDir, 'build'),
       path.join(projectBaseDir, 'target'),
-      sourceFolder
+      sourceFolder,
     ]
     let classDir = ''
     let foundClassFiles = false
@@ -84,7 +82,7 @@ export async function runSpotBugs(filePaths: string[]): Promise<any> {
       log.warn('Could not find any class directory')
       return {
         status: 'error',
-        message: 'Could not find any class directory. Please make sure your project is compiled.'
+        message: 'Could not find any class directory. Please make sure your project is compiled.',
       }
     }
     for (const javaFilePath of absolutePaths) {
@@ -132,7 +130,7 @@ export async function runSpotBugs(filePaths: string[]): Promise<any> {
       log.warn('Could not find any class files for the selected Java files')
       return {
         status: 'error',
-        message: 'Could not find any class files for the selected Java files. Please make sure your project is compiled.'
+        message: 'Could not find any class files for the selected Java files. Please make sure your project is compiled.',
       }
     }
     const classFileListPath = path.join(tempDir, 'class-files-to-analyze.txt')
@@ -148,24 +146,24 @@ export async function runSpotBugs(filePaths: string[]): Promise<any> {
     if (!fs.existsSync(outputXml)) {
       return {
         status: 'error',
-        message: 'SpotBugs analysis failed to generate output file'
+        message: 'SpotBugs analysis failed to generate output file',
       }
     }
     const xmlContent = fs.readFileSync(outputXml, 'utf-8')
     log.info(xmlContent)
     const note = `Note: SpotBugs analysis was performed on the compiled class files.
-    This provides more accurate results than analyzing source files directly.`;
+    This provides more accurate results than analyzing source files directly.`
     log.info(note)
     return {
       status: 'success',
       data: xmlContent,
-      analyzedFiles: javaFiles
+      analyzedFiles: javaFiles,
     }
   } catch (error) {
     log.error('Error running SpotBugs:', error)
     return {
       status: 'error',
-      message: error instanceof Error ? error.message : String(error)
+      message: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -176,7 +174,7 @@ export async function runSpotBugs(filePaths: string[]): Promise<any> {
  */
 export function parseSpotBugsResult(xmlContent: string): any {
   try {
-    console.log("Parsing SpotBugs XML result...");
+    log.info('Parsing SpotBugs XML result...')
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '',
@@ -184,100 +182,79 @@ export function parseSpotBugsResult(xmlContent: string): any {
       parseAttributeValue: true,
       allowBooleanAttributes: true,
       trimValues: true,
-    });
-    const jsonObj = parser.parse(xmlContent);
-    const bugCollection = jsonObj?.BugCollection;
-    console.log(bugCollection);
+    })
+    const jsonObj = parser.parse(xmlContent)
+    const bugCollection = jsonObj?.BugCollection
+    log.info(bugCollection)
     if (!bugCollection) {
-      throw new Error('Missing BugCollection root element');
+      throw new Error('Missing BugCollection root element')
     }
 
-    const bugCategories: Record<string, string> = {};
-    const bugCategoryList = Array.isArray(bugCollection.BugCategory)
-      ? bugCollection.BugCategory
-      : [bugCollection.BugCategory];
+    const bugCategories: Record<string, string> = {}
+    const bugCategoryList = Array.isArray(bugCollection.BugCategory) ? bugCollection.BugCategory : [bugCollection.BugCategory]
     for (const category of bugCategoryList) {
-      const { category: categoryName, Description } = category;
-      bugCategories[categoryName] = Description;
+      const { category: categoryName, Description } = category
+      bugCategories[categoryName] = Description
     }
-    console.log(`Found ${Object.keys(bugCategories).length} bug categories`);
+    log.info(`Found ${Object.keys(bugCategories).length} bug categories`)
 
-    const bugPatterns: Record<string, any> = {};
-    const bugPatternList = Array.isArray(bugCollection.BugPattern)
-      ? bugCollection.BugPattern
-      : [bugCollection.BugPattern];
+    const bugPatterns: Record<string, any> = {}
+    const bugPatternList = Array.isArray(bugCollection.BugPattern) ? bugCollection.BugPattern : [bugCollection.BugPattern]
     for (const bugPattern of bugPatternList) {
-      const { type, ShortDescription, Details } = bugPattern;
-      const details = Details?.['#text'] || Details?.CDATA || Details || '';
+      const { type, ShortDescription, Details } = bugPattern
+      const details = Details?.['#text'] || Details?.CDATA || Details || ''
       bugPatterns[type] = {
         type,
         shortDescription: ShortDescription,
         details: details.trim?.() || '',
-      };
+      }
     }
-    console.log(`Found ${Object.keys(bugPatterns).length} bug patterns`);
+    log.info(`Found ${Object.keys(bugPatterns).length} bug patterns`)
 
-    const bugInstances: any[] = [];
-    const bugInstanceList = bugCollection.BugInstance || [];
+    const bugInstances: any[] = []
+    const bugInstanceList = bugCollection.BugInstance || []
     bugInstanceList.forEach((bugInstance: any, index: number) => {
-      const {
-        type,
-        priority,
-        rank,
-        instanceHash,
-        category,
-        Method,
-        Class,
-        SourceLine,
-        ShortMessage,
-        LongMessage,
-        LocalVariable,
-        Property
-      } = bugInstance;
+      const { type, priority, rank, instanceHash, category, Method, Class, SourceLine, ShortMessage, LongMessage, LocalVariable, Property } = bugInstance
 
-      const id = instanceHash || `BUG-${index + 1}`;
-      const methodName = Method?.name || 'unknown';
-      const signature = Method?.signature || '()V';
-      const isStatic = Method?.isStatic === 'true';
-      const isPrimary = Method?.primary === 'true';
+      const id = instanceHash || `BUG-${index + 1}`
+      const methodName = Method?.name || 'unknown'
+      const signature = Method?.signature || '()V'
+      const isStatic = Method?.isStatic === 'true'
+      const isPrimary = Method?.primary === 'true'
 
       // Trích xuất thông tin SourceLine từ Method
-      const methodSourceLine = Method?.SourceLine || {};
-      const methodStartLine = methodSourceLine?.start || 0;
-      const methodEndLine = methodSourceLine?.end || 0;
-      const methodStartBytecode = methodSourceLine?.startBytecode || 0;
-      const methodEndBytecode = methodSourceLine?.endBytecode || 0;
+      const methodSourceLine = Method?.SourceLine || {}
+      const methodStartLine = methodSourceLine?.start || 0
+      const methodEndLine = methodSourceLine?.end || 0
+      const methodStartBytecode = methodSourceLine?.startBytecode || 0
+      const methodEndBytecode = methodSourceLine?.endBytecode || 0
 
       // Trích xuất thông tin Message từ Method
-      const methodMessage = Method?.Message || '';
+      const methodMessage = Method?.Message || ''
 
-      const className = Class?.classname || 'unknown';
-      const sourceFile = Class?.SourceLine?.sourcefile || 'unknown';
-      const startLine = SourceLine?.start || 0;
-      const endLine = SourceLine?.end || 0;
-      const shortMessage = ShortMessage || bugPatterns[type]?.shortDescription || type;
-      const longMessage = LongMessage || '';
-      let severity: 'High' | 'Medium' | 'Low' = 'Medium';
+      const className = Class?.classname || 'unknown'
+      const sourceFile = Class?.SourceLine?.sourcefile || 'unknown'
+      const startLine = SourceLine?.start || 0
+      const endLine = SourceLine?.end || 0
+      const shortMessage = ShortMessage || bugPatterns[type]?.shortDescription || type
+      const longMessage = LongMessage || ''
+      let severity: 'High' | 'Medium' | 'Low' = 'Medium'
 
-      if (Number.parseInt(priority) === 1) severity = 'High';
-      else if (Number.parseInt(priority) >= 3) severity = 'Low';
+      if (Number.parseInt(priority) === 1) severity = 'High'
+      else if (Number.parseInt(priority) >= 3) severity = 'Low'
 
       // Local Variable and Property extraction
-      const localVariableList = LocalVariable ? (Array.isArray(LocalVariable)
-        ? LocalVariable
-        : [LocalVariable]) : [];
+      const localVariableList = LocalVariable ? (Array.isArray(LocalVariable) ? LocalVariable : [LocalVariable]) : []
       const localVariables = localVariableList.map((lv: any) => ({
         name: lv?.name,
         message: lv?.Message,
-      }));
+      }))
 
-      const propertyList = Property ? (Array.isArray(Property)
-        ? Property
-        : [Property]) : [];
+      const propertyList = Property ? (Array.isArray(Property) ? Property : [Property]) : []
       const properties = propertyList.map((p: any) => ({
         name: p?.name,
         value: p?.value,
-      }));
+      }))
 
       bugInstances.push({
         id,
@@ -295,7 +272,7 @@ export function parseSpotBugsResult(xmlContent: string): any {
           endLine: methodEndLine,
           startBytecode: methodStartBytecode,
           endBytecode: methodEndBytecode,
-          message: methodMessage
+          message: methodMessage,
         },
         sourceFile,
         startLine,
@@ -306,23 +283,23 @@ export function parseSpotBugsResult(xmlContent: string): any {
         severity,
         categoryDescription: bugCategories[category || type.split('_')[0]] || '',
         localVariables,
-        properties
-      });
-    });
+        properties,
+      })
+    })
 
-    console.log(`Found ${bugInstances.length} bug instances`);
+    log.info(`Found ${bugInstances.length} bug instances`)
 
-    const projectName = bugCollection.Project?.projectName || '';
-    const summary = bugCollection.FindBugsSummary || {};
-    const timestamp = summary.timestamp || '';
-    const totalClasses = Number.parseInt(summary.total_classes) || 0;
-    const totalBugs = Number.parseInt(summary.total_bugs) || bugInstances.length;
-    const priority1 = Number.parseInt(summary.priority_1) || 0;
-    const priority2 = Number.parseInt(summary.priority_2) || 0;
-    const priority3 = Number.parseInt(summary.priority_3) || 0;
-    const high = bugInstances.filter(bug => bug.severity === 'High').length;
-    const medium = bugInstances.filter(bug => bug.severity === 'Medium').length;
-    const low = bugInstances.filter(bug => bug.severity === 'Low').length;
+    const projectName = bugCollection.Project?.projectName || ''
+    const summary = bugCollection.FindBugsSummary || {}
+    const timestamp = summary.timestamp || ''
+    const totalClasses = Number.parseInt(summary.total_classes) || 0
+    const totalBugs = Number.parseInt(summary.total_bugs) || bugInstances.length
+    const priority1 = Number.parseInt(summary.priority_1) || 0
+    const priority2 = Number.parseInt(summary.priority_2) || 0
+    const priority3 = Number.parseInt(summary.priority_3) || 0
+    const high = bugInstances.filter(bug => bug.severity === 'High').length
+    const medium = bugInstances.filter(bug => bug.severity === 'Medium').length
+    const low = bugInstances.filter(bug => bug.severity === 'Low').length
 
     const result = {
       projectName,
@@ -332,25 +309,25 @@ export function parseSpotBugsResult(xmlContent: string): any {
       bugsBySeverity: {
         high: high || priority1,
         medium: medium || priority2,
-        low: low || priority3
+        low: low || priority3,
       },
       bugPatterns,
       bugCategories,
-      bugInstances
-    };
+      bugInstances,
+    }
 
-    console.log(`Analysis complete. Found ${result.totalBugs} bugs.`);
-    return result;
+    log.info(`Analysis complete. Found ${result.totalBugs} bugs.`)
+    return result
   } catch (error) {
-    log.error('Error parsing SpotBugs result:', error);
+    log.error('Error parsing SpotBugs result:', error)
     return {
       totalBugs: 0,
       bugsBySeverity: {
         high: 0,
         medium: 0,
-        low: 0
+        low: 0,
       },
-      bugInstances: []
-    };
+      bugInstances: [],
+    }
   }
 }

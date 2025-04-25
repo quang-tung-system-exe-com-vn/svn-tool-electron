@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import toast from '@/components/ui-elements/Toast'
 import { create } from 'zustand'
 
 type Webhook = {

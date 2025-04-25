@@ -1,4 +1,5 @@
 import i18n from '@/lib/i18n'
+import logger from '@/services/logger'
 import { DiffEditor, type DiffOnMount, useMonaco } from '@monaco-editor/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -215,7 +216,6 @@ export function CodeDiffViewer() {
       },
     })
 
-    console.log(themeMode)
     const selectedTheme = themeMode === 'dark' ? 'custom-dark' : 'custom-light'
     monaco.editor.setTheme(selectedTheme)
   }, [monaco, themeMode, resolvedTheme])
@@ -245,7 +245,7 @@ export function CodeDiffViewer() {
       setOriginalCode(originalCode.data)
       setModifiedCode(modifiedCode)
     } catch (error) {
-      console.error('Error loading file for diff:', error)
+      logger.error('Error loading file for diff:', error)
     } finally {
       setIsLoading(false)
     }

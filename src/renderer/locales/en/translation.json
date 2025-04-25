@@ -91,6 +91,7 @@
     "generateSuccess": "Commit message generated successfully",
     "generateError": "Commit message generation error",
     "updateAvailable": "New update available!",
+    "isLatestVersion": "Everything's up to date.",
     "checkUpdates": "Check for Updates",
     "updatingMessage": "Updating SVN...",
     "updateSuccess": "SVN updated successfully",

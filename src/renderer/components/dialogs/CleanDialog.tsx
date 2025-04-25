@@ -1,4 +1,4 @@
-import ToastMessageFunctions from '@/components/ui-elements/ToastMessage'
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -97,9 +97,9 @@ export function CleanDialog({ open, onOpenChange }: CleanDialogProps) {
       if (onOpenChange) {
         onOpenChange(false)
       }
-      ToastMessageFunctions.success(t('dialog.cleanSvn.cleanSuccess'))
+      toast.success(t('dialog.cleanSvn.cleanSuccess'))
     } catch (error) {
-      ToastMessageFunctions.error(t('dialog.cleanSvn.cleanError'))
+      toast.error(t('dialog.cleanSvn.cleanError'))
     } finally {
       setIsLoading(false)
     }

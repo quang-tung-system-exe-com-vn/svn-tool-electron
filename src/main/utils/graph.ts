@@ -1,5 +1,6 @@
 import { Client } from '@microsoft/microsoft-graph-client'
 import axios from 'axios'
+import log from 'electron-log'
 import 'isomorphic-fetch'
 import configurationStore from '../store/ConfigurationStore'
 
@@ -27,11 +28,11 @@ const getAccessToken = async (): Promise<string> => {
         ...configurationStore.store,
         oneDriveRefreshToken: response.data.refresh_token,
       })
-      console.log('✅ Đã cập nhật refresh token mới')
+      log.info('✅ Đã cập nhật refresh token mới')
     }
     return response.data.access_token
   } catch (error: any) {
-    console.error(error.message)
+    log.error(error.message)
     if (error.response?.data?.error === 'invalid_grant') {
       throw new Error(error)
     }
@@ -53,9 +54,9 @@ export const getGraphClient = async (): Promise<Client> => {
     })
     return client
   } catch (error: any) {
-    console.error(error)
+    log.error(error)
     if (error.statusCode === 401 || error.body?.includes('401')) {
-      console.error(error)
+      log.error(error)
       throw new Error(error)
     }
     throw error

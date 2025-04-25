@@ -1,4 +1,5 @@
 'use client'
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -7,11 +8,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import logger from '@/services/logger'
 import { Cloud, Mail, Palette, Settings } from 'lucide-react'
 import type { Theme } from 'main/store/AppearanceStore'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+
 import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES, THEMES } from '../shared/constants'
 import { useAppearanceStore } from '../stores/useAppearanceStore'
 import { useConfigurationStore } from '../stores/useConfigurationStore'
@@ -56,7 +58,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   useEffect(() => {
     if (open) {
-      console.log('Running load functions...')
+      logger.info('Running load functions...')
       loadWebhookConfig()
       loadConfigurationConfig()
       loadMailServerConfig()

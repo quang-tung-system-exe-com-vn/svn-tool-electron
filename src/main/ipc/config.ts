@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises'
+import path, { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { IPC } from 'main/constants'
 import { sendSupportFeedbackToTeams } from 'main/notification/sendTeams'
@@ -8,14 +11,11 @@ import { cleanup } from 'main/svn/cleanup'
 import { commit } from 'main/svn/commit'
 import { getDiff } from 'main/svn/get-diff'
 import { info } from 'main/svn/info'
-import { type LogOptions, log } from 'main/svn/log'
+import { type LogOptions, log as logSvn } from 'main/svn/log'
 import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
 import { type StatisticsOptions, getStatistics } from 'main/svn/statistics'
 import { update } from 'main/svn/update'
-import { readFile } from 'node:fs/promises'
-import path, { join, resolve } from 'node:path'
-import { format } from 'node:url'
 import OpenAI from 'openai'
 import { ENVIRONMENT } from 'shared/constants'
 import appearanceStore from '../store/AppearanceStore'
@@ -24,9 +24,10 @@ import mailServerStore from '../store/MailServerStore'
 import webhookStore from '../store/WebhookStore'
 import { parseSpotBugsResult, runSpotBugs } from '../utils/spotbugs'
 const { sourceFolder } = configurationStore.store
+import log from 'electron-log'
 
 export function registerConfigIpcHandlers() {
-  console.log('✅ Config ipc handlers registered')
+  log.info('✅ Config ipc handlers registered')
 
   ipcMain.on(IPC.WINDOW.ACTION, async (event, action, data) => {
     const win = BrowserWindow.getFocusedWindow()
@@ -45,7 +46,7 @@ export function registerConfigIpcHandlers() {
       case 'refresh-spotbugs':
         try {
           const filePaths = win.webContents.getTitle().includes('spotbugs') ? (win as any).filePaths || [] : []
-          console.log(win.webContents.getTitle())
+          log.info(win.webContents.getTitle())
           if (filePaths.length > 0) {
             const result = await runSpotBugs(filePaths)
             if (result.status === 'success') {
@@ -62,7 +63,7 @@ export function registerConfigIpcHandlers() {
             }
           }
         } catch (error) {
-          console.error('Error refreshing SpotBugs:', error)
+          log.error('Error refreshing SpotBugs:', error)
           win.webContents.send('load-diff-data', {
             filePaths: [],
             error: error instanceof Error ? error.message : String(error),
@@ -251,7 +252,7 @@ export function registerConfigIpcHandlers() {
           })
         }
       } catch (error) {
-        console.error('Error running SpotBugs:', error)
+        log.error('Error running SpotBugs:', error)
         spotbugsWindow.webContents.send('load-diff-data', {
           filePaths,
           error: error instanceof Error ? error.message : String(error),
@@ -284,13 +285,13 @@ export function registerConfigIpcHandlers() {
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
   ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string) => await revert(filePath))
   ipcMain.handle(IPC.SVN.CLEANUP, async (_event, options?: string[]) => await cleanup(options))
-  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string, options?: LogOptions) => await log(filePath, options))
+  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string, options?: LogOptions) => await logSvn(filePath, options))
   ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string) => await update(filePath))
   ipcMain.handle(IPC.SVN.STATISTICS, async (_event, filePath: string, options?: StatisticsOptions) => await getStatistics(filePath, options))
 
   ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, { prompt }) => {
     try {
-      console.log('Send message to openAI...')
+      log.info('Send message to openAI...')
       const { openaiApiKey } = configurationStore.store
       const openai = new OpenAI({ apiKey: openaiApiKey })
       const response = await openai.chat.completions.create({
@@ -304,7 +305,7 @@ export function registerConfigIpcHandlers() {
   })
 
   ipcMain.handle(IPC.SYSTEM.OPEN_FOLDER, async () => {
-    console.log('Open folder...')
+    log.info('Open folder...')
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory'],
     })
@@ -335,7 +336,7 @@ export function registerConfigIpcHandlers() {
   })
 
   ipcMain.handle(IPC.NOTIFICATIONS.SEND_SUPPORT_FEEDBACK, async (_event, data: SupportFeedback) => {
-    console.log('Received support/feedback data:', data)
+    log.info('Received support/feedback data:', data)
     try {
       const result = await sendSupportFeedbackToTeams(data)
       if (result.success) {
@@ -343,7 +344,7 @@ export function registerConfigIpcHandlers() {
       }
       return { status: 'error', message: result.error || 'Failed to send feedback.' }
     } catch (error: any) {
-      console.error('Error handling SEND_SUPPORT_FEEDBACK IPC:', error)
+      log.error('Error handling SEND_SUPPORT_FEEDBACK IPC:', error)
       return { status: 'error', message: error.message || 'An internal error occurred.' }
     }
   })

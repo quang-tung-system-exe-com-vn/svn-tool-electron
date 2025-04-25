@@ -1362,6 +1362,7 @@
       background-position: 100% 50%;
     }
   }
+
   .border-effect::before {
     content: "";
     position: absolute;
@@ -1382,14 +1383,14 @@
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: calc(var(--radius) - 2px);
+    border-radius: 5px;
+    z-index: 1000;
     padding: 1px;
     background: linear-gradient(270deg, #f43f5e, #8b5cf6, #3b82f6, #f43f5e);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
-
     animation: gradient-animation 5s linear infinite;
   }
 

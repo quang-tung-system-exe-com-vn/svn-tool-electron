@@ -1,3 +1,4 @@
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -5,11 +6,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import logger from '@/services/logger'
 import { ImagePlus, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
-import ToastMessageFunctions from '../ui-elements/ToastMessage'
 
 interface SupportFeedbackDialogProps {
   open: boolean
@@ -33,11 +34,11 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
     (acceptedFiles: File[]) => {
       const filesToProcess = images.length + acceptedFiles.length > 5 ? acceptedFiles.slice(0, 5 - images.length) : acceptedFiles
       if (images.length + acceptedFiles.length > 5) {
-        ToastMessageFunctions.warning(t('dialog.supportFeedback.tooManyImages'))
+        toast.warning(t('dialog.supportFeedback.tooManyImages'))
       }
       for (const file of filesToProcess) {
         if (!file.type.startsWith('image/')) {
-          ToastMessageFunctions.warning(t('dialog.supportFeedback.onlyImages'))
+          toast.warning(t('dialog.supportFeedback.onlyImages'))
           continue
         }
         const reader = new FileReader()
@@ -76,7 +77,7 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
 
   const handleSend = async () => {
     if (!validateEmail(email) || !message) {
-      ToastMessageFunctions.warning(t('dialog.supportFeedback.validationWarning'))
+      toast.warning(t('dialog.supportFeedback.validationWarning'))
       return
     }
 
@@ -89,18 +90,18 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         images,
       })
       if (result.status === 'success') {
-        ToastMessageFunctions.success(t('dialog.supportFeedback.sendSuccess'))
+        toast.success(t('dialog.supportFeedback.sendSuccess'))
         setEmail('')
         setMessage('')
         setImages([])
         onOpenChange(false)
       } else {
-        console.error('Error sending feedback:', result.message)
-        ToastMessageFunctions.error(result.message)
+        logger.error('Error sending feedback:', result.message)
+        toast.error(result.message)
       }
     } catch (error: any) {
-      console.error('Error sending feedback IPC:', error)
-      ToastMessageFunctions.error(error.message)
+      logger.error('Error sending feedback IPC:', error)
+      toast.error(error.message)
     } finally {
       setIsSending(false)
     }

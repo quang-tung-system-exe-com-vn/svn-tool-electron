@@ -1,6 +1,7 @@
 import { exec } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import log from 'electron-log'
 import { sendTeams } from 'main/notification/sendTeams'
 import { listAllFilesRecursive } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
@@ -61,25 +62,25 @@ export async function commit(commitMessage: string, violations: string, selected
 
   const targetFiles = getMinimalParentFolders(finalDeletedPaths)
   if (finalDeletedPaths.length > 0) {
-    console.log('▶️ Deleting files...', targetFiles)
+    log.info('▶️ Deleting files...', targetFiles)
     const deleteResult = await runSVNCommand('delete', targetFiles)
     if (deleteResult.status === 'error') {
-      console.error('🛑 Deletion failed:', deleteResult.message)
+      log.error('🛑 Deletion failed:', deleteResult.message)
       return { status: 'error', message: `${deleteResult.message}` }
     }
-    console.log('🗑️ Deleted missing files:', deleteResult.message)
+    log.info('🗑️ Deleted missing files:', deleteResult.message)
     deletedFilePaths = extractFilePaths(deleteResult.message)
   }
 
   // Handle added (unversioned) files
   if (addedFiles.length > 0) {
-    console.log('▶️ Adding files...')
+    log.info('▶️ Adding files...')
     const addResult = await runSVNCommand('add', addedFiles)
     if (addResult.status === 'error') {
-      console.error('🛑 Add files failed:', addResult.message)
+      log.error('🛑 Add files failed:', addResult.message)
       return { status: 'error', message: `${addResult.message}` }
     }
-    console.log('▶️ Added unversioned files:', addResult.message)
+    log.info('▶️ Added unversioned files:', addResult.message)
     addedFilePaths = extractFilePaths(addResult.message)
   }
 
@@ -90,10 +91,10 @@ export async function commit(commitMessage: string, violations: string, selected
       const escapedMessage = `"${commitMessage.replace(/"/g, '\\"')}"`
       const commitResult = await runSVNCommand('commit', allFiles, escapedMessage)
       if (commitResult.status === 'error') {
-        console.error('🛑 Commit failed:', commitResult.message)
+        log.error('🛑 Commit failed:', commitResult.message)
         return { status: 'error', message: `${commitResult.message}` }
       }
-      console.log('✅ Commit successful:', commitResult.message)
+      log.info('✅ Commit successful:', commitResult.message)
 
       const commitUser = (await findUser()) ?? ''
       const commitTime = new Intl.DateTimeFormat('sv-SE', {
@@ -121,7 +122,7 @@ export async function commit(commitMessage: string, violations: string, selected
       return { status: 'error', message: `${error?.message ?? error}` }
     }
   } else {
-    console.log('✅ No changes to commit.')
+    log.info('✅ No changes to commit.')
     return { status: 'success', message: 'No changes to commit.' }
   }
 }
@@ -155,13 +156,13 @@ async function runSVNCommand(command: string, selectedFiles: string[], commitMes
       }
 
       const fullCommand = `${svnExePath} ${command} ${modifiedArgs.join(' ')}`.trim()
-      console.log(`✏️ Command ${command}: ${fullCommand}`)
+      log.info(`✏️ Command ${command}: ${fullCommand}`)
       exec(fullCommand, { cwd: sourceFolder }, (error, stdout, stderr) => {
         if (error) {
-          console.error(`🛑 Error: ${stderr || error.message}`)
+          log.error(`🛑 Error: ${stderr || error.message}`)
           batchReject({ status: 'error', message: stderr || error.message })
         } else {
-          console.log(`✅ ${stdout}`)
+          log.info(`✅ ${stdout}`)
           batchResolve({ status: 'success', message: stdout })
         }
       })
@@ -189,7 +190,7 @@ async function runSVNCommand(command: string, selectedFiles: string[], commitMes
     }
   }
 
-  console.log('Batch processed successfully:', filePaths)
+  log.info('Batch processed successfully:', filePaths)
   return { status: 'success', message: filePaths.toString() }
 }
 

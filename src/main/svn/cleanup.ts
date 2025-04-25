@@ -1,5 +1,6 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
+import log from 'electron-log'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
@@ -31,7 +32,7 @@ export async function cleanup(options?: string[]): Promise<SVNResponse> {
     // Gọi cleanup với args hợp lệ
     const fullCommand = `${command} ${args.join(' ')}`.trim()
     const result = await execPromise(fullCommand, { cwd: sourceFolder })
-    console.log(fullCommand)
+    log.info(fullCommand)
 
     // Xử lý logic bổ sung
     if (customOps.includes('metadata')) {

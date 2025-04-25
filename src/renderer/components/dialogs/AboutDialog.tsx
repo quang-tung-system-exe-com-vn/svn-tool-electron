@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import logger from '@/services/logger'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 interface InfoDialogProps {
@@ -19,7 +20,7 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
           const version = await window.api.updater.get_version()
           setAppVersion(version)
         } catch (error) {
-          console.error('Error getting app version:', error)
+          logger.error('Error getting app version:', error)
         }
       }
 

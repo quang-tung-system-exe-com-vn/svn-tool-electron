@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import log from 'electron-log'
 import { isText } from './istextorbinary'
 
 export function listAllFilesRecursive(dirPath: string): string[] {
@@ -28,7 +29,7 @@ export function isTextFile(filePath: string, status: string, sourceFolder: strin
   if (status === '?') {
     const absolutePath = path.resolve(sourceFolder, filePath.replace(/\\\\/g, '\\'))
     const isDirectory = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()
-    console.log('isDirectory: ', absolutePath, isDirectory)
+    log.info('isDirectory: ', absolutePath, isDirectory)
     if (isDirectory) {
       return false
     }

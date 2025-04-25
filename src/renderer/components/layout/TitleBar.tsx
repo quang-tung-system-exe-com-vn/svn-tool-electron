@@ -1,10 +1,12 @@
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import logger from '@/services/logger'
 import { CircleArrowDown, Download, Eraser, FileText, Info, LifeBuoy, Minus, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { toast as sonner } from 'sonner'
 import { InfoDialog } from '../dialogs/AboutDialog'
 import { CleanDialog } from '../dialogs/CleanDialog'
 import { NewRevisionDialog } from '../dialogs/NewRevisionDialog'
@@ -13,7 +15,6 @@ import { SupportFeedbackDialog } from '../dialogs/SupportFeedbackDialog'
 import type { SvnStatusCode } from '../shared/constants'
 import { useButtonVariant } from '../stores/useAppearanceStore'
 import { GlowLoader } from '../ui-elements/GlowLoader'
-import ToastMessageFunctions from '../ui-elements/ToastMessage'
 
 interface TitleBarProps {
   isLoading: boolean
@@ -42,7 +43,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
 
   const [svnInfo, setSvnInfo] = useState<SvnInfo>({ author: '', revision: '', date: '', curRevision: '', commitMessage: '', changedFiles: [] })
   const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
-  const [resetSvnUpdateIndicator, setResetSvnUpdateIndicator] = useState(false)
 
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
@@ -51,7 +51,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   useEffect(() => {
     const handler = (_event: any, data: any) => {
       setStatus(data.status)
-      console.log(data)
+      logger.info(data)
       if (data.status === 'available') {
         if (data.version) {
           setAppVersion(`v${data.version}`)
@@ -72,26 +72,26 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
           setAppVersion(`v${result.version}`)
         }
       } catch (error) {
-        console.error('Error checking for app updates:', error)
+        logger.error('Error checking for app updates:', error)
       }
     }
     const checkSvnUpdates = async () => {
       try {
         const { status, data, message } = await window.api.svn.info('.')
         if (status === 'success') {
-          console.log(data)
+          logger.info(data)
           setHasSvnUpdate(true)
           setSvnInfo(data)
           setShowSvnUpdateDialog(true)
         } else if (status === 'no-change') {
-          console.log('Không có thay đổi')
+          logger.info('Không có thay đổi')
           setHasSvnUpdate(false)
           setSvnInfo(data)
         } else {
-          console.error('Lỗi SVN:', message)
+          logger.error('Lỗi SVN:', message)
         }
       } catch (error) {
-        console.error('Error checking for SVN updates:', error)
+        logger.error('Error checking for SVN updates:', error)
       }
     }
     checkAppUpdates()
@@ -103,14 +103,8 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     return () => clearInterval(interval)
   }, [])
 
-  useEffect(() => {
-    if (resetSvnUpdateIndicator) {
-      setHasSvnUpdate(false)
-    }
-  }, [resetSvnUpdateIndicator])
-
   const showUpdateToast = (version?: string) => {
-    toast.custom(
+    sonner.custom(
       id => (
         <div className="bg-card p-4 rounded-lg shadow-lg border max-w-md">
           <h3 className="flex flex-row gap-2 items-center font-semibold mb-2">
@@ -119,7 +113,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
           </h3>
           <p className="mb-2 text-[0.85rem]">{t('dialog.appVersion.appVersion', { 0: version })}</p>
           <div className="flex justify-end gap-2 pt-5">
-            <Button variant={variant} size="sm" onClick={() => toast.dismiss(id)}>
+            <Button variant={variant} size="sm" onClick={() => sonner.dismiss(id)}>
               {t('common.cancel')}
             </Button>
             <Button
@@ -129,9 +123,9 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                 try {
                   await window.api.updater.install_updates()
                 } catch (error) {
-                  ToastMessageFunctions.error(error)
+                  toast.error(error)
                 }
-                toast.dismiss(id)
+                sonner.dismiss(id)
               }}
             >
               {t('common.install')}
@@ -149,7 +143,8 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   const checkForUpdates = async () => {
     if (status === 'downloaded') {
       showUpdateToast(appVersion)
-      return
+    } else {
+      toast.info(t('toast.isLatestVersion'))
     }
   }
 
@@ -180,20 +175,20 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   }
 
   const handleSvnUpdate = () => {
-    ToastMessageFunctions.info(t('Updating SVN...'))
+    toast.info(t('Updating SVN...'))
     window.api.svn
       .update()
       .then(result => {
         if (result.status === 'success') {
           setShowSvnUpdateDialog(false)
-          setHasSvnUpdate(false) // Reset indicator
-          ToastMessageFunctions.success(t('SVN updated successfully'))
+          setHasSvnUpdate(false)
+          toast.success(t('SVN updated successfully'))
         } else {
-          ToastMessageFunctions.error(result.message)
+          toast.error(result.message)
         }
       })
       .catch((error: Error) => {
-        ToastMessageFunctions.error(error.message || 'Error updating SVN')
+        toast.error(error.message || 'Error updating SVN')
       })
   }
 

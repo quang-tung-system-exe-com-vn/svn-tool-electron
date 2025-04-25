@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
+import log from 'electron-log'
 import configurationStore from '../store/ConfigurationStore'
 
 const execFileAsync = promisify(execFile)
@@ -16,7 +17,7 @@ export async function getRepositoryRoot() {
 
     return stdout.trim()
   } catch (error) {
-    console.log(`Error for get Repository Root: ${error}`, 'error')
+    log.error(`Error for get Repository Root: ${error}`)
     return null
   }
 }
@@ -45,7 +46,7 @@ export async function getLocalUser(): Promise<[string, string][] | null> {
 
     return credentials
   } catch (error) {
-    console.log(`Error for get SVN auth: ${error}`, 'error')
+    log.error(`Error for get SVN auth: ${error}`)
     return null
   }
 }

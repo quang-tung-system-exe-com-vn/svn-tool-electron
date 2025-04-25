@@ -92,6 +92,7 @@
     "generateSuccess": "コミットメッセージの生成が成功しました",
     "generateError": "コミットメッセージの生成中にエラーが発生しました",
     "updateAvailable": "新しいアップデートが利用可能です！",
+    "isLatestVersion": "すべて最新の状態です。",
     "checkUpdates": "アップデートを確認",
     "updatingMessage": "SVNを更新中...",
     "updateSuccess": "SVNの更新が成功しました",

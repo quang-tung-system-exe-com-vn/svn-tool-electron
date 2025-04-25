@@ -1,4 +1,5 @@
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
+import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
@@ -6,13 +7,13 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import i18n from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import logger from '@/services/logger'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import chalk from 'chalk'
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 import { StatisticDialog } from '../dialogs/StatisticDialog'
 import { STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { StatusIcon } from '../ui-elements/StatusIcon'
@@ -233,7 +234,7 @@ export function ShowLog() {
           .filter(entry => entry)
 
         if (entries.length !== backendTotal && backendTotal > 0) {
-          console.warn(chalk.yellow.bold(`Số entries parse (${entries.length}) khác với total từ backend (${backendTotal})!`))
+          logger.warning(chalk.yellow.bold(`Số entries parse (${entries.length}) khác với total từ backend (${backendTotal})!`))
         }
         const parsedEntries: LogEntry[] = []
         const addedRevisions = new Set<string>()
@@ -272,7 +273,7 @@ export function ShowLog() {
             })
             addedRevisions.add(revisionStr)
           } else {
-            console.warn(chalk.yellow.bold(`Skipping duplicate revision entry found during frontend parsing: r${revisionStr}`))
+            logger.warning(`Skipping duplicate revision entry found during frontend parsing: r${revisionStr}`)
           }
         }
 

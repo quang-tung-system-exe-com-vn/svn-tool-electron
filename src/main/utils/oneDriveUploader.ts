@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import log from 'electron-log'
 import { getGraphClient } from './graph'
 
 const UPLOAD_FOLDER = 'SVNTool_Uploads'
@@ -35,7 +36,7 @@ export const retryOperation = async <T>(op: () => Promise<T>, max = 3, initDelay
       lastError = err
       const sc = err?.statusCode
       if (sc && sc !== 429 && sc < 500) throw err
-      console.warn(`Retry ${i}/${max} sau ${delay} ms ...`)
+      log.warn(`Retry ${i}/${max} sau ${delay} ms ...`)
       await new Promise(r => setTimeout(r, delay))
       delay *= 2
     }
@@ -76,7 +77,7 @@ export const uploadImageToOneDrive = async (dataUrl: string, originalName: strin
     graph.api(`/me/drive/items/${itemId}/createLink`).headers({ 'Content-Type': 'application/json' }).post({ type: 'view', scope: 'anonymous' })
   )
 
-  console.log('✅ Upload thành công:', unique)
+  log.info('✅ Upload thành công:', unique)
   return share?.link?.webUrl as string
 }
 
@@ -94,7 +95,7 @@ export const uploadImagesToOneDrive = async (images: string[], feedbackUuid?: st
       const url = await uploadImageToOneDrive(images[i], name, uuid)
       urls.push(url)
     } catch (err: any) {
-      console.error(`❌ Upload ảnh ${i + 1} thất bại:`, err?.message || err)
+      log.error(`❌ Upload ảnh ${i + 1} thất bại:`, err?.message || err)
       if (err?.statusCode === 401 || err?.statusCode === 403) throw err
     }
   }
@@ -112,7 +113,7 @@ function parseBase64(dataUrl: string): { mimeType: string; binary: Buffer | Arra
   let [, mimeType, b64] = m
   const validImageMimeTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
   if (!validImageMimeTypes.includes(mimeType)) {
-    console.warn(`⚠️ MIME không hợp lệ (${mimeType}), fallback về image/png`)
+    log.warn(`⚠️ MIME không hợp lệ (${mimeType}), fallback về image/png`)
     mimeType = 'image/png'
   }
   if (typeof Buffer !== 'undefined') {
@@ -189,7 +190,7 @@ async function ensureUploadFolder(graph: any, dateFolder?: string, uuid?: string
 }
 
 async function resumableUpload(graph: any, itemPath: string, mimeType: string, binary: Buffer | ArrayBuffer): Promise<any> {
-  console.log('resumableUpload')
+  log.info('resumableUpload')
   const session = (await retryOperation(() =>
     graph
       .api(`${itemPath}:/createUploadSession`)

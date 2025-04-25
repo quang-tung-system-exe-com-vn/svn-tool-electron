@@ -1,11 +1,11 @@
 import { useAppearanceStore } from '@/components/stores/useAppearanceStore'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
+import toast from '@/components/ui-elements/Toast'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import i18n from '@/lib/i18n'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES } from '../shared/constants'
-import ToastMessageFunctions from '../ui-elements/ToastMessage'
 import { CheckCodingRulesToolbar } from './CheckCodingRulesToolbar'
 
 window.addEventListener('storage', event => {
@@ -45,7 +45,7 @@ export function CheckCodingRules() {
 
   const handleRefresh = async (selectedFiles: any[]) => {
     if (selectedFiles.length === 0) {
-      ToastMessageFunctions.warning(t('message.noFilesWarning'))
+      toast.warning(t('message.noFilesWarning'))
       return
     }
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
@@ -63,9 +63,9 @@ export function CheckCodingRules() {
       const openai_result = await window.api.openai.send_message(params)
       setResult(openai_result)
       setIsLoading(false)
-      ToastMessageFunctions.success(t('toast.checkSuccess'))
+      toast.success(t('toast.checkSuccess'))
     } else {
-      ToastMessageFunctions.error(message)
+      toast.error(message)
       setIsLoading(false)
     }
   }

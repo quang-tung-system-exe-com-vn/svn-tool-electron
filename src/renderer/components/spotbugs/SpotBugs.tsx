@@ -1,12 +1,13 @@
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
+import toast from '@/components/ui-elements/Toast'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import logger from '@/services/logger'
 import { AlertCircle, AlertTriangle, Bug, FileCode, Info } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 import { SpotbugsToolbar } from './SpotbugsToolbar'
 
 interface BugInstance {
@@ -82,7 +83,7 @@ export function SpotBugs() {
         return
       }
       if (data.spotbugsResult) {
-        console.log('SpotBugs result:', data.spotbugsResult)
+        logger.info('SpotBugs result:', data.spotbugsResult)
         setSpotbugsResult(data.spotbugsResult)
         if (data.spotbugsResult.bugInstances.length > 0) {
           setSelectedBug(data.spotbugsResult.bugInstances[0])

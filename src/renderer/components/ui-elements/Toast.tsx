@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button'
-import chalk from 'chalk'
+import logger from '@/services/logger'
 import { t } from 'i18next'
 import { Copy } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast as sonner } from 'sonner'
 
 interface ToastMessageProps {
   message: string
@@ -32,34 +32,34 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ message, type }) => {
   )
 }
 
-const ToastMessageFunctions = {
+const toast = {
   success: (message: string) => {
-    console.log(chalk.green.bold('[SUCCESS]'), message)
-    toast(t('toast.success'), {
+    logger.success(message)
+    sonner(t('toast.success'), {
       description: <ToastMessage message={message} type="success" />,
       className: 'toast-success',
     })
   },
 
   info: (message: string) => {
-    console.log(chalk.cyan.bold('[INFO]'), message)
-    toast(t('toast.info'), {
+    logger.info(message)
+    sonner(t('toast.info'), {
       description: <ToastMessage message={message} type="info" />,
       className: 'toast-info',
     })
   },
 
   warning: (message: string) => {
-    console.log(chalk.yellow.bold('[WARNING]'), message)
-    toast(t('toast.warning'), {
+    logger.warning(message)
+    sonner(t('toast.warning'), {
       description: <ToastMessage message={message} type="warning" />,
       className: 'toast-warning',
     })
   },
 
   error: (message: any) => {
-    console.log(chalk.red.bold('[ERROR]'), message)
-    toast(t('toast.error'), {
+    logger.error(message)
+    sonner(t('toast.error'), {
       description: <ToastMessage message={message} type="error" />,
       className: 'toast-error',
     })
@@ -87,4 +87,4 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ content, children }) => {
   )
 }
 
-export default ToastMessageFunctions
+export default toast

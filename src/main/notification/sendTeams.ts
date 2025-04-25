@@ -1,9 +1,10 @@
+import { randomUUID } from 'node:crypto'
 import os from 'node:os'
 import axios from 'axios'
 import { app } from 'electron'
+import log from 'electron-log'
 import configurationStore from '../store/ConfigurationStore'
 import { uploadImagesToOneDrive } from '../utils/oneDriveUploader'
-import { randomUUID } from 'node:crypto'
 
 function createCommitInfoCard(data: CommitInfo) {
   const { commitUser, commitTime, commitMessage, violations, addedFiles, modifiedFiles, deletedFiles } = data
@@ -124,13 +125,13 @@ function createCommitInfoCard(data: CommitInfo) {
   }
 
   baseCard.actions[2].card.body = changedFilesCard
-  console.log('✅ Adaptive card created!')
+  log.info('✅ Adaptive card created!')
   return baseCard
 }
 
 export async function sendTeams(data: CommitInfo): Promise<void> {
   try {
-    console.log('🎯 Sending card to MS Teams...')
+    log.info('🎯 Sending card to MS Teams...')
     const { webhookMS } = configurationStore.store
     const adaptiveCard = createCommitInfoCard(data)
     const payload = {
@@ -148,12 +149,12 @@ export async function sendTeams(data: CommitInfo): Promise<void> {
     })
 
     if (response.status < 300) {
-      console.log('✅ Adaptive card sent to MS Teams successfully!')
+      log.info('✅ Adaptive card sent to MS Teams successfully!')
     } else {
-      console.log(`Failed to send adaptive card to MS Teams: ${response.status}`, 'error')
+      log.error(`Failed to send adaptive card to MS Teams: ${response.status}`)
     }
   } catch (err) {
-    console.log(`Error sending adaptive card: ${err}`, 'error')
+    log.error(`Error sending adaptive card: ${err}`)
   }
 }
 
@@ -224,11 +225,11 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
 
 export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log('🎯 Sending Support/Feedback card to MS Teams...')
+    log.info('🎯 Sending Support/Feedback card to MS Teams...')
     const { webhookMS, oneDriveClientId, oneDriveRefreshToken } = configurationStore.store
 
     if (!webhookMS) {
-      console.error('MS Teams Webhook URL is not configured.')
+      log.error('MS Teams Webhook URL is not configured.')
       return { success: false, error: 'MS Teams Webhook URL is not configured.' }
     }
 
@@ -236,19 +237,19 @@ export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise
     if (data.images && data.images.length > 0) {
       try {
         if (!oneDriveClientId || !oneDriveRefreshToken) {
-          console.warn('OneDrive is not fully configured. Images will be skipped.')
+          log.warn('OneDrive is not fully configured. Images will be skipped.')
           return { success: false, error: 'OneDrive chưa được cấu hình đầy đủ. Vui lòng kiểm tra Client ID và Refresh Token trong phần cài đặt OneDrive.' }
         }
 
         // Tạo UUID cho feedback này
         const feedbackUuid = randomUUID()
-        console.log(`Uploading ${data.images.length} images to OneDrive folder with UUID: ${feedbackUuid}...`)
+        log.info(`Uploading ${data.images.length} images to OneDrive folder with UUID: ${feedbackUuid}...`)
 
         // Sử dụng UUID khi upload ảnh để tất cả ảnh được lưu trong cùng một thư mục
         imageUrls = await uploadImagesToOneDrive(data.images, feedbackUuid)
-        console.log(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
+        log.info(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
       } catch (uploadError: any) {
-        console.error('Error uploading images to OneDrive:', uploadError)
+        log.error('Error uploading images to OneDrive:', uploadError)
       }
     }
 
@@ -268,13 +269,13 @@ export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise
     })
 
     if (response.status < 300) {
-      console.log('✅ Support/Feedback card sent to MS Teams successfully!')
+      log.info('✅ Support/Feedback card sent to MS Teams successfully!')
       return { success: true }
     }
-    console.error(`Failed to send Support/Feedback card to MS Teams: ${response.status}`)
+    log.error(`Failed to send Support/Feedback card to MS Teams: ${response.status}`)
     return { success: false, error: `Failed to send message (Status: ${response.status})` }
   } catch (err: any) {
-    console.error(`Error sending Support/Feedback card: ${err.message}`)
+    log.error(`Error sending Support/Feedback card: ${err.message}`)
     return { success: false, error: err.message || 'An unknown error occurred' }
   }
 }

@@ -92,6 +92,7 @@
     "generateSuccess": "Tạo thông điệp commit thành công",
     "generateError": "Lỗi tạo thông điệp commit",
     "updateAvailable": "Có bản cập nhật mới!",
+    "isLatestVersion": "Mọi thứ đã được cập nhật.",
     "checkUpdates": "Kiểm tra cập nhật",
     "updatingMessage": "Đang cập nhật SVN...",
     "updateSuccess": "Cập nhật SVN thành công",

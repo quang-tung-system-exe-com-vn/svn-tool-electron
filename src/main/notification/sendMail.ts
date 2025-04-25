@@ -1,3 +1,4 @@
+import log from 'electron-log'
 import nodemailer from 'nodemailer'
 import type SMTPTransport from 'nodemailer/lib/smtp-transport'
 import configurationStore from '../store/ConfigurationStore'
@@ -6,7 +7,7 @@ import mailServerStore from '../store/MailServerStore'
 export async function sendMail(data: CommitInfo): Promise<void> {
   try {
     const { commitUser, commitTime, commitMessage, violations, addedFiles, modifiedFiles, deletedFiles } = data
-    console.log('🎯 Sending HTML email...')
+    log.info('🎯 Sending HTML email...')
     const { emailPL } = configurationStore.store
     const { smtpServer, port, email, password } = mailServerStore.store
     const addedFilesHtml = `<ul>${addedFiles.map(file => `<li>${file}</li>`).join('')}</ul>`
@@ -86,8 +87,8 @@ export async function sendMail(data: CommitInfo): Promise<void> {
       html: htmlContent,
     })
 
-    console.log(`✅ Email sent to ${emailPL} successfully!`)
+    log.info(`✅ Email sent to ${emailPL} successfully!`)
   } catch (error) {
-    console.log(`Error sending email: ${error}`, 'error')
+    log.error(`Error sending email: ${error}`)
   }
 }

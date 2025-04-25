@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import log from 'electron-log'
 import { isTextFile } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
 
@@ -16,7 +17,7 @@ export async function openDiff(file: string, status: string): Promise<SVNRespons
   const filePath = path.join(sourceFolder, file)
   const tortoiseBinPath = path.join(svnFolder, 'bin')
 
-  console.log(`Open file: [${status}] ${filePath}`)
+  log.info(`Open file: [${status}] ${filePath}`)
 
   try {
     if (status === '?' || status === '!') {
@@ -41,7 +42,7 @@ export async function openDiff(file: string, status: string): Promise<SVNRespons
     result.unref()
     return { status: 'success', message: 'TortoiseProc diff opened successfully.' }
   } catch (error: any) {
-    console.log(`Exception running diff: ${error.message}`, 'error')
+    log.error(`Exception running diff: ${error.message}`)
     return { status: 'error', message: `Exception: ${error.message}` }
   }
 }
