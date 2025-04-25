@@ -1,5 +1,5 @@
-import { randomUUID } from 'node:crypto'
 import log from 'electron-log'
+import { randomUUID } from 'node:crypto'
 import { getGraphClient } from './graph'
 
 const UPLOAD_FOLDER = 'SVNTool_Uploads'
@@ -69,7 +69,6 @@ export const uploadImageToOneDrive = async (dataUrl: string, originalName: strin
   } else {
     uploadResult = await resumableUpload(graph, itemPath, mimeType, binary)
   }
-
   const itemId = uploadResult?.id
   if (!itemId) throw new Error('Không thể lấy itemId sau khi upload.')
 
@@ -139,7 +138,6 @@ function sanitizeFileName(name: string): string {
 }
 
 async function ensureUploadFolder(graph: any, dateFolder?: string, uuid?: string): Promise<void> {
-  // Đảm bảo thư mục gốc tồn tại
   const rootPath = `${APPROOT_PATH}/${UPLOAD_FOLDER}`
   try {
     await retryOperation(() => graph.api(rootPath).get())
@@ -156,13 +154,13 @@ async function ensureUploadFolder(graph: any, dateFolder?: string, uuid?: string
 
   // Nếu có dateFolder, đảm bảo thư mục ngày tồn tại
   if (dateFolder) {
-    const datePath = `${rootPath}/${dateFolder}`
+    const datePath = `${APPROOT_PATH}:/${UPLOAD_FOLDER}/${dateFolder}`
     try {
       await retryOperation(() => graph.api(datePath).get())
     } catch (err: any) {
       if (err?.statusCode !== 404) throw err
       await retryOperation(() =>
-        graph.api(`${rootPath}/children`).headers({ 'Content-Type': 'application/json' }).post({
+        graph.api(`${APPROOT_PATH}:/${UPLOAD_FOLDER}:/children`).headers({ 'Content-Type': 'application/json' }).post({
           name: dateFolder,
           folder: {},
           '@microsoft.graph.conflictBehavior': 'rename',
@@ -170,19 +168,38 @@ async function ensureUploadFolder(graph: any, dateFolder?: string, uuid?: string
       )
     }
 
-    // Nếu có uuid, đảm bảo thư mục uuid tồn tại
+    // const datePath = `/me/drive/special/approot:/SVNTool_Uploads/${dateFolder}`
+    // try {
+    //   await retryOperation(() => graph.api(`${datePath}`).get())
+    // } catch (err: any) {
+    //   if (err?.statusCode !== 404) throw err
+    //   await retryOperation(() =>
+    //     graph
+    //       .api('/me/drive/special/approot:/SVNTool_Uploads:/children')
+    //       .headers({ 'Content-Type': 'application/json' })
+    //       .post({
+    //         name: dateFolder,
+    //         folder: {},
+    //         '@microsoft.graph.conflictBehavior': 'rename',
+    //       })
+    //   )
+    // }
+
     if (uuid) {
-      const uuidPath = `${datePath}/${uuid}`
+      const uuidPath = `${APPROOT_PATH}:/${UPLOAD_FOLDER}/${dateFolder}/${uuid}`
       try {
         await retryOperation(() => graph.api(uuidPath).get())
       } catch (err: any) {
         if (err?.statusCode !== 404) throw err
         await retryOperation(() =>
-          graph.api(`${datePath}/children`).headers({ 'Content-Type': 'application/json' }).post({
-            name: uuid,
-            folder: {},
-            '@microsoft.graph.conflictBehavior': 'rename',
-          })
+          graph
+            .api(`${APPROOT_PATH}:/${UPLOAD_FOLDER}/${dateFolder}:/children`)
+            .headers({ 'Content-Type': 'application/json' })
+            .post({
+              name: uuid,
+              folder: {},
+              '@microsoft.graph.conflictBehavior': 'rename',
+            })
         )
       }
     }

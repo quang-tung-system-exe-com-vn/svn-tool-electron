@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
@@ -54,19 +53,15 @@ export function DiffFooterBar({
   language,
   setLanguage,
   cursorPosition,
-  encoding = 'UTF-8',
-  indent = 2,
 }: {
   language: string
   setLanguage: (lang: string) => void
   cursorPosition?: { line: number; column: number }
-  encoding?: string
-  indent?: number
 }) {
   const [open, setOpen] = useState(false)
   const { t } = useTranslation()
   return (
-    <div className="flex h-6 items-center gap-4 border-t bg-muted/50 px-4 text-[10px]">
+    <div className="flex h-7 items-center gap-4 border-t bg-muted/50 px-4 text-[10px]">
       {/* File info */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
@@ -77,17 +72,13 @@ export function DiffFooterBar({
           <span>{t('label.column')}</span>
           <span>{cursorPosition?.column ?? 1}</span>
         </div>
-        <Separator orientation="vertical" className="mx-1 h-3" />
-        <div className="flex items-center gap-1">
-          <span>{t('label.spaces')}</span>
-          <span>{indent}</span>
-        </div>
       </div>
+
       {/* Language selector */}
       <div className="ml-auto flex items-center">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" aria-expanded={open} className="h-full justify-between border-0 rounded-none">
+            <Button variant="ghost" aria-expanded={open} className="h-6 justify-between border-0 rounded-none text-[10px]">
               {languages.find(item => item.value === language)?.label ?? t('dialog.diffViewer.language.select')}
             </Button>
           </PopoverTrigger>

@@ -73,6 +73,7 @@ declare global {
         select_folder: () => Promise<string>
         reveal_in_file_explorer: (filePath: string) => Promise<void>
         read_file: (filePath: string) => Promise<string>
+        write_file: (filePath: string, content: string) => Promise<{ success: boolean; error?: string }>
       }
       on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => void
       removeAllListeners: (channel: string) => void
@@ -153,6 +154,7 @@ contextBridge.exposeInMainWorld('api', {
     select_folder: () => ipcRenderer.invoke(IPC.SYSTEM.OPEN_FOLDER),
     reveal_in_file_explorer: (filePath: string) => ipcRenderer.invoke(IPC.SYSTEM.REVEAL_IN_FILE_EXPLORER, filePath),
     read_file: (filePath: string) => ipcRenderer.invoke(IPC.SYSTEM.READ_FILE, filePath),
+    write_file: (filePath: string, content: string) => ipcRenderer.invoke(IPC.SYSTEM.WRITE_FILE, filePath, content),
   },
   on: (channel: string, listener: (event: any, ...args: any[]) => void) => {
     ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))

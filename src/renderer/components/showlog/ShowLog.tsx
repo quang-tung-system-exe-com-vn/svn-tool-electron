@@ -519,7 +519,7 @@ export function ShowLog() {
                   </ScrollArea>
 
                   {(isLoading || filteredLogData.length > 0) && (
-                    <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground border-t h-12">
+                    <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground h-12">
                       <span className="flex-1 text-xs pl-1">
                         {isLoading
                           ? 'Loading...'

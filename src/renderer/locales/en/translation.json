@@ -99,7 +99,9 @@
     "spotbugsError": "Error running SpotBugs: {{0}}",
     "spotbugsSuccess": "SpotBugs analysis completed: {{0}} issues found",
     "refreshingSpotbugs": "Refreshing SpotBugs analysis...",
-    "leastOneJavaFile": "Please select at least one Java file"
+    "leastOneJavaFile": "Please select at least one Java file",
+    "fileSaved": "File saved successfully.",
+    "errorSavingFile": "Error saving file."
   },
   "svn": {
     "status": {

@@ -441,6 +441,6 @@ const IndeterminateCheckbox = forwardRef<HTMLInputElement, { indeterminate?: boo
         localRef.current.indeterminate = !rest.checked && indeterminate
       }
     }, [indeterminate, rest.checked])
-    return <input type="checkbox" ref={localRef} className={`${className} accent-[var(--primary)] translate-y-[2px] cursor-pointer`} {...rest} />
+    return <input type="checkbox" ref={localRef} className={`${className} translate-y-[2px] cursor-pointer`} {...rest} />
   }
 )

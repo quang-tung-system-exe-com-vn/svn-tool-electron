@@ -1,7 +1,5 @@
-import { readFile } from 'node:fs/promises'
-import path, { join, resolve } from 'node:path'
-import { format } from 'node:url'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import log from 'electron-log'
 import { IPC } from 'main/constants'
 import { sendSupportFeedbackToTeams } from 'main/notification/sendTeams'
 import { blame } from 'main/svn/blame'
@@ -16,6 +14,10 @@ import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
 import { type StatisticsOptions, getStatistics } from 'main/svn/statistics'
 import { update } from 'main/svn/update'
+import fs from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import path, { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import OpenAI from 'openai'
 import { ENVIRONMENT } from 'shared/constants'
 import appearanceStore from '../store/AppearanceStore'
@@ -24,7 +26,6 @@ import mailServerStore from '../store/MailServerStore'
 import webhookStore from '../store/WebhookStore'
 import { parseSpotBugsResult, runSpotBugs } from '../utils/spotbugs'
 const { sourceFolder } = configurationStore.store
-import log from 'electron-log'
 
 export function registerConfigIpcHandlers() {
   log.info('✅ Config ipc handlers registered')
@@ -200,7 +201,7 @@ export function registerConfigIpcHandlers() {
   })
 
   ipcMain.on(IPC.WINDOW.SPOTBUGS, (event, filePaths) => {
-    const spotbugsWindow = new BrowserWindow({
+    const window = new BrowserWindow({
       width: 1365,
       height: 768,
       minWidth: 1000,
@@ -217,16 +218,16 @@ export function registerConfigIpcHandlers() {
       },
     })
 
-    Object.defineProperty(spotbugsWindow, 'filePaths', {
+    Object.defineProperty(window, 'filePaths', {
       value: filePaths,
       writable: true,
       configurable: true,
     })
 
     if (ENVIRONMENT.IS_DEV) {
-      spotbugsWindow.loadURL('http://localhost:4927/#/spotbugs')
+      window.loadURL('http://localhost:4927/#/spotbugs')
     } else {
-      spotbugsWindow.loadURL(
+      window.loadURL(
         format({
           pathname: resolve(__dirname, '../renderer/index.html'),
           protocol: 'file:',
@@ -236,32 +237,32 @@ export function registerConfigIpcHandlers() {
       )
     }
 
-    spotbugsWindow.webContents.on('did-finish-load', async () => {
+    window.webContents.on('did-finish-load', async () => {
       try {
         const result = await runSpotBugs(filePaths)
         if (result.status === 'success') {
           const parsedResult = parseSpotBugsResult(result.data)
-          spotbugsWindow.webContents.send('load-diff-data', {
+          window.webContents.send('load-diff-data', {
             filePaths,
             spotbugsResult: parsedResult,
           })
         } else {
-          spotbugsWindow.webContents.send('load-diff-data', {
+          window.webContents.send('load-diff-data', {
             filePaths,
             error: result.message,
           })
         }
       } catch (error) {
         log.error('Error running SpotBugs:', error)
-        spotbugsWindow.webContents.send('load-diff-data', {
+        window.webContents.send('load-diff-data', {
           filePaths,
           error: error instanceof Error ? error.message : String(error),
         })
       }
       if (ENVIRONMENT.IS_DEV) {
-        spotbugsWindow.webContents.openDevTools({ mode: 'bottom' })
+        window.webContents.openDevTools({ mode: 'bottom' })
       }
-      spotbugsWindow.show()
+      window.show()
     })
   })
 
@@ -332,6 +333,40 @@ export function registerConfigIpcHandlers() {
       return content
     } catch (err) {
       return `Error reading file: ${err}`
+    }
+  })
+
+  ipcMain.handle(IPC.SYSTEM.WRITE_FILE, async (_event, filePath: string, content: string) => {
+    try {
+      // Kiểm tra filePath hợp lệ
+      if (!filePath || typeof filePath !== 'string') {
+        throw new Error('Invalid filePath provided')
+      }
+
+      console.log(content)
+
+      // Log filePath và absolutePath để kiểm tra
+      const { sourceFolder } = configurationStore.store
+      const absolutePath = path.resolve(sourceFolder, filePath)
+
+      // Log absolutePath để chắc chắn đúng
+      console.log(`Attempting to write file at: ${absolutePath}`)
+
+      // Kiểm tra thư mục đích tồn tại, nếu không, tạo thư mục
+      const dir = path.dirname(absolutePath)
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true }) // Tạo thư mục nếu không tồn tại
+        console.log(`Directory created: ${dir}`)
+      }
+
+      // Ghi file
+      await fs.promises.writeFile(absolutePath, content, 'utf-8')
+      console.log(`File written successfully to ${absolutePath}`)
+
+      return { success: true }
+    } catch (err) {
+      log.error('Error writing file:', err) // Log lỗi cụ thể
+      return { success: false, error: `Error writing file: ${err}` }
     }
   })
 

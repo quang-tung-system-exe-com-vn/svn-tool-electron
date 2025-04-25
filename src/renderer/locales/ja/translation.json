@@ -28,7 +28,9 @@
     "errorLoading": "差分ファイルの読み込みエラー：",
     "noFilesChanged": "最後のコミット以降、ファイルは変更または追加されていません。",
     "rowSelected": "{{0}} の {{1}} 行が選択されました。",
-    "leastOneJavaFile": "Javaファイルを少なくとも1つ選択してください"
+    "leastOneJavaFile": "Javaファイルを少なくとも1つ選択してください",
+    "fileSaved": "ファイルが正常に保存されました。",
+    "errorSavingFile": "ファイルの保存中にエラーが発生しました。"
   },
   "title": {
     "settings": "設定",

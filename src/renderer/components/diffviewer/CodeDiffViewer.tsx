@@ -2,9 +2,11 @@ import i18n from '@/lib/i18n'
 import logger from '@/services/logger'
 import { DiffEditor, type DiffOnMount, useMonaco } from '@monaco-editor/react'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAppearanceStore } from '../stores/useAppearanceStore'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
+import toast from '../ui-elements/Toast'
 import { DiffFooterBar } from './DiffFooterBar'
 import { DiffToolbar } from './DiffToolbar'
 
@@ -18,6 +20,18 @@ export function CodeDiffViewer() {
   const [language, setLanguage] = useState('javascript')
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
   const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const editorRef = useRef<any>(null)
+  const { t } = useTranslation()
+
+  const filePathRef = useRef(filePath) // Khởi tạo useRef với giá trị ban đầu
+  const modifiedCodeRef = useRef(modifiedCode) // Khởi tạo useRef với giá trị ban đầu
+  useEffect(() => {
+    modifiedCodeRef.current = modifiedCode // Cập nhật giá trị mỗi khi modifiedCode thay đổi
+  }, [modifiedCode])
+  useEffect(() => {
+    filePathRef.current = filePath // Cập nhật giá trị mỗi khi modifiedCode thay đổi
+  }, [filePath])
 
   window.addEventListener('storage', event => {
     if (event.key === 'ui-settings') {
@@ -181,6 +195,20 @@ export function CodeDiffViewer() {
       handleRefresh(filePath)
     }
     window.api.on('load-diff-data', handler)
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key pressed:', e.key)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleSaveFile()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
   }, [])
 
   useEffect(() => {
@@ -221,8 +249,15 @@ export function CodeDiffViewer() {
   }, [monaco, themeMode, resolvedTheme])
 
   const handleEditorMount: DiffOnMount = (editor, monaco) => {
+    editorRef.current = editor
     const modifiedEditor = editor.getModifiedEditor()
     const originalEditor = editor.getOriginalEditor()
+
+    modifiedEditor.onDidChangeModelContent(event => {
+      const newModifiedCode = modifiedEditor.getModel()?.getValue() || ''
+      setModifiedCode(newModifiedCode)
+    })
+
     modifiedEditor.onDidChangeCursorPosition(event => {
       const { lineNumber, column } = event.position
       setCursorPosition({ line: lineNumber, column })
@@ -256,10 +291,30 @@ export function CodeDiffViewer() {
     setModifiedCode(originalCode)
   }
 
+  const handleSaveFile = async () => {
+    try {
+      const filePath = filePathRef.current
+      if (!filePath || !modifiedCodeRef.current) return
+      setIsSaving(true)
+
+      const result = await window.api.system.write_file(filePath, modifiedCodeRef.current)
+
+      if (result.success) {
+        toast.success(t('toast.fileSaved', { filePath }))
+      } else {
+        throw new Error(result.error || 'Unknown error')
+      }
+    } catch (error) {
+      toast.error(t('toast.errorSavingFile'))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="flex flex-col w-full h-full">
       <OverlayLoader isLoading={isLoading} />
-      <DiffToolbar onRefresh={onRefresh} onSwapSides={handleSwap} isLoading={isLoading} />
+      <DiffToolbar onRefresh={onRefresh} onSwapSides={handleSwap} onSave={handleSaveFile} isLoading={isLoading} isSaving={isSaving} filePath={filePath} />
       <div className="flex-1 overflow-hidden">
         <DiffEditor
           height="100%"
@@ -271,7 +326,7 @@ export function CodeDiffViewer() {
           options={{
             readOnly: false,
             fontSize: 12,
-            fontFamily: 'Fira Code, JetBrains Mono, monospace',
+            fontFamily: 'Jetbrains Mono NL, monospace',
             automaticLayout: true,
             padding: { top: 12, bottom: 12 },
             lineNumbers: 'on',
@@ -286,6 +341,7 @@ export function CodeDiffViewer() {
               horizontalScrollbarSize: 8,
             },
             diffAlgorithm: 'advanced',
+            renderValidationDecorations: 'off',
           }}
         />
       </div>

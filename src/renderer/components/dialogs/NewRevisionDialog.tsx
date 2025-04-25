@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import type { SvnStatusCode } from '../shared/constants'
 import { useAppearanceStore } from '../stores/useAppearanceStore'
 import { StatusIcon } from '../ui-elements/StatusIcon'
-import { ScrollArea, ScrollBar } from '../ui/scroll-area'
+import { ScrollArea } from '../ui/scroll-area'
 
 interface NewRevisionDialogProps {
   open: boolean
@@ -103,7 +103,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCur
               <Table wrapperClassName={cn('overflow-clip', (svnInfo?.changedFiles ?? []).length === 0 && 'h-full')}>
                 <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                   <TableRow>
-                    <TableHead className="w-24">{t('dialog.updateSvn.action')}</TableHead>
+                    <TableHead>{t('dialog.updateSvn.action')}</TableHead>
                     <TableHead>{t('dialog.updateSvn.path')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -118,8 +118,6 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCur
                   ))}
                 </TableBody>
               </Table>
-              <ScrollBar orientation="vertical" />
-              <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>
         </div>

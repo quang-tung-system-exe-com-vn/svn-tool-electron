@@ -50,6 +50,7 @@ export const IPC = {
     OPEN_FOLDER: 'system:open-folder',
     REVEAL_IN_FILE_EXPLORER: 'system:reveal-in-file-explorer',
     READ_FILE: 'system:read-file',
+    WRITE_FILE: 'system:write-file',
   },
   UPDATER: {
     CHECK_FOR_UPDATES: 'updater:check-for-updates',
@@ -61,15 +62,24 @@ export const IPC = {
 
 export const PROMPT = {
   CHECK_VIOLATIONS: `
-You are a source code management expert. Please apply the relevant coding rules for each line of code, such as Java rules for Java code, SQL rules for SQL code, and TypeScript rules for TypeScript code.
-Here is the code. Lines starting with minus(-) are ignored.
+Formatting re-enabled.
 
+You are a senior code quality auditor and language standards specialist. Your role is to rigorously evaluate source code changes for compliance with industry-recognized best practices and language-specific conventions.
+
+- Apply the appropriate coding standards for each language (e.g., Java for Java, SQL for SQL, TypeScript for TypeScript).
+- Ignore all lines prefixed with a minus sign (-), as they represent deletions.
+- Assume the code diff is part of a broader function or file, and review it accordingly.
+
+Identify and concisely summarize all rule violations. Do not explain them, suggest corrections, or reformat the code.
+
+Maintain all original variable and function names exactly as provided.
+
+Evaluate the following diff:
 {diff_content}
 
-The lines being checked are part of a function or a file, so please review them accordingly.
-Only summarize the violations; no need to explain them.
-Briefly summarize the violations in the above code and respond in {language} while keeping the variable names and function names unchanged (if any).
-Provide the final conclusion starting with the symbol =>
+Respond strictly in {language}.
+
+End your report with a brief summary starting with the symbol: =>
 `,
 
   GENERATE_COMMIT: `
@@ -79,7 +89,7 @@ Split the message into Frontend and Backend sections. If any part is missing, th
 Based on this diff:
 {diff_content}
 
-Respond in {language} but keep variable names and function names.
+Respond in {language}.
 `,
 }
 

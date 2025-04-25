@@ -1,9 +1,9 @@
-import { exec } from 'node:child_process'
-import fs from 'node:fs'
-import path from 'node:path'
 import log from 'electron-log'
 import { sendTeams } from 'main/notification/sendTeams'
 import { listAllFilesRecursive } from 'main/utils/utils'
+import { exec } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
 import configurationStore from '../store/ConfigurationStore'
 import { findUser } from './find-user'
 const { svnFolder, sourceFolder } = configurationStore.store
@@ -88,7 +88,7 @@ export async function commit(commitMessage: string, violations: string, selected
   const allFiles = [...modifiedFiles, ...addedFiles, ...targetFiles]
   if (allFiles.length > 0) {
     try {
-      const escapedMessage = `"${commitMessage.replace(/"/g, '\\"')}"`
+      const escapedMessage = `"${commitMessage.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
       const commitResult = await runSVNCommand('commit', allFiles, escapedMessage)
       if (commitResult.status === 'error') {
         log.error('🛑 Commit failed:', commitResult.message)

@@ -1,17 +1,20 @@
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { t } from 'i18next'
-import { Columns, Minus, RefreshCw, Square, X } from 'lucide-react'
+import { Columns, Minus, RefreshCw, Save, Square, X } from 'lucide-react'
 import type React from 'react'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 
 interface DiffToolbarProps {
   onRefresh?: () => void
   onSwapSides?: () => void
+  onSave?: () => void
   isLoading: boolean
+  isSaving?: boolean
+  filePath: string
 }
 
-export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, isLoading }) => {
+export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, onSave, isLoading, isSaving = false, filePath }) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -29,7 +32,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
     >
       <div className="flex items-center h-full">
         <div className="w-15 h-6 flex justify-center pt-1.5 pl-1">
-          {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5 dark:brightness-160" />}
+          {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5 dark:brightness-130" />}
         </div>
         <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <Tooltip>
@@ -43,7 +46,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
                 <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Refresh Diff</TooltipContent>
+            <TooltipContent>{t('common.refresh')}</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -57,14 +60,31 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
                 <Columns strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Swap Sides</TooltipContent>
+            <TooltipContent>{t('common.swap')}</TooltipContent>
           </Tooltip>
+
+          {onSave && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={onSave}
+                  disabled={isSaving}
+                  className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                >
+                  <Save strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('common.save')}</TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
 
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs">
-        {t('dialog.diffViewer.title')}
+        {t('dialog.diffViewer.title')}: {filePath}
       </Button>
 
       {/* Right Section (Window Controls) */}
