@@ -89,10 +89,15 @@ pnpm dev
     pnpm compile:packageJSON
     ```
 3.  Tạo bộ cài đặt (ví dụ: file .exe cho Windows):
-    \`\`\`bash
+    ```bash
     pnpm build
-    \`\`\`
+    ```
     _(Kết quả sẽ nằm trong thư mục \`dist\` hoặc tương tự, tùy cấu hình \`electron-builder\`)_
+4.  Release source lên github
+    ```bash
+    pnpm make:release
+    pnpm release
+    ```
 
 ## Hướng dẫn sử dụng cơ bản
 
@@ -144,7 +149,6 @@ pnpm dev
     - Xem các biểu đồ và số liệu về hoạt động SVN.
 
 ## Công nghệ sử dụng
-
 - **Framework:** Electron
 - **Frontend:** React, TypeScript, Vite
 - **UI Components:** Shadcn/ui, Radix UI, Lucide Icons
@@ -162,12 +166,9 @@ pnpm dev
 - ... (Các thư viện khác từ \`package.json\`)
 
 ## Giấy phép
-
 Dự án này được cấp phép theo giấy phép [MIT](LICENSE).
 
 ## Tác giả
-
 - **Tên:** Nguyễn Quang Tùng
 - **Email:** quang-tung@system-exe.com.vn
 
----
