@@ -1,4 +1,5 @@
 type CommitInfo = {
+  // Add export
   commitUser: string
   commitTime: string
   commitMessage: string
@@ -14,9 +15,11 @@ type Configuration = {
   sourceFolder: string
   emailPL: string
   webhookMS: string
+  oneDriveClientId: string
+  oneDriveClientSecret: string
+  oneDriveRefreshToken: string
 }
 
-// MailServerConfig type
 type MailServerConfig = {
   smtpServer: string
   port: string
@@ -24,7 +27,6 @@ type MailServerConfig = {
   password: string
 }
 
-// SVN Response type
 type SVNResponse = {
   status: string
   message?: string
@@ -38,4 +40,9 @@ type SupportFeedback = {
   email: string
   message: string
   images: string[]
+}
+
+type HistoryCommitMessage = {
+  message: string
+  date: string
 }

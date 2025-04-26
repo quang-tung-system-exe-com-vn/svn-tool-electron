@@ -43,7 +43,7 @@ declare global {
       }
 
       notification: {
-        send_support_feedback: (data: { type: 'support' | 'feedback'; name: string; message: string; images: string[] }) => Promise<{ status: string; message?: string }>
+        send_support_feedback: (data: SupportFeedback) => Promise<{ status: string; message?: string }>
       }
 
       updater: {
@@ -63,6 +63,18 @@ declare global {
             {
               name: string
               url: string
+            },
+          ]
+        }>
+        set: (...args: any[]) => Promise<void>
+      }
+
+      history: {
+        get: () => Promise<{
+          commitMessages: [
+            {
+              message: string
+              date: string
             },
           ]
         }>
@@ -93,12 +105,17 @@ contextBridge.exposeInMainWorld('api', {
 
   configuration: {
     get: () => ipcRenderer.invoke(IPC.SETTING.CONFIGURATION.GET),
-    set: (config: any) => ipcRenderer.invoke(IPC.SETTING.CONFIGURATION.SET, config),
+    set: (data: any) => ipcRenderer.invoke(IPC.SETTING.CONFIGURATION.SET, data),
   },
 
   mail_server: {
     get: () => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.GET),
-    set: (config: MailServerConfig) => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.SET, config),
+    set: (data: MailServerConfig) => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.SET, data),
+  },
+
+  history: {
+    get: () => ipcRenderer.invoke(IPC.HISTORY.GET),
+    set: (data: HistoryCommitMessage) => ipcRenderer.invoke(IPC.HISTORY.SET, data),
   },
 
   openai: {
@@ -118,8 +135,7 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   notification: {
-    send_support_feedback: (data: { type: 'support' | 'feedback'; name: string; message: string; images: string[] }) =>
-      ipcRenderer.invoke(IPC.NOTIFICATIONS.SEND_SUPPORT_FEEDBACK, data),
+    send_support_feedback: (data: SupportFeedback) => ipcRenderer.invoke(IPC.NOTIFICATIONS.SEND_SUPPORT_FEEDBACK, data),
   },
 
   svn: {

@@ -5,6 +5,7 @@ export const IPC = {
     SHOW_LOG: 'show-log',
     CHECK_CODING_RULES: 'check-coding-rules',
     SPOTBUGS: 'spotbugs',
+    COMMIT_MESSAGE_HISTORY: 'commit-message-history',
   },
   SETTING: {
     APPEARANCE: {
@@ -44,7 +45,7 @@ export const IPC = {
   NOTIFICATIONS: {
     SEND_MAIL: 'notification:send-mail',
     SEND_TEAMS: 'notification:send-teams',
-    SEND_SUPPORT_FEEDBACK: 'notification:send-support-feedback', // Add this line
+    SEND_SUPPORT_FEEDBACK: 'notification:send-support-feedback',
   },
   SYSTEM: {
     OPEN_FOLDER: 'system:open-folder',
@@ -57,6 +58,10 @@ export const IPC = {
     INSTALL_UPDATES: 'updater:install-updates',
     GET_VERSION: 'updater:get-version',
     STATUS: 'updater:status',
+  },
+  HISTORY: {
+    GET: 'history:get',
+    SET: 'history:set',
   },
 }
 

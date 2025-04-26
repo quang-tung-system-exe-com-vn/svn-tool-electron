@@ -3,6 +3,7 @@ import { FooterBar } from '@/components/layout/FooterBar'
 import { TitleBar } from '@/components/layout/TitleBar'
 import { LANGUAGES } from '@/components/shared/constants'
 import { useAppearanceStore, useButtonVariant } from '@/components/stores/useAppearanceStore'
+import { useHistoryStore } from '@/components/stores/useHistoryStore'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
@@ -26,6 +27,7 @@ export function MainPage() {
   const codingRuleRef = useRef<HTMLTextAreaElement>(null)
   const commitMessage = useRef('')
   const codingRule = useRef('')
+  const { addHistory } = useHistoryStore()
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
@@ -63,6 +65,8 @@ export function MainPage() {
       if (commitMessageRef.current) {
         commitMessageRef.current.value = openai_result
       }
+      // Save commit message to history
+      addHistory({ message: openai_result, date: new Date().toISOString() })
       toast.success(t('toast.generateSuccess'))
       await updateProgress(50, 100, 1000)
       setLoadingGenerate(false)
@@ -218,7 +222,7 @@ export function MainPage() {
                     .map((row: any) => row.original.filePath)
 
                   if (selectedFiles.length === 0) {
-                    toast.warning(t('message.leastOneJavaFile'))
+                    toast.warning(t('toast.leastOneJavaFile'))
                     return
                   }
                   window.api.electron.send(IPC.WINDOW.SPOTBUGS, selectedFiles)

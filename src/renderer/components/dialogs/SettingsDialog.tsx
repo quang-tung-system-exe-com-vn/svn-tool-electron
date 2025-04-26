@@ -39,7 +39,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     emailPL,
     webhookMS,
     oneDriveClientId,
-    oneDriveTenantId,
     oneDriveClientSecret,
     oneDriveRefreshToken,
     setFieldConfiguration,

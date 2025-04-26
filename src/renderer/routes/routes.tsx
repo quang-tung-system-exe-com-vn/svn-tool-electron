@@ -7,6 +7,7 @@ import { ShowLog } from '../components/showlog/ShowLog'
 import { SpotBugs } from '../components/spotbugs/SpotBugs'
 import { useAppearanceStore } from '../components/stores/useAppearanceStore'
 import i18n from '../lib/i18n'
+import { HistoryPage } from '../pages/HistoryPage' // Import HistoryPage
 import { MainPage } from '../pages/MainPage'
 
 export function AppRoutes() {
@@ -29,6 +30,7 @@ export function AppRoutes() {
         <Route path="/show-log" element={<ShowLog />} />
         <Route path="/spotbugs" element={<SpotBugs />} />
         <Route path="/check-coding-rules" element={<CheckCodingRules />} />
+        <Route path="/commit-message-history" element={<HistoryPage />} />
       </Routes>
     </Router>
   )

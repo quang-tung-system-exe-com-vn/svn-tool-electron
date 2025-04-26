@@ -1,7 +1,12 @@
+import fs from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import path, { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import log from 'electron-log'
 import { IPC } from 'main/constants'
 import { sendSupportFeedbackToTeams } from 'main/notification/sendTeams'
+import historyStore from 'main/store/HistoryStore'
 import { blame } from 'main/svn/blame'
 import { cat } from 'main/svn/cat'
 import { changedFiles } from 'main/svn/changed-files'
@@ -14,10 +19,6 @@ import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
 import { type StatisticsOptions, getStatistics } from 'main/svn/statistics'
 import { update } from 'main/svn/update'
-import fs from 'node:fs'
-import { readFile } from 'node:fs/promises'
-import path, { join, resolve } from 'node:path'
-import { format } from 'node:url'
 import OpenAI from 'openai'
 import { ENVIRONMENT } from 'shared/constants'
 import appearanceStore from '../store/AppearanceStore'
@@ -266,6 +267,45 @@ export function registerConfigIpcHandlers() {
     })
   })
 
+  ipcMain.on(IPC.WINDOW.COMMIT_MESSAGE_HISTORY, event => {
+    const window = new BrowserWindow({
+      width: 1365,
+      height: 768,
+      minWidth: 1000,
+      minHeight: 800,
+      center: true,
+      frame: false,
+      autoHideMenuBar: true,
+      title: 'Commit Message History',
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    if (ENVIRONMENT.IS_DEV) {
+      window.loadURL('http://localhost:4927/#/commit-message-history')
+    } else {
+      window.loadURL(
+        format({
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/commit-message-history',
+        })
+      )
+    }
+
+    window.webContents.on('did-finish-load', () => {
+      if (ENVIRONMENT.IS_DEV) {
+        window.webContents.openDevTools({ mode: 'bottom' })
+      }
+      window.show()
+    })
+  })
+
   ipcMain.handle(IPC.SETTING.APPEARANCE.SET, (_, key, value) => appearanceStore.set(key, value))
 
   ipcMain.handle(IPC.SETTING.CONFIGURATION.GET, () => configurationStore.store)
@@ -276,6 +316,9 @@ export function registerConfigIpcHandlers() {
 
   ipcMain.handle(IPC.SETTING.WEBHOOK.GET, () => webhookStore.store)
   ipcMain.handle(IPC.SETTING.WEBHOOK.SET, (_, config) => webhookStore.set(config))
+
+  ipcMain.handle(IPC.HISTORY.GET, () => historyStore.store)
+  ipcMain.handle(IPC.HISTORY.SET, (_, data) => historyStore.set(data))
 
   ipcMain.handle(IPC.SVN.CHANGED_FILES, async _event => await changedFiles())
   ipcMain.handle(IPC.SVN.GET_DIFF, async (_event, selectedFiles: any[]) => await getDiff(selectedFiles))

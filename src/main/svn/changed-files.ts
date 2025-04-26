@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process'
+import { execFile, execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
@@ -59,9 +59,7 @@ export async function changedFiles() {
       if (filePath.includes('ignore-on-commit')) {
         break
       }
-
       const absolutePath = path.join(sourceFolder, filePath)
-
       const fileType = path.extname(filePath).toLowerCase()
       const isFile = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()
       const isDirectory = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()
@@ -105,7 +103,7 @@ export async function changedFiles() {
           versionStatus,
           filePath,
           fileType,
-          isFile,
+          isFile: status === '!' ? checkIsFile(absolutePath) : isFile,
         })
       }
     }
@@ -114,5 +112,17 @@ export async function changedFiles() {
   } catch (error) {
     log.error('❌ changedFiles - SVN status error:', error)
     return { status: 'error', message: error }
+  }
+}
+
+function checkIsFile(filePath: string): any {
+  try {
+    const absolutePath = path.resolve(filePath)
+    const output = execSync(`svn info --show-item=kind "${absolutePath}"`, { encoding: 'utf-8' }).trim()
+    if (output === 'dir') return false
+    if (output === 'file') return true
+    return null
+  } catch (error) {
+    return null
   }
 }
