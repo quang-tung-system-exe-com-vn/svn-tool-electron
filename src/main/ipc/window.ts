@@ -80,7 +80,7 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/code-diff-viewer'
       : format({
-          pathname: resolve(__dirname, '../../renderer/index.html'), // Adjusted path
+          pathname: resolve(__dirname, '../renderer/index.html'),
           protocol: 'file:',
           slashes: true,
           hash: '/code-diff-viewer',
@@ -117,7 +117,7 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/show-log'
       : format({
-          pathname: resolve(__dirname, '../../renderer/index.html'), // Adjusted path
+          pathname: resolve(__dirname, '../renderer/index.html'),
           protocol: 'file:',
           slashes: true,
           hash: '/show-log',
@@ -154,7 +154,7 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/check-coding-rules'
       : format({
-          pathname: resolve(__dirname, '../../renderer/index.html'), // Adjusted path
+          pathname: resolve(__dirname, '../renderer/index.html'),
           protocol: 'file:',
           slashes: true,
           hash: '/check-coding-rules',
@@ -188,17 +188,16 @@ export function registerWindowIpcHandlers() {
       },
     })
 
-    // Attach filePaths to the window object for later retrieval (e.g., refresh)
     Object.defineProperty(window, 'filePaths', {
       value: filePaths,
-      writable: true, // Allow modification if needed
+      writable: true,
       configurable: true,
     })
 
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/spotbugs'
       : format({
-          pathname: resolve(__dirname, '../../renderer/index.html'), // Adjusted path
+          pathname: resolve(__dirname, '../renderer/index.html'),
           protocol: 'file:',
           slashes: true,
           hash: '/spotbugs',
@@ -255,7 +254,7 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/commit-message-history'
       : format({
-          pathname: resolve(__dirname, '../../renderer/index.html'),
+          pathname: resolve(__dirname, '../renderer/index.html'),
           protocol: 'file:',
           slashes: true,
           hash: '/commit-message-history',
