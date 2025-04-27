@@ -3,6 +3,7 @@ import { CleanDialog } from '@/components/dialogs/CleanDialog'
 import { NewRevisionDialog } from '@/components/dialogs/NewRevisionDialog'
 import { SettingsDialog } from '@/components/dialogs/SettingsDialog'
 import { SupportFeedbackDialog } from '@/components/dialogs/SupportFeedbackDialog'
+import { UpdateDialog } from '@/components/dialogs/UpdateDialog'
 import type { SvnStatusCode } from '@/components/shared/constants'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import toast from '@/components/ui-elements/Toast'
@@ -10,11 +11,10 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import logger from '@/services/logger'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
-import { CircleArrowDown, Download, Eraser, FileText, History, Info, LifeBuoy, Minus, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { CircleArrowDown, Eraser, FileText, History, Info, LifeBuoy, Minus, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { toast as sonner } from 'sonner'
 
 interface TitleBarProps {
   isLoading: boolean
@@ -40,6 +40,8 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
 
   const [status, setStatus] = useState('')
   const [appVersion, setAppVersion] = useState<string>('')
+  const [releaseNotes, setReleaseNotes] = useState<string | undefined>(undefined)
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false)
 
   const [svnInfo, setSvnInfo] = useState<SvnInfo>({ author: '', revision: '', date: '', curRevision: '', commitMessage: '', changedFiles: [] })
   const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
@@ -57,6 +59,9 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
           setAppVersion(`v${data.version}`)
         }
       }
+      if (data.releaseNotes) {
+        setReleaseNotes(data.releaseNotes)
+      }
     }
     window.api.on('updater:status', handler)
     return () => {
@@ -70,6 +75,9 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         const result = await window.api.updater.check_for_updates()
         if (result.status === 'available' && result.version) {
           setAppVersion(`v${result.version}`)
+        }
+        if (result.releaseNotes) {
+          setReleaseNotes(result.releaseNotes)
         }
       } catch (error) {
         logger.error('Error checking for app updates:', error)
@@ -103,46 +111,9 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     return () => clearInterval(interval)
   }, [])
 
-  const showUpdateToast = (version?: string) => {
-    sonner.custom(
-      id => (
-        <div className="bg-card p-4 rounded-lg shadow-lg border max-w-md">
-          <h3 className="flex flex-row gap-2 items-center font-semibold mb-2">
-            <Download className="w-4 h-4" />
-            {t('dialog.updateApp.title')}
-          </h3>
-          <p className="mb-2 text-[0.85rem]">{t('dialog.updateApp.appVersion', { 0: version })}</p>
-          <div className="flex justify-end gap-2 pt-5">
-            <Button variant={variant} size="sm" onClick={() => sonner.dismiss(id)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant={variant}
-              size="sm"
-              onClick={async () => {
-                try {
-                  await window.api.updater.install_updates()
-                } catch (error) {
-                  toast.error(error)
-                }
-                sonner.dismiss(id)
-              }}
-            >
-              {t('common.install')}
-            </Button>
-          </div>
-        </div>
-      ),
-      {
-        duration: Number.POSITIVE_INFINITY,
-        position: 'top-center',
-      }
-    )
-  }
-
   const checkForUpdates = async () => {
     if (status === 'downloaded') {
-      showUpdateToast(appVersion)
+      setShowUpdateDialog(true)
     } else {
       toast.info(t('toast.isLatestVersion'))
     }
@@ -212,6 +183,8 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       <InfoDialog open={showInfo} onOpenChange={setShowInfo} />
       <CleanDialog open={showClean} onOpenChange={setShowClean} />
       <SupportFeedbackDialog open={showSupportFeedback} onOpenChange={setShowSupportFeedback} />
+      {/* Đã thêm UpdateDialog */}
+      <UpdateDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog} version={appVersion} releaseNotes={releaseNotes} />
       <NewRevisionDialog
         open={showSvnUpdateDialog}
         onOpenChange={setShowSvnUpdateDialog}

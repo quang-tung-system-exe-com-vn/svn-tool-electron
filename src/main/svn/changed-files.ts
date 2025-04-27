@@ -1,4 +1,4 @@
-import { execFile, execSync } from 'node:child_process'
+import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
@@ -27,6 +27,38 @@ function listAllFilesRecursive(dirPath: string): string[] {
   return result
 }
 
+async function batchCheckKind(svnExecutable: string, sourceFolder: string, relativePaths: string[]): Promise<Map<string, 'file' | 'dir'>> {
+  if (relativePaths.length === 0) return new Map()
+
+  try {
+    const { stdout } = await execFileAsync(svnExecutable, ['info', ...relativePaths, '--show-item', 'kind'], {
+      cwd: sourceFolder,
+      windowsHide: true,
+      maxBuffer: 10 * 1024 * 1024,
+    })
+
+    const lines = stdout
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== '')
+    const map = new Map<string, 'file' | 'dir'>()
+
+    for (const line of lines) {
+      const parts = line.split(/\s+/)
+      if (parts.length >= 2) {
+        const kind = parts[0] as 'file' | 'dir'
+        const filePath = parts.slice(1).join(' ')
+        map.set(filePath, kind)
+      }
+    }
+
+    return map
+  } catch (error) {
+    log.error('❌ batchCheckKind - SVN info error:', error)
+    return new Map()
+  }
+}
+
 export async function changedFiles() {
   const { svnFolder, sourceFolder } = configurationStore.store
   if (!fs.existsSync(svnFolder)) {
@@ -37,6 +69,7 @@ export async function changedFiles() {
   }
 
   const svnExecutable = path.join(svnFolder, 'bin', 'svn.exe')
+
   try {
     const { stdout } = await execFileAsync(svnExecutable, ['status'], {
       cwd: sourceFolder,
@@ -45,6 +78,7 @@ export async function changedFiles() {
 
     const rawChangedFiles = stdout.split('\n').filter(line => line.trim() !== '')
     const changedFiles: any[] = []
+    const missingFiles: string[] = []
 
     for (const line of rawChangedFiles) {
       const status = line[0]
@@ -59,10 +93,13 @@ export async function changedFiles() {
       if (filePath.includes('ignore-on-commit')) {
         break
       }
+
       const absolutePath = path.join(sourceFolder, filePath)
+      const exists = fs.existsSync(absolutePath)
+      const stat = exists ? fs.statSync(absolutePath) : null
+      const isDirectory = stat?.isDirectory() ?? false
       const fileType = path.extname(filePath).toLowerCase()
-      const isFile = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()
-      const isDirectory = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()
+
       if ((status === '?' || status === 'D') && isDirectory) {
         changedFiles.push({
           status,
@@ -76,6 +113,7 @@ export async function changedFiles() {
           fileType,
           isFile: false,
         })
+
         const untrackedFiles = listAllFilesRecursive(absolutePath)
         for (const file of untrackedFiles) {
           const relative = path.relative(sourceFolder, file)
@@ -93,6 +131,10 @@ export async function changedFiles() {
           })
         }
       } else {
+        if (status === '!') {
+          missingFiles.push(filePath)
+        }
+
         changedFiles.push({
           status,
           propStatus,
@@ -103,26 +145,26 @@ export async function changedFiles() {
           versionStatus,
           filePath,
           fileType,
-          isFile: status === '!' ? checkIsFile(absolutePath) : isFile,
+          isFile: exists ? stat?.isFile() : null,
         })
       }
     }
+
+    // Batch check missing files kind
+    const kindMap = await batchCheckKind(svnExecutable, sourceFolder, missingFiles)
+
+    // Update lại isFile cho những file missing
+    for (const file of changedFiles) {
+      if (file.isFile === null && kindMap.has(file.filePath)) {
+        const kind = kindMap.get(file.filePath)
+        file.isFile = kind === 'file'
+      }
+    }
+
     log.info('✅ SVN status successfully retrieved with all files and folders')
     return { status: 'success', data: changedFiles }
   } catch (error) {
     log.error('❌ changedFiles - SVN status error:', error)
     return { status: 'error', message: error }
-  }
-}
-
-function checkIsFile(filePath: string): any {
-  try {
-    const absolutePath = path.resolve(filePath)
-    const output = execSync(`svn info --show-item=kind "${absolutePath}"`, { encoding: 'utf-8' }).trim()
-    if (output === 'dir') return false
-    if (output === 'file') return true
-    return null
-  } catch (error) {
-    return null
   }
 }

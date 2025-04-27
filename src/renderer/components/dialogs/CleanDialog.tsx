@@ -132,7 +132,7 @@ export function CleanDialog({ open, onOpenChange }: CleanDialogProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant={variant} onClick={handleCancel}>
             {t('common.cancel')}
           </Button>
           <Button variant={variant} onClick={handleClean} disabled={isLoading || !options.some(option => option.checked)}>

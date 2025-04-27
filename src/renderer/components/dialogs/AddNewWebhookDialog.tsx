@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -18,6 +19,7 @@ interface AddWebhookDialogProps {
 export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, setWebhookName, setWebhookUrl, onAdd }: AddWebhookDialogProps) {
   const [errorName, setErrorName] = useState(false)
   const [errorUrl, setErrorUrl] = useState(false)
+  const variant = useButtonVariant()
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -70,10 +72,12 @@ export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, 
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant={variant} onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleAdd}>{t('common.add')}</Button>
+          <Button variant={variant} onClick={handleAdd}>
+            {t('common.add')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

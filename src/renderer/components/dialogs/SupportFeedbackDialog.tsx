@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import logger from '@/services/logger'
+import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { ImagePlus, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -29,6 +30,7 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
   const [message, setMessage] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [isSending, setIsSending] = useState(false)
+  const variant = useButtonVariant()
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -85,7 +87,7 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
     try {
       const result = await window.api.notification.send_support_feedback({
         type,
-        name: email,
+        email,
         message,
         images,
       })
@@ -215,10 +217,10 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={isSending}>
+          <Button variant={variant} onClick={handleCancel} disabled={isSending}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleSend} disabled={isSending}>
+          <Button variant={variant} onClick={handleSend} disabled={isSending}>
             {isSending ? t('common.sending') : t('common.send')}
           </Button>
         </DialogFooter>

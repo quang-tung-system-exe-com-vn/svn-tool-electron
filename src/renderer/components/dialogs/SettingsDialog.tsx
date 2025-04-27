@@ -378,7 +378,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       </Button>
 
                       {webhookMS && (
-                        <Button variant="destructive" onClick={() => handleDeleteWebhook(webhookMS)}>
+                        <Button variant={buttonVariant} onClick={() => handleDeleteWebhook(webhookMS)}>
                           {t('common.delete')}
                         </Button>
                       )}

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { Clock, Hash, User } from 'lucide-react'
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAppearanceStore } from '../../stores/useAppearanceStore'
+import { useButtonVariant } from '../../stores/useAppearanceStore'
 import type { SvnStatusCode } from '../shared/constants'
 import { StatusIcon } from '../ui-elements/StatusIcon'
 import { ScrollArea } from '../ui/scroll-area'
@@ -31,8 +31,7 @@ interface NewRevisionDialogProps {
 
 export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCurRevisionUpdate, hasSvnUpdate }: NewRevisionDialogProps) {
   const { t, i18n } = useTranslation()
-  const { buttonVariant } = useAppearanceStore()
-
+  const variant = useButtonVariant()
   const handleSvnUpdate = () => {
     onUpdate()
     if (svnInfo?.revision && typeof onCurRevisionUpdate === 'function') {
@@ -132,9 +131,9 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCur
 
         <DialogFooter className="mt-4">
           <DialogClose asChild>
-            <Button variant={buttonVariant}>{t('common.cancel')}</Button>
+            <Button variant={variant}>{t('common.cancel')}</Button>
           </DialogClose>
-          <Button variant="destructive" disabled={!hasSvnUpdate} onClick={handleSvnUpdate}>
+          <Button variant={variant} disabled={!hasSvnUpdate} onClick={handleSvnUpdate}>
             {t('common.update')}
           </Button>
         </DialogFooter>

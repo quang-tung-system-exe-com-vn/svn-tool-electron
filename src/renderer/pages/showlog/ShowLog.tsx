@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import i18n from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import logger from '@/services/logger'
+import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import chalk from 'chalk'
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
@@ -57,6 +58,7 @@ interface LogFile {
 
 export function ShowLog() {
   const { t } = useTranslation()
+  const variant = useButtonVariant()
 
   const columns: ColumnDef<LogEntry>[] = [
     {
@@ -505,7 +507,7 @@ export function ShowLog() {
                             <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
                               <div className="flex flex-col items-center justify-center gap-4 h-full">
                                 <p className="text-muted-foreground">No log entries found.</p>
-                                <Button variant="outline" onClick={handleRefresh}>
+                                <Button variant={variant} onClick={handleRefresh}>
                                   Reload
                                 </Button>
                               </div>
@@ -529,11 +531,11 @@ export function ShowLog() {
                       </span>
                       {!isLoading && (
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
+                          <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
                             {t('common.back')}
                           </Button>
                           <span>{t('dialog.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
-                          <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
+                          <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
                             {t('common.next')}
                           </Button>
                         </div>

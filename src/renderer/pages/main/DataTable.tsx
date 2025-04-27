@@ -12,6 +12,7 @@ import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import { StatusIcon } from '@/components/ui-elements/StatusIcon'
+import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../components/shared/constants'
@@ -153,6 +154,7 @@ export const DataTable = forwardRef((props, ref) => {
   const [data, setData] = useState<SvnFile[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const hasLoaded = useRef(false)
+  const variant = useButtonVariant()
 
   useImperativeHandle(ref, () => ({
     reloadData,
@@ -408,7 +410,7 @@ export const DataTable = forwardRef((props, ref) => {
                 <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
                   <div className="flex flex-col items-center justify-center gap-4 h-full">
                     <p className="text-muted-foreground">{t('message.noFilesChanged')}</p>
-                    <Button variant="outline" onClick={reloadData}>
+                    <Button variant={variant} onClick={reloadData}>
                       {t('common.reload')}
                     </Button>
                   </div>
