@@ -1,40 +1,36 @@
-## feat: unify button variants, add UpdateDialog modal
-
-This commit introduces several improvements for UI consistency and feature enhancement:
+### ✨ Features
 
 ```
-♻️ Refactored all dialogs and key components to use a unified button variant, driven by the user's appearance settings via `useButtonVariant`. This ensures a consistent look and feel across dialogs such as AddNewWebhookDialog, CleanDialog, NewRevisionDialog, SettingsDialog, SupportFeedbackDialog, and pages like DataTable and more.
-
-✨ Added a new `UpdateDialog` modal to handle application updates gracefully, providing a better UX around version checking and upgrade prompts.
-
-🧹 Minor code cleanup and structure improvements to simplify props management in affected dialogs and components.
-```
-
----
-
-## feat: ボタンのバリアントを統一し、UpdateDialog モーダルを追加
-
-このコミットは、UI の一貫性と機能強化のためにいくつかの改善を導入します：
-
-```
-♻️ すべてのダイアログと主要コンポーネントを、`useButtonVariant` を介してユーザーの外観設定に基づいた統一されたボタンバリアントを使用するようにリファクタリングしました。これにより、AddNewWebhookDialog、CleanDialog、NewRevisionDialog、SettingsDialog、SupportFeedbackDialog などのダイアログや、DataTable などのページにおいて一貫した外観と操作感を提供します。
-
-✨ アプリケーションのアップデートを適切に処理する新しい `UpdateDialog` モーダルを追加し、バージョン確認やアップグレードプロンプトの周りでより良い UX を提供します。
-
-🧹 影響を受けたダイアログとコンポーネントのプロパティ管理を簡素化するためのコードのクリーンアップと構造改善を行いました。
+- 🟦 Microsoft Teams Feedback:
+  - Refactored image upload: Now uploads all images into a single OneDrive folder and shares the folder link in the Teams card instead of listing individual image URLs.
+  - Updated Adaptive Card content: Removed per-image links, added a single "Images Folder" link for easier access.
+  - Refactored OneDrive upload logic for better maintainability.
+- 🛠️ UX Improvements for Updates:
+  - Improved update process flow for a smoother user experience.
 ```
 
 ---
 
-## feat: thống nhất các biến thể nút, thêm modal UpdateDialog
-
-Commit này giới thiệu một số cải tiến để đồng nhất UI và nâng cao tính năng:
+### ✨ 新機能
 
 ```
-♻️ Đã tái cấu trúc tất cả các dialog và các component chính để sử dụng một biến thể nút thống nhất, điều khiển theo cài đặt giao diện của người dùng qua `useButtonVariant`. Điều này đảm bảo một giao diện và cảm giác nhất quán trên các dialog như AddNewWebhookDialog, CleanDialog, NewRevisionDialog, SettingsDialog, SupportFeedbackDialog, và các trang như DataTable và nhiều hơn nữa.
+- 🟦 Microsoft Teams フィードバック:
+  - 画像アップロードをリファクタリング: 複数の画像を個別にアップロードする代わりに、すべてを 1 つの OneDrive フォルダーにまとめ、Teams カードにフォルダーリンクを共有する形式に変更しました。
+  - Adaptive Card の内容を更新: 各画像ごとのリンクを削除し、"Images Folder"リンクを追加してアクセスしやすくしました。
+  - OneDrive アップロードロジックをリファクタリングし、保守性を向上しました。
+- 🛠️ アップデート時の UX 改善:
+  - アップデートプロセスをスムーズにするための体験改善を行いました。
+```
 
-✨ Thêm một modal `UpdateDialog` mới để xử lý việc cập nhật ứng dụng một cách linh hoạt, cung cấp trải nghiệm người dùng tốt hơn khi kiểm tra phiên bản và hiển thị các thông báo nâng cấp.
+---
 
-🧹 Dọn dẹp mã nguồn và cải thiện cấu trúc để đơn giản hóa việc quản lý các props trong các dialog và component bị ảnh hưởng.
+### ✨ Tính năng mới
 
+```
+- 🟦 Phản hồi Microsoft Teams:
+  - Refactor việc tải ảnh lên: Bây giờ toàn bộ ảnh sẽ được tải lên một thư mục OneDrive duy nhất và chia sẻ liên kết thư mục trong thẻ Teams, thay vì hiển thị từng liên kết ảnh riêng lẻ.
+  - Cập nhật nội dung thẻ Adaptive Card: Xóa liên kết từng ảnh, thêm một liên kết "Thư mục hình ảnh" duy nhất để truy cập dễ dàng hơn.
+  - Refactor lại logic tải ảnh lên OneDrive để dễ bảo trì hơn.
+- 🛠️ Cải thiện UX cho quá trình cập nhật:
+  - Cải thiện luồng cập nhật để mang lại trải nghiệm mượt mà hơn cho người dùng.
 ```

@@ -1254,6 +1254,14 @@
     font-size: 1em;
   }
 
+  pre {
+    white-space: pre-line;
+  }
+
+  code {
+    font-size: 1em !important;
+  }
+
   small {
     font-size: 80%;
   }

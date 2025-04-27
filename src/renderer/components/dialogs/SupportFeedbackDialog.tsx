@@ -12,6 +12,7 @@ import { ImagePlus, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
+import { GlowLoader } from '../ui-elements/GlowLoader'
 
 interface SupportFeedbackDialogProps {
   open: boolean
@@ -133,6 +134,7 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
           <DialogDescription>{t('dialog.supportFeedback.description')}</DialogDescription>
         </DialogHeader>
 
+        {/* <OverlayLoader isLoading={isSending} /> */}
         <div className="space-y-4 min-h-[450px]">
           <div className="space-y-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -220,8 +222,16 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
           <Button variant={variant} onClick={handleCancel} disabled={isSending}>
             {t('common.cancel')}
           </Button>
-          <Button variant={variant} onClick={handleSend} disabled={isSending}>
-            {isSending ? t('common.sending') : t('common.send')}
+          <Button
+            className={`relative ${isSending ? 'border-effect' : ''} ${isSending ? 'cursor-progress' : ''}`}
+            variant={variant}
+            onClick={() => {
+              if (!isSending) {
+                handleSend()
+              }
+            }}
+          >
+            {isSending ? <GlowLoader /> : null} {isSending ? t('common.sending') : t('common.send')}
           </Button>
         </DialogFooter>
       </DialogContent>

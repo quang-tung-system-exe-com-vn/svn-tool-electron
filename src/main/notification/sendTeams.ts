@@ -157,8 +157,7 @@ export async function sendTeams(data: CommitInfo): Promise<void> {
     log.error(`Error sending adaptive card: ${err}`)
   }
 }
-
-function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = []) {
+function createSupportFeedbackCard(data: SupportFeedback, folderUrl: string) {
   const { type, email, message } = data
   const cardType = type === 'support' ? 'Support Request' : 'Feedback Submission'
   const cardColor = type === 'support' ? 'warning' : 'accent'
@@ -175,10 +174,8 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
       type: 'FactSet',
       facts: [
         { title: 'From', value: email },
-        { title: 'Type', value: type.charAt(0).toUpperCase() + type.slice(1) },
-        { title: 'Timestamp', value: new Date().toLocaleString() },
-        { title: 'OS', value: `${os.type()} ${os.release()}` },
         { title: 'Username', value: os.userInfo().username },
+        { title: 'OS', value: `${os.type()} ${os.release()}` },
         { title: 'Locale', value: Intl.DateTimeFormat().resolvedOptions().locale },
         { title: 'App Version', value: app.getVersion() },
       ],
@@ -196,21 +193,12 @@ function createSupportFeedbackCard(data: SupportFeedback, imageUrls: string[] = 
     },
   ]
 
-  if (imageUrls && imageUrls.length > 0) {
+  if (folderUrl) {
     bodyElements.push({
       type: 'TextBlock',
-      text: '**Attached Images:**',
+      text: `**Images Folder**: [${folderUrl}](${folderUrl})`,
       wrap: true,
-    })
-
-    // Thay vì sử dụng thẻ Image, sử dụng TextBlock với URL dạng text
-    imageUrls.forEach((imageUrl, index) => {
-      bodyElements.push({
-        type: 'TextBlock',
-        text: `[Image ${index + 1}](${imageUrl})`,
-        wrap: true,
-        isSubtle: false,
-      })
+      isSubtle: true,
     })
   }
 
@@ -227,33 +215,26 @@ export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise
   try {
     log.info('🎯 Sending Support/Feedback card to MS Teams...')
     const { webhookMS, oneDriveClientId, oneDriveRefreshToken } = configurationStore.store
-
     if (!webhookMS) {
       log.error('MS Teams Webhook URL is not configured.')
       return { success: false, error: 'MS Teams Webhook URL is not configured.' }
     }
-
-    let imageUrls: string[] = []
+    let folderUrl = ''
     if (data.images && data.images.length > 0) {
       try {
         if (!oneDriveClientId || !oneDriveRefreshToken) {
           log.warn('OneDrive is not fully configured. Images will be skipped.')
           return { success: false, error: 'OneDrive chưa được cấu hình đầy đủ. Vui lòng kiểm tra Client ID và Refresh Token trong phần cài đặt OneDrive.' }
         }
-
-        // Tạo UUID cho feedback này
         const feedbackUuid = randomUUID()
         log.info(`Uploading ${data.images.length} images to OneDrive folder with UUID: ${feedbackUuid}...`)
-
-        // Sử dụng UUID khi upload ảnh để tất cả ảnh được lưu trong cùng một thư mục
-        imageUrls = await uploadImagesToOneDrive(data.images, feedbackUuid)
-        log.info(`Successfully uploaded ${imageUrls.length} images to OneDrive`)
+        folderUrl = await uploadImagesToOneDrive(data.images, feedbackUuid)
+        log.info(`Successfully uploaded to ${folderUrl}`)
       } catch (uploadError: any) {
         log.error('Error uploading images to OneDrive:', uploadError)
       }
     }
-
-    const adaptiveCard = createSupportFeedbackCard(data, imageUrls)
+    const adaptiveCard = createSupportFeedbackCard(data, folderUrl)
     const payload = {
       type: 'message',
       attachments: [
@@ -263,11 +244,9 @@ export async function sendSupportFeedbackToTeams(data: SupportFeedback): Promise
         },
       ],
     }
-
     const response = await axios.post(webhookMS, payload, {
       headers: { 'Content-Type': 'application/json' },
     })
-
     if (response.status < 300) {
       log.info('✅ Support/Feedback card sent to MS Teams successfully!')
       return { success: true }

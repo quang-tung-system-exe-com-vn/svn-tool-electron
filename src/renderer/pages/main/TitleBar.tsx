@@ -42,6 +42,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   const [appVersion, setAppVersion] = useState<string>('')
   const [releaseNotes, setReleaseNotes] = useState<string | undefined>(undefined)
   const [showUpdateDialog, setShowUpdateDialog] = useState(false)
+  const [showIconUpdateApp, setShowIconUpdateApp] = useState(false)
 
   const [svnInfo, setSvnInfo] = useState<SvnInfo>({ author: '', revision: '', date: '', curRevision: '', commitMessage: '', changedFiles: [] })
   const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
@@ -53,14 +54,18 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
   useEffect(() => {
     const handler = (_event: any, data: any) => {
       setStatus(data.status)
+      setShowIconUpdateApp(false)
       logger.info(data)
       if (data.status === 'available') {
         if (data.version) {
           setAppVersion(`v${data.version}`)
         }
       }
-      if (data.releaseNotes) {
-        setReleaseNotes(data.releaseNotes)
+      if (data.status === 'downloaded') {
+        setShowIconUpdateApp(true)
+        if (data.releaseNotes) {
+          setReleaseNotes(data.releaseNotes)
+        }
       }
     }
     window.api.on('updater:status', handler)
@@ -183,7 +188,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       <InfoDialog open={showInfo} onOpenChange={setShowInfo} />
       <CleanDialog open={showClean} onOpenChange={setShowClean} />
       <SupportFeedbackDialog open={showSupportFeedback} onOpenChange={setShowSupportFeedback} />
-      {/* Đã thêm UpdateDialog */}
       <UpdateDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog} version={appVersion} releaseNotes={releaseNotes} />
       <NewRevisionDialog
         open={showSvnUpdateDialog}
@@ -243,21 +247,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                   <Button
                     variant="link"
                     size="sm"
-                    onClick={checkForUpdates}
-                    className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
-                  >
-                    <CircleArrowDown strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
-                    {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{status === 'downloaded' ? t('title.checkForUpdate1', { 0: appVersion }) : t('title.checkForUpdate')}</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="link"
-                    size="sm"
                     onClick={openSupportFeedbackDialog}
                     className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                   >
@@ -280,6 +269,23 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                 </TooltipTrigger>
                 <TooltipContent>{t('title.historyCommitMessage')}</TooltipContent>
               </Tooltip>
+
+              {showIconUpdateApp && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={checkForUpdates}
+                      className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] relative"
+                    >
+                      <CircleArrowDown strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                      {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{status === 'downloaded' ? t('title.checkForUpdate1', { 0: appVersion }) : t('title.checkForUpdate')}</TooltipContent>
+                </Tooltip>
+              )}
             </div>
           </div>
         </div>
