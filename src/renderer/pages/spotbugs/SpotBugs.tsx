@@ -1,3 +1,4 @@
+import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +13,6 @@ import { AlertCircle, AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BarChart a
 import { forwardRef, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '../shared/constants'
 import { SpotbugsToolbar } from './SpotbugsToolbar'
 
 interface BugInstance {

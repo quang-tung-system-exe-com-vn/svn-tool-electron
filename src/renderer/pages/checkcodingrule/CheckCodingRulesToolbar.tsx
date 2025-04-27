@@ -1,9 +1,9 @@
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
 import { useTranslation } from 'react-i18next'
-import { GlowLoader } from '../ui-elements/GlowLoader'
 
 interface CheckCodingRulesProps {
   onRefresh: () => void
@@ -44,7 +44,7 @@ export const CheckCodingRulesToolbar: React.FC<CheckCodingRulesProps> = ({ onRef
                   <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{t('dialog.codingRules.refresh')}</TooltipContent>
+              <TooltipContent>{t('common.refresh')}</TooltipContent>
             </Tooltip>
           </div>
         </div>

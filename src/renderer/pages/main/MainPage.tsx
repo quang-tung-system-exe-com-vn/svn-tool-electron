@@ -1,6 +1,3 @@
-import { DataTable } from '@/components/common/DataTable'
-import { FooterBar } from '@/components/layout/FooterBar'
-import { TitleBar } from '@/components/layout/TitleBar'
 import { LANGUAGES } from '@/components/shared/constants'
 import { useAppearanceStore, useButtonVariant } from '@/components/stores/useAppearanceStore'
 import { useHistoryStore } from '@/components/stores/useHistoryStore'
@@ -10,6 +7,9 @@ import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
+import { DataTable } from '@/pages/main/DataTable'
+import { FooterBar } from '@/pages/main/FooterBar'
+import { TitleBar } from '@/pages/main/TitleBar'
 import { IPC } from 'main/constants'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -194,7 +194,7 @@ export function MainPage() {
                 }
               }}
             >
-              {isLoadingGenerate ? <GlowLoader /> : null} {t('action.generate')}
+              {isLoadingGenerate ? <GlowLoader /> : null} {t('common.generate')}
             </Button>
 
             <Button
@@ -206,7 +206,7 @@ export function MainPage() {
                 }
               }}
             >
-              {t('action.check')}
+              {t('common.check')}
             </Button>
             <Button
               className={`relative ${isAnyLoading ? 'cursor-progress' : ''}`}
@@ -240,7 +240,7 @@ export function MainPage() {
                 }
               }}
             >
-              {isLoadingCommit ? <GlowLoader /> : null} {t('action.commit')}
+              {isLoadingCommit ? <GlowLoader /> : null} {t('common.commit')}
             </Button>
           </div>
         </div>

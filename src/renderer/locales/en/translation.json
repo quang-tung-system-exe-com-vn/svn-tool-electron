@@ -17,7 +17,9 @@
     "sending": "Sending...",
     "actions": "Actions",
     "copy": "Copy",
-    "loading": "Loading"
+    "generate": "Generate Commit Message",
+    "check": "Check Coding Rules",
+    "commit": "Commit Code"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -44,13 +46,6 @@
     "showLogsSvn": "Show Logs SVN",
     "supportFeedback": "Support & Feedback",
     "historyCommitMessage": "Commit Message History"
-  },
-  "action": {
-    "refresh": "Refresh",
-    "refreshDiff": "Refresh Diff",
-    "generate": "Generate Commit Message",
-    "check": "Check Coding Rules",
-    "commit": "Commit Code"
   },
   "label": {
     "changesMade": "Changes made",
@@ -382,6 +377,10 @@
       "msgRequiredUrl": "Webhook URL is required.",
       "placeholderName": "Enter webhook name",
       "placeholderUrl": "Enter webhook URL"
+    },
+    "commitMessageHistroy": {
+      "title": "Commit Message History",
+      "noResults": "No results yet."
     }
   },
   "spotbugs": {

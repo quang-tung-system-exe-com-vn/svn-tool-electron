@@ -1,14 +1,14 @@
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 
 import { useEffect } from 'react'
-import { CheckCodingRules } from '../components/checkcodingrule/CheckCodingRules'
-import { CodeDiffViewer } from '../components/diffviewer/CodeDiffViewer'
-import { ShowLog } from '../components/showlog/ShowLog'
-import { SpotBugs } from '../components/spotbugs/SpotBugs'
 import { useAppearanceStore } from '../components/stores/useAppearanceStore'
 import i18n from '../lib/i18n'
-import { HistoryPage } from '../pages/HistoryPage' // Import HistoryPage
-import { MainPage } from '../pages/MainPage'
+import { CheckCodingRules } from '../pages/checkcodingrule/CheckCodingRules'
+import { CommitMessageHistory } from '../pages/commitmessagehistory/CommitMessageHistory'
+import { CodeDiffViewer } from '../pages/diffviewer/CodeDiffViewer'
+import { MainPage } from '../pages/main/MainPage'
+import { ShowLog } from '../pages/showlog/ShowLog'
+import { SpotBugs } from '../pages/spotbugs/SpotBugs'
 
 export function AppRoutes() {
   const { theme, themeMode, fontSize, fontFamily, buttonVariant, language, setTheme, setThemeMode, setLanguage } = useAppearanceStore()
@@ -30,7 +30,7 @@ export function AppRoutes() {
         <Route path="/show-log" element={<ShowLog />} />
         <Route path="/spotbugs" element={<SpotBugs />} />
         <Route path="/check-coding-rules" element={<CheckCodingRules />} />
-        <Route path="/commit-message-history" element={<HistoryPage />} />
+        <Route path="/commit-message-history" element={<CommitMessageHistory />} />
       </Routes>
     </Router>
   )

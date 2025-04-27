@@ -1,3 +1,4 @@
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -9,7 +10,6 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
-import { GlowLoader } from '../ui-elements/GlowLoader'
 
 interface ShowlogProps {
   onRefresh: () => void

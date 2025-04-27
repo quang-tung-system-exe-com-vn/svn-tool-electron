@@ -14,7 +14,10 @@
     "next": "次へ",
     "back": "戻る",
     "send": "送信",
-    "sending": "送信中..."
+    "sending": "送信中...",
+    "generate": "コミットメッセージを生成",
+    "check": "コーディングルールを確認",
+    "commit": "コードをコミット"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -45,8 +48,6 @@
     "supportFeedback": "サポートとフィードバック"
   },
   "action": {
-    "refresh": "更新",
-    "refreshDiff": "差分を更新",
     "generate": "コミットメッセージを生成",
     "check": "コーディングルールを確認",
     "commit": "コードをコミット"
@@ -363,13 +364,17 @@
       "path": "パス",
       "commitMessage": "コミットメッセージ"
     },
-    "newWebhook_ja": {
+    "newWebhook": {
       "title": "新しいWebhookを追加",
       "description": "追加したいWebhookの名前とURLを入力してください。",
       "msgRequiredName": "Webhook名は必須です。",
       "msgRequiredUrl": "WebhookのURLは必須です。",
       "placeholderName": "Webhook名を入力",
       "placeholderUrl": "WebhookのURLを入力"
+    },
+    "commitMessageHistroy": {
+      "title": "コミットメッセージ履歴",
+      "noResults": "まだ結果がありません。"
     }
   },
   "spotbugs": {

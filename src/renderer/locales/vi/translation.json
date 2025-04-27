@@ -17,7 +17,9 @@
     "sending": "Đang gửi...",
     "actions": "Hành động",
     "copy": "Sao chép",
-    "loading": "Đang tải"
+    "generate": "Tạo thông điệp commit",
+    "check": "Kiểm tra quy tắc mã hóa",
+    "commit": "Commit mã"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -45,13 +47,6 @@
     "showLogsSvn": "Hiển thị nhật ký SVN",
     "supportFeedback": "Hỗ trợ & Phản hồi",
     "historyCommitMessage": "Lịch sử thông điệp commit"
-  },
-  "action": {
-    "refresh": "Làm mới",
-    "refreshDiff": "Làm mới so sánh",
-    "generate": "Tạo thông điệp commit",
-    "check": "Kiểm tra quy tắc mã hóa",
-    "commit": "Commit mã"
   },
   "label": {
     "changesMade": "Các thay đổi",
@@ -369,13 +364,17 @@
       "path": "Đường dẫn",
       "commitMessage": "Thông điệp commit"
     },
-    "newWebhook_vi": {
+    "newWebhook": {
       "title": "Thêm Webhook Mới",
       "description": "Nhập tên và URL cho webhook bạn muốn thêm.",
       "msgRequiredName": "Tên webhook là bắt buộc.",
       "msgRequiredUrl": "URL của webhook là bắt buộc.",
       "placeholderName": "Nhập tên webhook",
       "placeholderUrl": "Nhập URL của webhook"
+    },
+    "commitMessageHistroy": {
+      "title": "Lịch sử tin nhắn commit",
+      "noResults": "Chưa có kết quả nào."
     }
   },
   "spotbugs": {

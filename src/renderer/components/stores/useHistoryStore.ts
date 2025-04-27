@@ -1,4 +1,3 @@
-import toast from '@/components/ui-elements/Toast'
 import { create } from 'zustand'
 
 type History = {
@@ -21,7 +20,7 @@ export const useHistoryStore = create<HistoryStore>((set, get) => ({
 
   loadHistoryConfig: async () => {
     const data = await window.api.history.get()
-    set({ commitMessages: data.commitMessages })
+    set({ commitMessages: data.commitMessages ?? [] })
   },
 
   addHistory: async (history: History): Promise<boolean> => {
@@ -29,7 +28,6 @@ export const useHistoryStore = create<HistoryStore>((set, get) => ({
     data.commitMessages.push(history)
     await window.api.history.set(data)
     set({ commitMessages: data.commitMessages })
-    toast.success('History added successfully.')
     return true
   },
 }))

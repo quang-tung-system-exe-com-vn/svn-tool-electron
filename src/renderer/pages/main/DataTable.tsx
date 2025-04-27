@@ -10,11 +10,11 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { cn } from '@/lib/utils'
 import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
+import { StatusIcon } from '@/components/ui-elements/StatusIcon'
 import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
-import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
-import { OverlayLoader } from '../ui-elements/OverlayLoader'
-import { StatusIcon } from '../ui-elements/StatusIcon'
+import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../components/shared/constants'
 
 export type SvnFile = {
   filePath: string

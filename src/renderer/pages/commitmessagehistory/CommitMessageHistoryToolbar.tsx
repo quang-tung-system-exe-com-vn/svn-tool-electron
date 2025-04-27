@@ -1,20 +1,17 @@
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { t } from 'i18next'
-import { Columns, Minus, RefreshCw, Save, Square, X } from 'lucide-react'
+import { Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
-import { GlowLoader } from '../ui-elements/GlowLoader'
+import { useTranslation } from 'react-i18next'
 
-interface DiffToolbarProps {
-  onRefresh?: () => void
-  onSwapSides?: () => void
-  onSave?: () => void
+interface CommitMessageHistoryToolbarProps {
+  onRefresh: () => void
   isLoading: boolean
-  isSaving?: boolean
-  filePath: string
 }
 
-export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, onSave, isLoading, isSaving = false, filePath }) => {
+export const CommitMessageHistoryToolbar: React.FC<CommitMessageHistoryToolbarProps> = ({ onRefresh, isLoading }) => {
+  const { t } = useTranslation()
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -35,56 +32,27 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
           {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5 dark:brightness-130" />}
         </div>
         <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="link"
-                size="sm"
-                onClick={onRefresh}
-                className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
-              >
-                <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('common.refresh')}</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="link"
-                size="sm"
-                onClick={onSwapSides}
-                className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
-              >
-                <Columns strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('common.swap')}</TooltipContent>
-          </Tooltip>
-
-          {onSave && (
+          <div className="flex items-center gap-1 pt-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="link"
                   size="sm"
-                  onClick={onSave}
-                  disabled={isSaving}
+                  onClick={onRefresh}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                 >
-                  <Save strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                  <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{t('common.save')}</TooltipContent>
+              <TooltipContent>{t('common.refresh')}</TooltipContent>
             </Tooltip>
-          )}
+          </div>
         </div>
       </div>
 
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs">
-        {t('dialog.diffViewer.title')}: {filePath}
+        {t('dialog.commitMessageHistroy.title')}
       </Button>
 
       {/* Right Section (Window Controls) */}

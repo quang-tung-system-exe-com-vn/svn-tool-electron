@@ -1,20 +1,23 @@
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Minus, RefreshCw, Square, X } from 'lucide-react'
+import { t } from 'i18next'
+import { Columns, Minus, RefreshCw, Save, Square, X } from 'lucide-react'
 import type React from 'react'
-import { useTranslation } from 'react-i18next'
-import { GlowLoader } from '../ui-elements/GlowLoader'
 
-interface ShowlogProps {
+interface DiffToolbarProps {
   onRefresh?: () => void
+  onSwapSides?: () => void
+  onSave?: () => void
   isLoading: boolean
+  isSaving?: boolean
+  filePath: string
 }
 
-export const SpotbugsToolbar: React.FC<ShowlogProps> = ({ isLoading, onRefresh }) => {
+export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, onSave, isLoading, isSaving = false, filePath }) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
-  const { t } = useTranslation()
 
   return (
     <div
@@ -32,27 +35,58 @@ export const SpotbugsToolbar: React.FC<ShowlogProps> = ({ isLoading, onRefresh }
           {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5 dark:brightness-130" />}
         </div>
         <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <div className="flex items-center gap-1 pt-0.5">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={onRefresh}
+                className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+              >
+                <RefreshCw strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('common.refresh')}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={onSwapSides}
+                className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+              >
+                <Columns strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('common.swap')}</TooltipContent>
+          </Tooltip>
+
+          {onSave && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="link"
                   size="sm"
-                  onClick={onRefresh}
+                  onClick={onSave}
+                  disabled={isSaving}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                 >
-                  <RefreshCw className="h-4 w-4" />
+                  <Save strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Refresh</TooltipContent>
+              <TooltipContent>{t('common.save')}</TooltipContent>
             </Tooltip>
-          </div>
+          )}
         </div>
       </div>
+
       {/* Center Section (Title) */}
       <Button variant="ghost" className="font-medium text-xs">
-        {t('dialog.spotbugs.title')}
+        {t('dialog.diffViewer.title')}: {filePath}
       </Button>
+
       {/* Right Section (Window Controls) */}
       <div className="flex gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">

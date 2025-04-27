@@ -1,3 +1,4 @@
+import { LANGUAGES } from '@/components/shared/constants'
 import { useAppearanceStore } from '@/components/stores/useAppearanceStore'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
@@ -7,7 +8,6 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { LANGUAGES } from '../shared/constants'
 import { CheckCodingRulesToolbar } from './CheckCodingRulesToolbar'
 
 window.addEventListener('storage', event => {
