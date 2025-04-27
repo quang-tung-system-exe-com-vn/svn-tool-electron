@@ -1,7 +1,8 @@
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
+import { CircleAlert, MoveRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -9,11 +10,12 @@ import remarkGfm from 'remark-gfm'
 interface UpdateDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  version?: string
-  releaseNotes?: string
+  currentVersion: string
+  newVersion: string
+  releaseNotes: string
 }
 
-export const UpdateDialog = ({ open, onOpenChange, version, releaseNotes }: UpdateDialogProps) => {
+export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, releaseNotes }: UpdateDialogProps) => {
   const { t } = useTranslation()
   const variant = useButtonVariant()
   const handleInstall = async () => {
@@ -30,11 +32,20 @@ export const UpdateDialog = ({ open, onOpenChange, version, releaseNotes }: Upda
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>{t('dialog.updateApp.title')}</DialogTitle>
-          <DialogDescription>{t('dialog.updateApp.appVersion', { 0: version || t('common.notAvailable') })}</DialogDescription>
+          <DialogTitle className="flex flex-row items-center gap-2">
+            {t('dialog.updateApp.appVersion')}
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-gray-500/100">{currentVersion}</span> <MoveRight className="w-4 h-4" /> {newVersion}
+            </div>
+          </DialogTitle>
         </DialogHeader>
-        <div className="prose prose-sm dark:prose-invert max-h-[40vh] overflow-y-auto p-4 border rounded bg-muted/30 max-w-none">
+
+        <div className="mt-2 prose prose-sm dark:prose-invert max-h-[40vh] overflow-y-auto p-4 border rounded bg-muted/30 max-w-none">
           {releaseNotes ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{releaseNotes}</ReactMarkdown> : <p>{t('dialog.updateApp.noReleaseNotes')}</p>}
+        </div>
+        <div className="border rounded w-full p-3 items-center justify-center text-sm flex flex-row gap-2 border-red-400">
+          <CircleAlert className="w-4 h-4 text-red-400" />
+          {t('dialog.updateApp.message')}
         </div>
         <DialogFooter>
           <Button variant={variant} onClick={() => onOpenChange(false)}>

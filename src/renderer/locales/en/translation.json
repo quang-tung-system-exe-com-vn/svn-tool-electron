@@ -352,7 +352,8 @@
     },
     "updateApp": {
       "title": "New Update Available",
-      "appVersion": "A new version of the application is available: {{0}}"
+      "appVersion": "A new version of SVNTool is available: ",
+      "message": "The app will relaunch after updating"
     },
     "newWebhook": {
       "title": "Add New Webhook",

@@ -34,7 +34,10 @@ export function CommitMessageHistory() {
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await window.api.history.get()
-    setResult(result.commitMessages)
+    const sortedMessages = result.commitMessages.sort((a, b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
+    setResult(sortedMessages)
     setIsLoading(false)
   }
 

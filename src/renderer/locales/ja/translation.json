@@ -352,7 +352,8 @@
     },
     "updateApp": {
       "title": "新しいアップデートがあります",
-      "appVersion": "新しいバージョンのアプリケーションが利用可能です: {{0}}"
+      "appVersion": "SVNTool の新しいバージョンが利用可能です: ",
+      "message": "アップデート後にアプリが再起動します"
     },
     "newWebhook": {
       "title": "新しいWebhookを追加",

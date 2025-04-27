@@ -4,6 +4,7 @@ import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
 import { IPC } from '../constants'
 
+const currentVersion = app.getVersion()
 log.transports.file.level = 'info'
 autoUpdater.logger = log
 autoUpdater.forceDevUpdateConfig = true
@@ -19,6 +20,7 @@ export function initAutoUpdater(window: BrowserWindow) {
       status: 'available',
       version: info.version,
       releaseNotes: info.releaseNotes,
+      currentVersion,
     })
   })
 
@@ -42,6 +44,7 @@ export function initAutoUpdater(window: BrowserWindow) {
       status: 'downloaded',
       version: info.version,
       releaseNotes: info.releaseNotes,
+      currentVersion,
     })
   })
 
@@ -63,6 +66,7 @@ export function initAutoUpdater(window: BrowserWindow) {
           status: updateAvailable ? 'available' : 'not-available',
           version: latestVersion,
           releaseNotes,
+          currentVersion,
         }
       }
       return { status: 'not-available' }

@@ -352,7 +352,8 @@
     },
     "updateApp": {
       "title": "Có bản cập nhật mới",
-      "appVersion": "Phiên bản ứng dụng mới đã có sẵn: {{0}}"
+      "appVersion": "Phiên bản SVNTool mới đã có sẵn: ",
+      "message": "Ứng dụng sẽ khởi động lại sau khi cập nhật"
     },
     "newWebhook": {
       "title": "Thêm Webhook Mới",

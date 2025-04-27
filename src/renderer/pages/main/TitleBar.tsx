@@ -40,7 +40,8 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
 
   const [status, setStatus] = useState('')
   const [appVersion, setAppVersion] = useState<string>('')
-  const [releaseNotes, setReleaseNotes] = useState<string | undefined>(undefined)
+  const [newAppVersion, setNewAppVersion] = useState<string>('')
+  const [releaseNotes, setReleaseNotes] = useState<string>('')
   const [showUpdateDialog, setShowUpdateDialog] = useState(false)
   const [showIconUpdateApp, setShowIconUpdateApp] = useState(false)
 
@@ -57,11 +58,12 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       setShowIconUpdateApp(false)
       logger.info(data)
       if (data.status === 'available') {
-        if (data.version) {
-          setAppVersion(`v${data.version}`)
-        }
+        setAppVersion(`v${data.currentVersion}`)
+        setNewAppVersion(`v${data.version}`)
       }
       if (data.status === 'downloaded') {
+        setAppVersion(`v${data.currentVersion}`)
+        setNewAppVersion(`v${data.version}`)
         setShowIconUpdateApp(true)
         if (data.releaseNotes) {
           setReleaseNotes(data.releaseNotes)
@@ -188,7 +190,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
       <InfoDialog open={showInfo} onOpenChange={setShowInfo} />
       <CleanDialog open={showClean} onOpenChange={setShowClean} />
       <SupportFeedbackDialog open={showSupportFeedback} onOpenChange={setShowSupportFeedback} />
-      <UpdateDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog} version={appVersion} releaseNotes={releaseNotes} />
+      <UpdateDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog} currentVersion={appVersion} newVersion={newAppVersion} releaseNotes={releaseNotes} />
       <NewRevisionDialog
         open={showSvnUpdateDialog}
         onOpenChange={setShowSvnUpdateDialog}
