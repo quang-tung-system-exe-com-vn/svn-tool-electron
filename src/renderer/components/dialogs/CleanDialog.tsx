@@ -6,7 +6,7 @@ import i18n from '@/lib/i18n'
 import { Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useButtonVariant } from '../stores/useAppearanceStore'
+import { useButtonVariant } from '../../stores/useAppearanceStore'
 import { OverlayLoader } from '../ui-elements/OverlayLoader'
 
 interface CleanOption {

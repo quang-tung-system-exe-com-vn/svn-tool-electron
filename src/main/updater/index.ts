@@ -38,6 +38,7 @@ export function initAutoUpdater(window: BrowserWindow) {
   })
 
   autoUpdater.on('update-downloaded', info => {
+    console.log('update-downloaded: ', info)
     window.webContents.send(IPC.UPDATER.STATUS, {
       status: 'downloaded',
       version: info.version,
@@ -57,8 +58,7 @@ export function initAutoUpdater(window: BrowserWindow) {
         const currentVersion = app.getVersion()
         const latestVersion = updateCheckResult.updateInfo.version
         const updateAvailable = latestVersion !== currentVersion
-
-        const downloadResult = await autoUpdater.checkForUpdates()
+        await autoUpdater.checkForUpdates()
         return {
           status: updateAvailable ? 'available' : 'not-available',
           version: latestVersion,

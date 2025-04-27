@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Quantum } from 'ldrs/react'
 import 'ldrs/react/Quantum.css'
 import { useEffect, useState } from 'react'
-import { useAppearanceStore } from '../stores/useAppearanceStore'
+import { useAppearanceStore } from '../../stores/useAppearanceStore'
 
 type OverlayLoaderProps = {
   isLoading: boolean

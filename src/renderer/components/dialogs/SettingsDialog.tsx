@@ -14,11 +14,11 @@ import type { Theme } from 'main/store/AppearanceStore'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useAppearanceStore } from '../../stores/useAppearanceStore'
+import { useConfigurationStore } from '../../stores/useConfigurationStore'
+import { useMailServerStore } from '../../stores/useMailServerStore'
+import { useWebhookStore } from '../../stores/useWebhookStore'
 import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES, THEMES } from '../shared/constants'
-import { useAppearanceStore } from '../stores/useAppearanceStore'
-import { useConfigurationStore } from '../stores/useConfigurationStore'
-import { useMailServerStore } from '../stores/useMailServerStore'
-import { useWebhookStore } from '../stores/useWebhookStore'
 import { AddWebhookDialog } from './AddNewWebhookDialog'
 
 interface SettingsDialogProps {

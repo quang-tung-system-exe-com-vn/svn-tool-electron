@@ -1,7 +1,6 @@
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 
 import { useEffect } from 'react'
-import { useAppearanceStore } from '../components/stores/useAppearanceStore'
 import i18n from '../lib/i18n'
 import { CheckCodingRules } from '../pages/checkcodingrule/CheckCodingRules'
 import { CommitMessageHistory } from '../pages/commitmessagehistory/CommitMessageHistory'
@@ -9,6 +8,7 @@ import { CodeDiffViewer } from '../pages/diffviewer/CodeDiffViewer'
 import { MainPage } from '../pages/main/MainPage'
 import { ShowLog } from '../pages/showlog/ShowLog'
 import { SpotBugs } from '../pages/spotbugs/SpotBugs'
+import { useAppearanceStore } from '../stores/useAppearanceStore'
 
 export function AppRoutes() {
   const { theme, themeMode, fontSize, fontFamily, buttonVariant, language, setTheme, setThemeMode, setLanguage } = useAppearanceStore()
