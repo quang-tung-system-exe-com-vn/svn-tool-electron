@@ -15,6 +15,7 @@ export function initAutoUpdater(window: BrowserWindow) {
   })
 
   autoUpdater.on('update-available', info => {
+    console.log('update-available: ', info)
     window.webContents.send(IPC.UPDATER.STATUS, {
       status: 'available',
       version: info.version,

@@ -25,6 +25,10 @@ export default {
     },
   ],
 
+  releaseInfo: {
+    releaseNotesFile: 'release-notes.md',
+  },
+
   directories: {
     app: getDevFolder(main),
     output: `dist/v${version}`,
