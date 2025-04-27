@@ -1,5 +1,4 @@
 import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Badge } from '@/components/ui/badge'
 import { ChartContainer, ChartLegend, ChartTooltip } from '@/components/ui/chart'
@@ -265,7 +264,7 @@ export function SpotBugs() {
                       <div className="flex flex-col border rounded-md overflow-hidden h-full">
                         <div className="bg-muted p-2 font-medium">{t('dialog.spotbugs.issues')}</div>
                         <ScrollArea className="h-full w-full">
-                          <OverlayLoader isLoading={isLoading} />
+                          {/* <OverlayLoader isLoading={isLoading} /> */}
                           <Table wrapperClassName={cn('overflow-clip', filteredBugs.length === 0 && 'h-full')}>
                             <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                               <TableRow>
@@ -538,7 +537,7 @@ export function SpotBugs() {
                       {t('dialog.spotbugs.fileList')} ({filePaths.length})
                     </div>
                     <ScrollArea className="h-full w-full">
-                      <OverlayLoader isLoading={isLoading} />
+                      {/* <OverlayLoader isLoading={isLoading} /> */}
                       <Table wrapperClassName={cn('overflow-clip', filePaths.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                           <TableRow>
@@ -564,7 +563,7 @@ export function SpotBugs() {
                 )}
                 {activeTab === 'chart' && (
                   <div className="border rounded-md p-4 h-full flex items-center justify-center">
-                    <OverlayLoader isLoading={isLoading} />
+                    {/* <OverlayLoader isLoading={isLoading} /> */}
                     {!isLoading && spotbugsResult.totalBugs > 0 ? (
                       <ChartContainer
                         config={{

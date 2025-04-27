@@ -1,4 +1,3 @@
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import i18n from '@/lib/i18n'
 import logger from '@/services/logger'
@@ -9,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DiffFooterBar } from './DiffFooterBar'
 import { DiffToolbar } from './DiffToolbar'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 
 export function CodeDiffViewer() {
   const monaco = useMonaco()

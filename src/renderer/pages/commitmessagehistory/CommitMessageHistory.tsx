@@ -35,7 +35,6 @@ export function CommitMessageHistory() {
     setIsLoading(true)
     const result = await window.api.history.get()
     setResult(result.commitMessages)
-    toast.success(t('toast.copied'))
     setIsLoading(false)
   }
 

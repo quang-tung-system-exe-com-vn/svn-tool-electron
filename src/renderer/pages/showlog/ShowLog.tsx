@@ -1,6 +1,5 @@
 import { StatisticDialog } from '@/components/dialogs/StatisticDialog'
 import { STATUS_TEXT, type SvnStatusCode } from '@/components/shared/constants'
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import { StatusIcon } from '@/components/ui-elements/StatusIcon'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
@@ -463,7 +462,7 @@ export function ShowLog() {
                     </div>
                   </div>
                   <ScrollArea className="flex-1 border-1 rounded-md">
-                    <OverlayLoader isLoading={isLoading} />
+                    {/* <OverlayLoader isLoading={isLoading} /> */}
                     <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
                       <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                         {table.getHeaderGroups().map(headerGroup => (
