@@ -15,7 +15,6 @@
     "back": "Back",
     "send": "Send",
     "sending": "Sending...",
-    "actions": "Actions",
     "copy": "Copy",
     "generate": "Generate Commit Message",
     "check": "Check Coding Rules",
@@ -24,13 +23,9 @@
   "message": {
     "commitMessageWarning": "Please enter a commit message",
     "noFilesWarning": "No files selected!",
-    "configSaved": "Configuration saved!",
-    "configError": "Failed to save configuration",
-    "noResults": "No analysis results yet.",
     "loading": "Loading...",
     "noIssues": "No issues found",
     "selectIssue": "Select an issue to view details",
-    "errorLoading": "Error loading file for diff:",
     "noFilesChanged": "No files were changed or added since the last commit.",
     "rowSelected": "{{0}} of {{1}} row(s) selected."
   },
@@ -48,12 +43,8 @@
     "historyCommitMessage": "Commit Message History"
   },
   "label": {
-    "changesMade": "Changes made",
-    "commitMessage": "Commit message",
     "line": "Ln",
-    "column": "Col",
-    "spaces": "Spaces:",
-    "encoding": "UTF-8"
+    "column": "Col"
   },
   "table": {
     "status": "Status",
@@ -83,6 +74,7 @@
     "error": "Error",
     "info": "Info",
     "warning": "Warning",
+    "getListSuccess": "Get changed files successful",
     "commitSuccess": "Commit successful",
     "commitError": "Commit error",
     "checkSuccess": "Analysis successful",
@@ -102,7 +94,8 @@
     "fileSaved": "File saved successfully.",
     "errorSavingFile": "Error saving file.",
     "fetchHistoryError": "Error fetching commit history",
-    "copied": "Copied to clipboard!"
+    "copied": "Copied to clipboard!",
+    "loadSuccess": "Load successfully."
   },
   "svn": {
     "status": {
@@ -167,19 +160,10 @@
       "description": "Configure Microsoft OneDrive for image uploads.",
       "clientId": "Client ID",
       "clientIdPlaceholder": "Enter your Microsoft App Client ID",
-      "tenantId": "Tenant ID",
-      "tenantIdPlaceholder": "Enter your Microsoft Tenant ID",
       "clientSecret": "Client Secret",
       "clientSecretPlaceholder": "Enter your Microsoft App Client Secret",
       "refreshToken": "Refresh Token (Optional)",
-      "refreshTokenPlaceholder": "Enter your Refresh Token (if available)",
-      "instructions": "To use OneDrive for image uploads, you need to register an application in the Azure Portal and grant it appropriate permissions.",
-      "step1": "Go to the",
-      "azurePortal": "Azure Portal",
-      "step2": "Register a new application",
-      "step3": "Add API permissions for Microsoft Graph (Files.ReadWrite, Files.ReadWrite.All)",
-      "step4": "Create a client secret",
-      "step5": "Enter the Client ID, Tenant ID, and Client Secret here"
+      "refreshTokenPlaceholder": "Enter your Refresh Token (if available)"
     }
   },
   "dialog": {
@@ -380,7 +364,9 @@
     },
     "commitMessageHistroy": {
       "title": "Commit Message History",
-      "noResults": "No results yet."
+      "noResults": "No results yet.",
+      "date": "Date",
+      "commitMessage": "Commit Message"
     }
   },
   "spotbugs": {
@@ -899,9 +885,5 @@
       "us_useless_suppression_on_method_parameter": "US: Useless suppression on a method parameter\nSuppressing annotations &SuppressFBWarnings should be removed from the source code as soon as they are no more needed. Leaving them may result in accidental warnings suppression. The annotation was probably added to suppress a warning raised by SpotBugs, but now SpotBugs does not report the bug anymore. Either the bug was solved or SpotBugs was updated, and the bug is no longer raised by that code.",
       "us_useless_suppression_on_package": "US: Useless suppression on a package\nSuppressing annotation &SuppressFBWarnings should be removed from the source code as soon as they are no more needed. Leaving them may result in accidental warnings suppression. The annotation was probably added to suppress a warning raised by SpotBugs, but now SpotBugs does not report the bug anymore. Either the bug was solved or SpotBugs was updated, and the bug is no longer raised by that code."
     }
-  },
-  "history": {
-    "date": "Date",
-    "commitMessage": "Commit Message"
   }
 }

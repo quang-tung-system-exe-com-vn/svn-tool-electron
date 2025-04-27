@@ -10,7 +10,6 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { cn } from '@/lib/utils'
 import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import { StatusIcon } from '@/components/ui-elements/StatusIcon'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
@@ -152,7 +151,6 @@ export const DataTable = forwardRef((props, ref) => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<SvnFile[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const hasLoaded = useRef(false)
   const variant = useButtonVariant()
 
@@ -171,6 +169,7 @@ export const DataTable = forwardRef((props, ref) => {
       if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
         event.preventDefault()
         reloadData()
+        toast.info(t('toast.getListSuccess'))
         setTimeout(() => {
           table.toggleAllPageRowsSelected(false)
         }, 0)
@@ -184,13 +183,10 @@ export const DataTable = forwardRef((props, ref) => {
 
   const reloadData = async () => {
     try {
-      setIsLoading(true)
       const result = await changedFiles()
       setData(result)
     } catch (err) {
       toast.error(err)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -333,9 +329,8 @@ export const DataTable = forwardRef((props, ref) => {
   Table.displayName = 'Table'
 
   return (
-    <div className="h-full p-2">
+    <div className="h-full p-2 relative">
       <ScrollArea className="h-full border-1 rounded-md">
-        <OverlayLoader isLoading={isLoading} />
         <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
           <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
             {table.getHeaderGroups().map(headerGroup => (

@@ -15,6 +15,7 @@
     "back": "戻る",
     "send": "送信",
     "sending": "送信中...",
+    "copy": "コピー",
     "generate": "コミットメッセージを生成",
     "check": "コーディングルールを確認",
     "commit": "コードをコミット"
@@ -22,18 +23,11 @@
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
     "noFilesWarning": "ファイルが選択されていません！",
-    "configSaved": "設定が保存されました！",
-    "configError": "設定の保存に失敗しました",
-    "noResults": "まだ分析結果はありません。",
     "loading": "読み込み中...",
     "noIssues": "問題は見つかりませんでした",
     "selectIssue": "詳細を表示する問題を選択してください",
-    "errorLoading": "差分ファイルの読み込みエラー：",
     "noFilesChanged": "最後のコミット以降、ファイルは変更または追加されていません。",
-    "rowSelected": "{{0}} の {{1}} 行が選択されました。",
-    "leastOneJavaFile": "Javaファイルを少なくとも1つ選択してください",
-    "fileSaved": "ファイルが正常に保存されました。",
-    "errorSavingFile": "ファイルの保存中にエラーが発生しました。"
+    "rowSelected": "{{0}} の {{1}} 行が選択されました。"
   },
   "title": {
     "settings": "設定",
@@ -45,20 +39,12 @@
     "updateSvn1": "新しい SVN リビジョンがあります！ ({{0}}) - (現在: {{1}})",
     "cleanSvn": "SVN をクリーンアップ",
     "showLogsSvn": "SVN ログを表示",
-    "supportFeedback": "サポートとフィードバック"
-  },
-  "action": {
-    "generate": "コミットメッセージを生成",
-    "check": "コーディングルールを確認",
-    "commit": "コードをコミット"
+    "supportFeedback": "サポートとフィードバック",
+    "historyCommitMessage": "コミットメッセージ履歴"
   },
   "label": {
-    "changesMade": "変更内容",
-    "commitMessage": "コミットメッセージ",
     "line": "行",
-    "column": "列",
-    "spaces": "スペース：",
-    "encoding": "UTF-8"
+    "column": "列"
   },
   "table": {
     "status": "ステータス",
@@ -88,6 +74,7 @@
     "error": "エラー",
     "info": "情報",
     "warning": "警告",
+    "getListSuccess": "変更されたファイルの取得に成功しました",
     "commitSuccess": "コミットが成功しました",
     "commitError": "コミット中にエラーが発生しました",
     "checkSuccess": "コーディングルールの確認が成功しました",
@@ -102,7 +89,13 @@
     "updateError": "SVNの更新中にエラーが発生しました",
     "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {{0}}",
     "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました",
-    "refreshingSpotbugs": "SpotBugs分析を更新中..."
+    "refreshingSpotbugs": "SpotBugs分析を更新中...",
+    "leastOneJavaFile": "少なくとも1つのJavaファイルを選択してください",
+    "fileSaved": "ファイルの保存に成功しました。",
+    "errorSavingFile": "ファイルの保存中にエラーが発生しました。",
+    "fetchHistoryError": "コミット履歴の取得中にエラーが発生しました。",
+    "copied": "クリップボードにコピーしました。",
+    "loadSuccess": "読み込みに成功しました."
   },
   "svn": {
     "status": {
@@ -126,6 +119,7 @@
       "large": "大"
     },
     "theme": "テーマ",
+    "darkMode": "ダークモード",
     "language": "言語",
     "buttonVariant": "ボタンのバリアント",
     "fontFamily": "フォントファミリー",
@@ -166,19 +160,10 @@
       "description": "画像アップロード用のMicrosoft OneDriveを構成します。",
       "clientId": "クライアントID",
       "clientIdPlaceholder": "Microsoft アプリのクライアントIDを入力してください",
-      "tenantId": "テナントID",
-      "tenantIdPlaceholder": "Microsoft テナントIDを入力してください",
       "clientSecret": "クライアントシークレット",
       "clientSecretPlaceholder": "Microsoft アプリのクライアントシークレットを入力してください",
       "refreshToken": "リフレッシュトークン（オプション）",
-      "refreshTokenPlaceholder": "リフレッシュトークンを入力してください（利用可能な場合）",
-      "instructions": "画像アップロード用にOneDriveを使用するには、Azure Portalでアプリケーションを登録し、適切な権限を付与する必要があります。",
-      "step1": "アクセス先",
-      "azurePortal": "Azure Portal",
-      "step2": "新しいアプリケーションを登録",
-      "step3": "Microsoft Graph用のAPI権限を追加（Files.ReadWrite、Files.ReadWrite.All）",
-      "step4": "クライアントシークレットを作成",
-      "step5": "クライアントID、テナントID、クライアントシークレットをここに入力"
+      "refreshTokenPlaceholder": "リフレッシュトークンを入力してください（利用可能な場合）"
     }
   },
   "dialog": {
@@ -310,6 +295,7 @@
       "chart": "チャート"
     },
     "diffViewer": {
+      "title": "差分ビューア",
       "language": {
         "select": "言語を選択...",
         "notFound": "言語が見つかりません。"
@@ -364,6 +350,10 @@
       "path": "パス",
       "commitMessage": "コミットメッセージ"
     },
+    "updateApp": {
+      "title": "新しいアップデートがあります",
+      "appVersion": "新しいバージョンのアプリケーションが利用可能です: {{0}}"
+    },
     "newWebhook": {
       "title": "新しいWebhookを追加",
       "description": "追加したいWebhookの名前とURLを入力してください。",
@@ -374,7 +364,9 @@
     },
     "commitMessageHistroy": {
       "title": "コミットメッセージ履歴",
-      "noResults": "まだ結果がありません。"
+      "noResults": "まだ結果がありません。",
+      "date": "日時",
+      "commitMessage": "コミットメッセージ"
     }
   },
   "spotbugs": {

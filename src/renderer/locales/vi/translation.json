@@ -15,7 +15,6 @@
     "back": "Quay lại",
     "send": "Gửi",
     "sending": "Đang gửi...",
-    "actions": "Hành động",
     "copy": "Sao chép",
     "generate": "Tạo thông điệp commit",
     "check": "Kiểm tra quy tắc mã hóa",
@@ -24,16 +23,11 @@
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
     "noFilesWarning": "Chưa có file nào được chọn!",
-    "configSaved": "Đã lưu cấu hình!",
-    "configError": "Lỗi khi lưu cấu hình",
-    "noResults": "Chưa có kết quả phân tích.",
     "loading": "Đang tải...",
     "noIssues": "Không tìm thấy vấn đề",
     "selectIssue": "Chọn một vấn đề để xem chi tiết",
-    "errorLoading": "Lỗi khi tải file để so sánh:",
     "noFilesChanged": "Chưa có file nào được thay đổi hoặc thêm mới kể từ lần commit cuối.",
-    "rowSelected": "{{0}} của {{1}} hàng được chọn.",
-    "leastOneJavaFile": "Vui lòng chọn ít nhất một file Java để phân tích."
+    "rowSelected": "{{0}} của {{1}} hàng được chọn."
   },
   "title": {
     "settings": "Cài đặt",
@@ -49,12 +43,8 @@
     "historyCommitMessage": "Lịch sử thông điệp commit"
   },
   "label": {
-    "changesMade": "Các thay đổi",
-    "commitMessage": "Thông điệp commit",
     "line": "Dòng",
-    "column": "Cột",
-    "spaces": "Khoảng trắng:",
-    "encoding": "UTF-8"
+    "column": "Cột"
   },
   "table": {
     "status": "Trạng thái",
@@ -84,6 +74,7 @@
     "error": "Lỗi",
     "info": "Thông tin",
     "warning": "Cảnh báo",
+    "getListSuccess": "Lấy danh sách file thay đổi thành công",
     "commitSuccess": "Commit thành công",
     "commitError": "Lỗi commit",
     "checkSuccess": "Phân tích thành công",
@@ -99,10 +90,12 @@
     "spotbugsError": "Lỗi khi chạy SpotBugs: {{0}}",
     "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {{0}} vấn đề được tìm thấy",
     "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs...",
+    "leastOneJavaFile": "Please select at least one Java file",
     "fileSaved": "File đã được lưu thành công.",
     "errorSavingFile": "Lỗi khi lưu file.",
     "fetchHistoryError": "Lỗi khi lấy lịch sử commit",
-    "copied": "Đã sao chép vào clipboard!"
+    "copied": "Đã sao chép vào clipboard!",
+    "loadSuccess": "Tải thành công."
   },
   "svn": {
     "status": {
@@ -126,6 +119,7 @@
       "large": "Lớn"
     },
     "theme": "Chủ đề",
+    "darkMode": "Chế độ tối",
     "language": "Ngôn ngữ",
     "buttonVariant": "Biến thể nút",
     "fontFamily": "Phông chữ",
@@ -166,19 +160,10 @@
       "description": "Cấu hình Microsoft OneDrive để tải lên hình ảnh.",
       "clientId": "Client ID",
       "clientIdPlaceholder": "Nhập Client ID của ứng dụng Microsoft của bạn",
-      "tenantId": "Tenant ID",
-      "tenantIdPlaceholder": "Nhập Tenant ID của Microsoft của bạn",
       "clientSecret": "Client Secret",
       "clientSecretPlaceholder": "Nhập Client Secret của ứng dụng Microsoft của bạn",
       "refreshToken": "Refresh Token (Tùy chọn)",
-      "refreshTokenPlaceholder": "Nhập Refresh Token của bạn (nếu có)",
-      "instructions": "Để sử dụng OneDrive cho việc tải lên hình ảnh, bạn cần đăng ký một ứng dụng trong Azure Portal và cấp cho nó các quyền thích hợp.",
-      "step1": "Truy cập",
-      "azurePortal": "Azure Portal",
-      "step2": "Đăng ký một ứng dụng mới",
-      "step3": "Thêm quyền API cho Microsoft Graph (Files.ReadWrite, Files.ReadWrite.All)",
-      "step4": "Tạo một client secret",
-      "step5": "Nhập Client ID, Tenant ID và Client Secret vào đây"
+      "refreshTokenPlaceholder": "Nhập Refresh Token của bạn (nếu có)"
     }
   },
   "dialog": {
@@ -310,6 +295,7 @@
       "chart": "Biểu đồ"
     },
     "diffViewer": {
+      "title": "Diff Viewer",
       "language": {
         "select": "Chọn ngôn ngữ...",
         "notFound": "Không tìm thấy ngôn ngữ."
@@ -364,6 +350,10 @@
       "path": "Đường dẫn",
       "commitMessage": "Thông điệp commit"
     },
+    "updateApp": {
+      "title": "Có bản cập nhật mới",
+      "appVersion": "Phiên bản ứng dụng mới đã có sẵn: {{0}}"
+    },
     "newWebhook": {
       "title": "Thêm Webhook Mới",
       "description": "Nhập tên và URL cho webhook bạn muốn thêm.",
@@ -374,7 +364,9 @@
     },
     "commitMessageHistroy": {
       "title": "Lịch sử tin nhắn commit",
-      "noResults": "Chưa có kết quả nào."
+      "noResults": "Chưa có kết quả nào.",
+      "date": "Thời gian",
+      "commitMessage": "Thông điệp Commit"
     }
   },
   "spotbugs": {
@@ -893,9 +885,5 @@
       "us_useless_suppression_on_method_parameter": "US: Loại bỏ sự đàn áp vô ích trên tham số phương thức\nCác chú thích đàn áp &SuppressFBWarnings nên được loại bỏ khỏi mã nguồn ngay khi không còn cần thiết. Việc để lại chúng có thể dẫn đến việc đàn áp cảnh báo một cách vô tình. Chú thích này có thể đã được thêm vào để đàn áp một cảnh báo được đưa ra bởi SpotBugs, nhưng giờ đây SpotBugs không còn báo cáo lỗi nữa. Hoặc là lỗi đã được giải quyết hoặc SpotBugs đã được cập nhật, và lỗi không còn được báo cáo bởi mã đó.",
       "us_useless_suppression_on_package": "US: Loại bỏ sự đàn áp vô ích trên một package\nCác chú thích đàn áp &SuppressFBWarnings nên được loại bỏ khỏi mã nguồn ngay khi không còn cần thiết. Việc để lại chúng có thể dẫn đến việc đàn áp cảnh báo một cách vô tình. Chú thích này có thể đã được thêm vào để đàn áp một cảnh báo được đưa ra bởi SpotBugs, nhưng giờ đây SpotBugs không còn báo cáo lỗi nữa. Hoặc là lỗi đã được giải quyết hoặc SpotBugs đã được cập nhật, và lỗi không còn được báo cáo bởi mã đó."
     }
-  },
-  "history": {
-    "date": "Thời gian",
-    "commitMessage": "Thông điệp Commit"
   }
 }

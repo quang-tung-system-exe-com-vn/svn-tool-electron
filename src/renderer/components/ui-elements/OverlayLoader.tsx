@@ -38,7 +38,7 @@ export function OverlayLoader({ isLoading, size = 50, speed = 2.5, delayMs = 400
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7, ease: 'easeInOut' }}
-          className="grounded-radiants absolute inset-0 z-50 bg-transparent backdrop-blur-lg flex flex-col items-center justify-center"
+          className="grounded-radiants absolute inset-0 z-50 bg-transparent backdrop-blur-lg flex flex-col items-center justify-center h-full"
         >
           <Quantum size={size} speed={speed} color={loaderColor} />
         </motion.div>
