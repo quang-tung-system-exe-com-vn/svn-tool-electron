@@ -5,13 +5,13 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
+import { StatusIcon } from '@/components/ui-elements/StatusIcon'
 import toast from '@/components/ui-elements/Toast'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
-import { StatusIcon } from '@/components/ui-elements/StatusIcon'
-import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../components/shared/constants'
@@ -329,7 +329,7 @@ export const DataTable = forwardRef((props, ref) => {
   Table.displayName = 'Table'
 
   return (
-    <div className="h-full p-2 relative">
+    <div className="h-full p-2">
       <ScrollArea className="h-full border-1 rounded-md">
         <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
           <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">

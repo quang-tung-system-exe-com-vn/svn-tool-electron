@@ -10,30 +10,26 @@ import { FooterBar } from '@/pages/main/FooterBar'
 import { TitleBar } from '@/pages/main/TitleBar'
 import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
 import { useHistoryStore } from '@/stores/useHistoryStore'
+import { CircleAlert } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export function MainPage() {
-  const variant = useButtonVariant()
+  const { language } = useAppearanceStore()
   const { t } = useTranslation()
+  const variant = useButtonVariant()
+  const { addHistory } = useHistoryStore()
   const [isLoadingGenerate, setLoadingGenerate] = useState(false)
   const [isLoadingCommit, setLoadingCommit] = useState(false)
   const [progress, setProgress] = useState(0)
-  const { language } = useAppearanceStore()
   const tableRef = useRef<any>(null)
-  const isAnyLoading = isLoadingGenerate || isLoadingCommit
   const commitMessageRef = useRef<HTMLTextAreaElement>(null)
-  const codingRuleRef = useRef<HTMLTextAreaElement>(null)
   const commitMessage = useRef('')
-  const codingRule = useRef('')
-  const { addHistory } = useHistoryStore()
+  const isAnyLoading = isLoadingGenerate || isLoadingCommit
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
-  }
-  const handleCheckCodingRule = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    codingRule.current = e.target.value
   }
 
   const generateCommitMessage = async () => {
@@ -105,7 +101,7 @@ export function MainPage() {
     }
     setLoadingCommit(true)
     await updateProgress(0, 20, 1000)
-    const result = await window.api.svn.commit(commitMessage.current, codingRule.current, selectedFiles)
+    const result = await window.api.svn.commit(commitMessage.current, '', selectedFiles)
     const { status, message } = result
     await updateProgress(20, 50, 1000)
 
@@ -135,22 +131,18 @@ export function MainPage() {
       const easeInOut = (t: number) => {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       }
-
       const step = () => {
         const currentTime = performance.now() - startTime
         const progress = Math.min(from + (to - from) * easeInOut(currentTime / duration), to)
-
         if (isMountedRef.current) {
           setProgress(progress)
         }
-
         if (currentTime < duration && isMountedRef.current) {
           requestAnimationFrame(step)
         } else {
           resolve()
         }
       }
-
       requestAnimationFrame(step)
     })
   }
@@ -162,13 +154,13 @@ export function MainPage() {
         {/* Title Bar */}
         <TitleBar isLoading={isLoadingGenerate || isLoadingCommit} tableRef={tableRef} />
         {/* Content */}
-        <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
+        <div className="p-4 space-y-4 flex-1 flex flex-col">
           <ResizablePanelGroup direction="vertical" className="rounded-md border">
             <ResizablePanel minSize={25} defaultSize={50}>
               <DataTable ref={tableRef} />
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="p-2 pt-8" minSize={25} defaultSize={50}>
+            <ResizablePanel className="p-2 pt-8 mb-[20px]" minSize={25} defaultSize={50}>
               <div className="relative overflow-hidden h-full">
                 <OverlayLoader isLoading={isLoadingGenerate} />
                 <Textarea
@@ -178,8 +170,11 @@ export function MainPage() {
                   ref={commitMessageRef}
                   spellCheck={false}
                 />
-                <Textarea placeholder={t('placeholder.commitMessage')} className="hidden" onChange={handleCheckCodingRule} ref={codingRuleRef} spellCheck={false} />
               </div>
+              <span className="absolute flex flex-row text-xs py-[5px] gap-2">
+                <CircleAlert className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                {t('message.aiContentWarning')}
+              </span>
             </ResizablePanel>
           </ResizablePanelGroup>
 
@@ -220,7 +215,6 @@ export function MainPage() {
                       return filePath.endsWith('.java')
                     })
                     .map((row: any) => row.original.filePath)
-
                   if (selectedFiles.length === 0) {
                     toast.warning(t('toast.leastOneJavaFile'))
                     return
