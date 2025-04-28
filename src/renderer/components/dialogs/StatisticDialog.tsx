@@ -116,11 +116,11 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
     }
     const uniqueAuthors = Array.from(allAuthors)
     return [...statisticsData.commitsByDate]
-      .sort((a, b) => a.date.localeCompare(b.date)) // Sắp xếp theo ngày
+      .sort((a, b) => a.date.localeCompare(b.date))
       .map(day => {
         const dayData: { date: string; totalCount: number; [key: string]: number | string } = {
           date: day.date,
-          totalCount: day.totalCount, // Giữ lại totalCount nếu cần
+          totalCount: day.totalCount,
         }
         for (const author of uniqueAuthors) {
           dayData[author] = 0
@@ -184,7 +184,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
 
   const totalCountChartConfig = useMemo(() => {
     return {
-      count: { label: t('dialog.statisticSvn.commitCountLabel', 'Commits'), color: 'hsl(var(--chart-1))' },
+      count: { label: t('dialog.statisticSvn.commitCountLabel', 'Commits'), color: 'var(--chart-1)' },
     }
   }, [t])
 
