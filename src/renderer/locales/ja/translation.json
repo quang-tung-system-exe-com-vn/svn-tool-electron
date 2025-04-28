@@ -18,7 +18,8 @@
     "copy": "コピー",
     "generate": "コミットメッセージを生成",
     "check": "コーディングルールを確認",
-    "commit": "コードをコミット"
+    "commit": "コードをコミット",
+    "noData": "データがありません"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -268,7 +269,6 @@
         "total": "合計"
       },
       "cardFooter": "選択した期間のコミットデータ",
-      "noData": "データがありません",
       "errorLoading": "統計データの読み込みエラー"
     },
     "spotbugs": {
@@ -293,7 +293,14 @@
       "static": "静的",
       "primary": "プライマリ",
       "fileList": "ファイルリスト",
-      "chart": "チャート"
+      "chart": "チャート",
+      "bugCount": "数量",
+      "priorityChart": "優先度別のバグの数",
+      "priorityChartDescription": "バグの優先度に基づく分布を表示します。",
+      "fileStatsChart": "ファイル別のバグの数",
+      "fileStatsChartDescription": "プロジェクト内の各ファイルに見つかったバグの数を表示します。",
+      "packageStatsChart": "パッケージ別のバグの数",
+      "packageStatsChartDescription": "プロジェクト内の異なるパッケージにおけるバグの分布を表示します。"
     },
     "diffViewer": {
       "title": "差分ビューア",

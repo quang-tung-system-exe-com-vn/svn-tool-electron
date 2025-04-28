@@ -18,7 +18,8 @@
     "copy": "Copy",
     "generate": "Generate Commit Message",
     "check": "Check Coding Rules",
-    "commit": "Commit Code"
+    "commit": "Commit Code",
+    "noData": "No data available"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -268,7 +269,6 @@
         "total": "Total"
       },
       "cardFooter": "Commit data for the selected period",
-      "noData": "No data available",
       "errorLoading": "Error loading statistics data"
     },
     "spotbugs": {
@@ -284,16 +284,24 @@
       "bugDetails": "Bug Details",
       "location": "Location",
       "methodLocation": "Method Location",
+      "methods": "Methods",
       "lines": "Lines:",
       "localVariables": "Local Variables",
       "properties": "Properties",
       "name": "Name:",
       "value": "Value:",
       "notAvailable": "N/A",
-      "static": "static",
-      "primary": "primary",
+      "static": "STATIC",
+      "primary": "PRIMARY",
       "fileList": "File List",
-      "chart": "Chart"
+      "chart": "Chart",
+      "bugCount": "Count",
+      "priorityChart": "Bug Count by Priority",
+      "priorityChartDescription": "Displays the distribution of bugs based on their priority levels.",
+      "fileStatsChart": "Bug Count by File",
+      "fileStatsChartDescription": "Shows the number of bugs found in each file within the project.",
+      "packageStatsChart": "Bug Count by Package",
+      "packageStatsChartDescription": "Displays the distribution of bugs across different packages in the project."
     },
     "diffViewer": {
       "title": "Diff Viewer",

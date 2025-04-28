@@ -34,6 +34,14 @@ export default {
     output: `dist/v${version}`,
   },
 
+  extraResources: [
+    {
+      from: "spotbugs-4.9.3",
+      to: "spotbugs-4.9.3",
+      filter: ["**/*"]
+    }
+  ],
+
   mac: {
     artifactName,
     icon: `${resources}/build/icons/icon.ico`,

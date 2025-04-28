@@ -1,7 +1,9 @@
 import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Badge } from '@/components/ui/badge'
-import { ChartContainer, ChartLegend, ChartTooltip } from '@/components/ui/chart'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -11,53 +13,221 @@ import logger from '@/services/logger'
 import { AlertCircle, AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BarChart as BarChartIcon, Bug, FileCode, Info, List } from 'lucide-react'
 import { forwardRef, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { SpotbugsToolbar } from './SpotbugsToolbar'
 
+// Định nghĩa cấu trúc dữ liệu cho một dòng mã nguồn
+interface SourceLineInfo {
+  classname: string
+  start: number | null
+  end: number | null
+  startBytecode?: number | null
+  endBytecode?: number | null
+  sourcefile: string
+  sourcepath: string
+  relSourcepath?: string
+  synthetic?: boolean
+  role?: string
+  primary?: boolean
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một phương thức
+interface MethodInfo {
+  classname: string
+  name: string
+  signature: string
+  isStatic: boolean
+  role?: string
+  primary?: boolean
+  sourceLine: SourceLineInfo | null
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một trường
+interface FieldInfo {
+  classname: string
+  name: string
+  signature: string
+  sourceSignature?: string
+  isStatic: boolean
+  role?: string
+  primary?: boolean
+  sourceLine?: SourceLineInfo | null
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một biến cục bộ
+interface LocalVariableInfo {
+  name: string
+  register?: number | null
+  pc?: number | null
+  role?: string
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một thuộc tính
+interface PropertyInfo {
+  name: string
+  value: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một giá trị Int
+interface IntInfo {
+  value: number | null
+  role?: string
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một giá trị String
+interface StringInfo {
+  value: string
+  role?: string
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một lớp
+interface ClassInfo {
+  classname: string
+  role?: string
+  primary?: boolean
+  sourceLine?: SourceLineInfo | null
+  message?: string
+}
+
+// Định nghĩa cấu trúc dữ liệu cho một lỗi
 interface BugInstance {
   id: string
   type: string
-  category: string
   priority: number
   rank: number
-  className: string
-  methodName: string
-  signature: string
-  isStatic?: boolean
-  isPrimary?: boolean
-  methodInfo?: {
-    startLine: number
-    endLine: number
-    startBytecode: number
-    endBytecode: number
-    message: string
-  }
-  sourceFile: string
-  startLine: number
-  endLine: number
-  message: string
+  abbrev: string
+  category: string
+  cweid?: number
+  shortMessage: string
   longMessage: string
-  details: string
-  severity: 'High' | 'Medium' | 'Low'
-  categoryDescription: string
-  localVariables?: Array<{
-    name?: string
-    message?: string
-  }>
-  properties?: Array<{
-    name?: string
-    value?: string
-  }>
+  classes: ClassInfo[]
+  methods: MethodInfo[]
+  fields: FieldInfo[]
+  localVariables: LocalVariableInfo[]
+  sourceLines: SourceLineInfo[]
+  ints: IntInfo[]
+  strings: StringInfo[]
+  properties: PropertyInfo[]
+  userAnnotation?: {
+    designation: string
+    user: string
+    needsSync: boolean
+    timestamp: number
+    value: string
+  }
+  patternDetails?: {
+    type: string
+    abbrev: string
+    category: string
+    cweid?: number
+    shortDescription: string
+    details: string
+  }
+  categoryDetails?: {
+    name: string
+    description: string
+    abbreviation: string
+    details: string
+  }
+  codeDetails?: {
+    abbrev: string
+    cweid?: number
+    description: string
+  }
+
+  // Các trường phụ thêm cho UI
+  className?: string
+  sourceFile?: string
+  startLine?: number
+  endLine?: number
+  message?: string
+  details?: string
+  categoryDescription?: string
 }
 
+// Định nghĩa cấu trúc dữ liệu cho kết quả phân tích
 interface SpotBugsResult {
-  totalBugs: number
-  bugsBySeverity: {
-    high: number
-    medium: number
-    low: number
+  version: {
+    version: string
+    sequence: number | null
+    timestamp: number | null
+    analysisTimestamp: number | null
+    release: string
   }
+  project: {
+    projectName: string
+    filename: string
+    jars: string[]
+    srcDirs: string[]
+    auxClasspathEntries?: string[]
+    wrkDir?: string
+  }
+  summary: {
+    timestamp: string
+    totalClasses: number
+    referencedClasses: number
+    totalBugs: number
+    totalSize: number
+    numPackages: number
+    javaVersion?: string
+    vmVersion?: string
+    cpuSeconds?: number | null
+    clockSeconds?: number | null
+    peakMbytes?: number | null
+    allocMbytes?: number | null
+    gcSeconds?: number | null
+    priority1: number
+    priority2: number
+    priority3: number
+  }
+  fileStats: Array<{
+    path: string
+    bugCount: number
+    size?: number | null
+    bugHash?: string
+  }>
+  packageStats: Array<{
+    packageName: string
+    totalBugs: number
+    totalTypes: number
+    totalSize: number
+    priority1: number
+    priority2: number
+    priority3: number
+    classStats: Array<{
+      className: string
+      sourceFile?: string
+      interface: boolean
+      size: number
+      bugs: number
+      priority1: number
+      priority2: number
+      priority3: number
+    }>
+  }>
+  errors: {
+    errors: number
+    missingClasses: number
+    missingClassList: string[]
+  }
+  bugCategories: Record<string, any>
+  bugPatterns: Record<string, any>
+  bugCodes: Record<string, any>
   bugInstances: BugInstance[]
+  bugCount: {
+    total: number
+    byPriority: {
+      high: number
+      medium: number
+      low: number
+    }
+  }
 }
 
 export function SpotBugs() {
@@ -65,13 +235,34 @@ export function SpotBugs() {
   const [isLoading, setIsLoading] = useState(true)
   const [filePaths, setFilePaths] = useState<string[]>([])
   const [spotbugsResult, setSpotbugsResult] = useState<SpotBugsResult>({
-    totalBugs: 0,
-    bugsBySeverity: {
-      high: 0,
-      medium: 0,
-      low: 0,
+    version: { version: '', sequence: null, timestamp: null, analysisTimestamp: null, release: '' },
+    project: { projectName: '', filename: '', jars: [], srcDirs: [] },
+    summary: {
+      timestamp: '',
+      totalClasses: 0,
+      referencedClasses: 0,
+      totalBugs: 0,
+      totalSize: 0,
+      numPackages: 0,
+      priority1: 0,
+      priority2: 0,
+      priority3: 0,
     },
+    fileStats: [],
+    packageStats: [],
+    errors: { errors: 0, missingClasses: 0, missingClassList: [] },
+    bugCategories: {},
+    bugPatterns: {},
+    bugCodes: {},
     bugInstances: [],
+    bugCount: {
+      total: 0,
+      byPriority: {
+        high: 0,
+        medium: 0,
+        low: 0,
+      },
+    },
   })
   const [selectedBug, setSelectedBug] = useState<BugInstance | null>(null)
   const [activeTab, setActiveTab] = useState('all')
@@ -88,11 +279,14 @@ export function SpotBugs() {
       }
       if (data.spotbugsResult) {
         logger.info('SpotBugs result:', data.spotbugsResult)
-        setSpotbugsResult(data.spotbugsResult)
-        if (data.spotbugsResult.bugInstances.length > 0) {
-          setSelectedBug(data.spotbugsResult.bugInstances[0])
+        console.log(data.spotbugsResult)
+        const processedResult = processSpotBugsResult(data.spotbugsResult)
+        setSpotbugsResult(processedResult)
+
+        if (processedResult.bugInstances.length > 0) {
+          setSelectedBug(processedResult.bugInstances[0])
         }
-        toast.success(t('toast.spotbugsSuccess', { 0: data.spotbugsResult.totalBugs }))
+        toast.success(t('toast.spotbugsSuccess', { 0: processedResult.bugCount.total }))
         setIsLoading(false)
       } else {
         setIsLoading(false)
@@ -107,38 +301,105 @@ export function SpotBugs() {
     window.api.electron.send('window-action', 'refresh-spotbugs')
     toast.info(t('toast.refreshingSpotbugs'))
   }
+  const processSpotBugsResult = (result: any): SpotBugsResult => {
+    if (result.bugCount && result.version) {
+      const processedBugInstances = result.bugInstances.map((bug: BugInstance) => {
+        const primaryClass = bug.classes.find(c => c.primary) || bug.classes[0]
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'High':
+        // Lấy thông tin dòng mã nguồn chính
+        const primarySourceLine = bug.sourceLines.find(sl => sl.primary) || primaryClass?.sourceLine || bug.sourceLines[0]
+
+        return {
+          ...bug,
+          className: primaryClass?.classname || '',
+          sourceFile: primarySourceLine?.sourcefile || '',
+          startLine: primarySourceLine?.start || 0,
+          endLine: primarySourceLine?.end || 0,
+          message: bug.shortMessage,
+          details: bug.patternDetails?.details || '',
+          categoryDescription: bug.categoryDetails?.description || '',
+        }
+      })
+
+      return {
+        ...result,
+        bugInstances: processedBugInstances,
+      }
+    }
+    return {
+      version: { version: '', sequence: null, timestamp: null, analysisTimestamp: null, release: '' },
+      project: { projectName: '', filename: '', jars: [], srcDirs: [] },
+      summary: {
+        timestamp: '',
+        totalClasses: 0,
+        referencedClasses: 0,
+        totalBugs: result.totalBugs || 0,
+        totalSize: 0,
+        numPackages: 0,
+        priority1: result.bugsBySeverity?.high || 0,
+        priority2: result.bugsBySeverity?.medium || 0,
+        priority3: result.bugsBySeverity?.low || 0,
+      },
+      fileStats: [],
+      packageStats: [],
+      errors: { errors: 0, missingClasses: 0, missingClassList: [] },
+      bugCategories: {},
+      bugPatterns: {},
+      bugCodes: {},
+      bugInstances: result.bugInstances || [],
+      bugCount: {
+        total: result.totalBugs || 0,
+        byPriority: {
+          high: result.bugsBySeverity?.high || 0,
+          medium: result.bugsBySeverity?.medium || 0,
+          low: result.bugsBySeverity?.low || 0,
+        },
+      },
+    }
+  }
+
+  const getPrioriyIcon = (priority: number) => {
+    switch (priority) {
+      case 1:
         return <AlertCircle strokeWidth={1.5} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
-      case 'Medium':
+      case 2:
         return <AlertTriangle strokeWidth={1.5} className="h-4 w-4 text-yellow-800 dark:text-yellow-400 border-yellow-500/20" />
-      case 'Low':
+      case 3:
         return <Info strokeWidth={1.5} className="h-4 w-4 text-blue-800 dark:text-blue-400 border-blue-500/20" />
       default:
         return <Info strokeWidth={1.5} className="h-4 w-4 text-gray-800 dark:text-gray-400 border-gray-500/20" />
     }
   }
 
+  const getPriorityName = (priority: number) => {
+    switch (priority) {
+      case 1:
+        return 'dialog.spotbugs.high'
+      case 2:
+        return 'dialog.spotbugs.medium'
+      case 3:
+        return 'dialog.spotbugs.low'
+      default:
+        return ''
+    }
+  }
+
   const getCategoryDescriptions = (categoryType: string): string => {
-    return t(CATEGORY_DESCRIPTIONS[categoryType]) || 'Unknown'
+    return CATEGORY_DESCRIPTIONS[categoryType] || 'Unknown'
   }
 
   const getBugDescriptionDetails = (bugType: string): string => {
-    return t(BUG_DESCRIPTIONS[bugType]) || 'Unknown'
+    return BUG_DESCRIPTIONS[bugType] || 'Unknown'
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'High':
+  const getPriorityColor = (priority: number) => {
+    switch (priority) {
+      case 1:
         return 'bg-red-200/10 text-red-800 dark:text-red-400 border-red-500/20'
-      case 'Medium':
+      case 2:
         return 'bg-yellow-200/10 text-yellow-800 dark:text-yellow-400 border-yellow-500/20'
-      case 'Low':
+      case 3:
         return 'bg-blue-200/10 text-blue-800 dark:text-blue-400 border-blue-500/20'
-      default:
-        return ''
     }
   }
 
@@ -152,9 +413,9 @@ export function SpotBugs() {
 
   const filteredBugs = spotbugsResult.bugInstances.filter(bug => {
     if (activeTab === 'all') return true
-    if (activeTab === 'high') return bug.severity === 'High'
-    if (activeTab === 'medium') return bug.severity === 'Medium'
-    if (activeTab === 'low') return bug.severity === 'Low'
+    if (activeTab === 'high') return bug.priority === 1
+    if (activeTab === 'medium') return bug.priority === 2
+    if (activeTab === 'low') return bug.priority === 3
     return true
   })
 
@@ -167,12 +428,12 @@ export function SpotBugs() {
   })
   Table.displayName = 'Table'
 
-  const [sortKey, setSortKey] = useState<'severity' | 'startLine' | 'sourceFile' | 'type' | ''>('')
+  const [sortKey, setSortKey] = useState<'priority' | 'startLine' | 'sourceFile' | 'type' | ''>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | ''>('')
 
   const sortedBugs = [...filteredBugs].sort((a, b) => {
-    const aVal = sortKey ? a[sortKey] : ''
-    const bVal = sortKey ? b[sortKey] : ''
+    const aVal = sortKey ? (a[sortKey] ?? '') : ''
+    const bVal = sortKey ? (b[sortKey] ?? '') : ''
     if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
     if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
     return 0
@@ -214,28 +475,28 @@ export function SpotBugs() {
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{t('dialog.spotbugs.totalIssues')}:</span>
               <Badge variant="outline" className="rounded-md">
-                {spotbugsResult.totalBugs}
+                {spotbugsResult.bugCount.total}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-500" />
               <span className="text-sm font-medium">{t('dialog.spotbugs.high')}:</span>
               <Badge variant="outline" className="rounded-md bg-red-200/10 text-red-800 dark:text-red-400 border-red-500/20 font-bold">
-                {spotbugsResult.bugsBySeverity.high}
+                {spotbugsResult.bugCount.byPriority.high}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-yellow-500" />
               <span className="text-sm font-medium">{t('dialog.spotbugs.medium')}:</span>
               <Badge variant="outline" className="rounded-md bg-yellow-200/10 text-yellow-800 dark:text-yellow-400 border-yellow-500/20 font-bold">
-                {spotbugsResult.bugsBySeverity.medium}
+                {spotbugsResult.bugCount.byPriority.medium}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-blue-500" />
               <span className="text-sm font-medium">{t('dialog.spotbugs.low')}:</span>
               <Badge variant="outline" className="rounded-md bg-blue-200/10 text-blue-800 dark:text-blue-400 border-blue-500/20 font-bold">
-                {spotbugsResult.bugsBySeverity.low}
+                {spotbugsResult.bugCount.byPriority.low}
               </Badge>
             </div>
           </div>
@@ -268,12 +529,12 @@ export function SpotBugs() {
                           <Table wrapperClassName={cn('overflow-clip', filteredBugs.length === 0 && 'h-full')}>
                             <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                               <TableRow>
-                                <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('severity')}>
+                                <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('priority')}>
                                   <div className="flex items-center gap-1">
                                     {t('table.severity')}
-                                    {sortKey !== 'severity' && <ArrowUpDown className="w-4 h-4" />}
-                                    {sortKey === 'severity' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                    {sortKey === 'severity' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                    {sortKey !== 'priority' && <ArrowUpDown className="w-4 h-4" />}
+                                    {sortKey === 'priority' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
+                                    {sortKey === 'priority' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
                                   </div>
                                 </TableHead>
                                 <TableHead className="w-15 cursor-pointer" onClick={() => handleSort('startLine')}>
@@ -313,8 +574,8 @@ export function SpotBugs() {
                                   >
                                     <TableCell>
                                       <div className="flex items-center gap-1">
-                                        {getSeverityIcon(bug.severity)}
-                                        <span className="text-xs">{bug.severity}</span>
+                                        {bug.priority !== null ? getPrioriyIcon(bug.priority) : null}
+                                        <span className="text-xs">{t(getPriorityName(bug.priority))}</span>
                                       </div>
                                     </TableCell>
                                     <TableCell>{bug.startLine}</TableCell>
@@ -354,7 +615,7 @@ export function SpotBugs() {
                             <div className="bg-muted p-2 font-medium flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span>{t('dialog.spotbugs.bugDetails')}</span>
-                                <Badge className={`${getSeverityColor(selectedBug.severity)}`}>{selectedBug.severity}</Badge>
+                                <Badge className={`${getPriorityColor(selectedBug.priority)}`}>{t(getPriorityName(selectedBug.priority))}</Badge>
                               </div>
                             </div>
 
@@ -368,12 +629,10 @@ export function SpotBugs() {
                                   <FileCode strokeWidth={1.5} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.location')}</span>
                                 </TabsTrigger>
-                                {((selectedBug.localVariables && selectedBug.localVariables.length > 0) || (selectedBug.properties && selectedBug.properties.length > 0)) && (
-                                  <TabsTrigger value="details" className="flex items-center gap-1">
-                                    <Bug strokeWidth={1.5} className="h-4 w-4" />
-                                    <span>{t('dialog.spotbugs.bugDetails')}</span>
-                                  </TabsTrigger>
-                                )}
+                                <TabsTrigger value="details" className="flex items-center gap-1">
+                                  <Bug strokeWidth={1.5} className="h-4 w-4" />
+                                  <span>{t('dialog.spotbugs.bugDetails')}</span>
+                                </TabsTrigger>
                               </TabsList>
 
                               {/* Issue Details Tab */}
@@ -386,7 +645,7 @@ export function SpotBugs() {
                                         <Badge className="bg-black text-white dark:bg-white dark:text-black">{selectedBug.category}</Badge>
                                       </div>
                                       <div className="mt-2 p-3 border rounded-md bg-muted/30">
-                                        <p className="text-sm whitespace-pre-line">{getCategoryDescriptions(selectedBug.category)}</p>
+                                        <p className="text-sm break-word">{t(getCategoryDescriptions(selectedBug.category))}</p>
                                       </div>
                                     </div>
                                     <div>
@@ -395,18 +654,20 @@ export function SpotBugs() {
                                         <Badge className="bg-black text-white dark:bg-white dark:text-black">{selectedBug.type}</Badge>
                                       </div>
                                       <div className="mt-2 p-3 border rounded-md bg-muted/30">
-                                        <p className="text-sm whitespace-pre-line">{getBugDescriptionDetails(selectedBug.type)}</p>
+                                        <p className="text-sm break-word">{t(getBugDescriptionDetails(selectedBug.type))}</p>
                                       </div>
                                     </div>
                                     <div>
                                       <h3 className="text-sm font-medium">{t('table.message')}</h3>
-                                      <p className="text-sm">{selectedBug.longMessage}</p>
+                                      <div className="mt-2 p-3 border rounded-md bg-muted/30">
+                                        <p className="text-sm break-all">{selectedBug.longMessage}</p>
+                                      </div>
                                     </div>
                                     <div className="flex gap-4">
                                       <div>
                                         <h3 className="text-sm font-medium">{t('table.priority')}</h3>
-                                        <Badge variant="outline" className={`${getSeverityColor(selectedBug.severity)}`}>
-                                          {selectedBug.priority} ({selectedBug.severity})
+                                        <Badge variant="outline" className={`${getPriorityColor(selectedBug.priority)}`}>
+                                          {selectedBug.priority} (t({getPriorityName(selectedBug.priority)}))
                                         </Badge>
                                       </div>
                                       <div>
@@ -422,45 +683,65 @@ export function SpotBugs() {
 
                               {/* Location Tab */}
                               <TabsContent value="location" className="mt-0 border-0 p-0">
-                                <ScrollArea className="h-[350px]">
+                                <ScrollArea className="h-full">
                                   <div className="p-4 space-y-4">
                                     <div>
                                       <h3 className="text-sm font-medium">{t('table.class')}</h3>
                                       <p className="text-sm font-mono">{selectedBug.className}</p>
                                     </div>
-                                    <div>
-                                      <h3 className="text-sm font-medium">{t('table.method')}</h3>
-                                      <div className="space-y-1">
-                                        <p className="text-sm font-mono">
-                                          {selectedBug.methodName}
-                                          {selectedBug.signature}
-                                        </p>
-                                        <div className="flex gap-2 flex-wrap">
-                                          {selectedBug.isStatic && (
-                                            <Badge variant="outline" className="text-xs">
-                                              {t('dialog.spotbugs.static')}
-                                            </Badge>
-                                          )}
-                                          {selectedBug.isPrimary && (
-                                            <Badge variant="outline" className="text-xs">
-                                              {t('dialog.spotbugs.primary')}
-                                            </Badge>
-                                          )}
-                                        </div>
-                                        {selectedBug.methodInfo?.message && <p className="text-xs text-muted-foreground">{selectedBug.methodInfo.message}</p>}
-                                      </div>
-                                    </div>
 
-                                    {selectedBug.methodInfo && (
+                                    {selectedBug.methods && selectedBug.methods.length > 0 && (
                                       <div>
-                                        <h3 className="text-sm font-medium">{t('dialog.spotbugs.methodLocation')}</h3>
-                                        <div className="space-y-1">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium">{t('dialog.spotbugs.lines')}</span>
-                                            <span className="text-xs font-mono">
-                                              {selectedBug.methodInfo.startLine} - {selectedBug.methodInfo.endLine}
-                                            </span>
-                                          </div>
+                                        <h3 className="text-sm font-medium">{t('dialog.spotbugs.methods')}</h3>
+                                        <div className="space-y-4 mt-2">
+                                          {selectedBug.methods.map((method, index) => (
+                                            <div key={index} className="border rounded-md p-3 bg-muted/30">
+                                              <div className="space-y-2">
+                                                <div>
+                                                  <p className="text-sm font-mono font-medium">
+                                                    {method.name}
+                                                    {/* {method.signature} */}
+                                                  </p>
+                                                  <div className="flex gap-2 flex-wrap mt-1">
+                                                    {method.isStatic && (
+                                                      <Badge variant="outline" className="text-xs">
+                                                        STATIC
+                                                      </Badge>
+                                                    )}
+                                                    {method.primary && (
+                                                      <Badge variant="outline" className="text-xs">
+                                                        PRIMARY
+                                                      </Badge>
+                                                    )}
+                                                    {method.role && method.role !== 'PRIMARY' && (
+                                                      <Badge variant="outline" className="text-xs">
+                                                        {method.role}
+                                                      </Badge>
+                                                    )}
+                                                  </div>
+                                                </div>
+
+                                                {method.message && <p className="text-xs text-muted-foreground">{method.message}</p>}
+
+                                                {method.sourceLine && (
+                                                  <div className="mt-1">
+                                                    <div className="flex items-center gap-2">
+                                                      <span className="text-xs font-medium">{t('dialog.spotbugs.lines')}</span>
+                                                      <span className="text-xs">
+                                                        {method.sourceLine.start} - {method.sourceLine.end}
+                                                      </span>
+                                                    </div>
+                                                    {/* {method.sourceLine.sourcefile && (
+                                                      <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-xs font-medium">{t('table.file')}</span>
+                                                        <span className="text-xs font-mono">{method.sourceLine.sourcefile}</span>
+                                                      </div>
+                                                    )} */}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
                                         </div>
                                       </div>
                                     )}
@@ -469,61 +750,115 @@ export function SpotBugs() {
                               </TabsContent>
 
                               {/* Bug Details Tab */}
-                              {((selectedBug.localVariables && selectedBug.localVariables.length > 0) || (selectedBug.properties && selectedBug.properties.length > 0)) && (
-                                <TabsContent value="details" className="mt-0 border-0 p-0">
-                                  <ScrollArea className="h-[350px]">
-                                    <div className="p-4 space-y-4">
-                                      {selectedBug.localVariables && selectedBug.localVariables.length > 0 && (
-                                        <div>
-                                          <h3 className="text-sm font-medium">{t('dialog.spotbugs.localVariables')}</h3>
-                                          <div className="mt-2 space-y-2">
-                                            {selectedBug.localVariables?.map((variable, index) => (
-                                              <div key={index} className="border rounded p-2 bg-muted/30">
-                                                <div className="flex items-center gap-2">
-                                                  <span className="text-xs font-medium">{t('dialog.spotbugs.name')}</span>
-                                                  <span className="text-xs font-mono font-bold">{variable.name || t('dialog.spotbugs.notAvailable')}</span>
-                                                </div>
-                                                {variable.message && (
-                                                  <div className="mt-1">
-                                                    <span className="text-xs font-medium">{t('table.message')}:</span>
-                                                    <p className="text-xs mt-1">{variable.message}</p>
-                                                  </div>
+                              <TabsContent value="details" className="mt-0 border-0 p-0">
+                                <ScrollArea className="h-full">
+                                  <div className="p-4 space-y-4">
+                                    {/* Source Lines */}
+                                    {selectedBug.sourceLines && selectedBug.sourceLines.length > 0 && (
+                                      <div>
+                                        <h3 className="text-sm font-medium">{t('dialog.spotbugs.sourceLines')}</h3>
+                                        <div className="mt-2 space-y-2">
+                                          {selectedBug.sourceLines.map((sourceLine, index) => (
+                                            <div key={index} className="border rounded p-2 bg-muted/30">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium">{t('table.class')}</span>
+                                                <span className="text-xs font-mono font-bold">{sourceLine.classname}</span>
+                                                {sourceLine.primary && (
+                                                  <Badge variant="outline" className="text-xs">
+                                                    PRIMARY
+                                                  </Badge>
                                                 )}
                                               </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
 
-                                      {selectedBug.properties && selectedBug.properties.length > 0 && (
-                                        <div>
-                                          <h3 className="text-sm font-medium">{t('dialog.spotbugs.properties')}</h3>
-                                          <div className="mt-2 space-y-2">
-                                            {selectedBug.properties.map((property, index) => (
-                                              <div key={index} className="border rounded p-2 bg-muted/30">
-                                                <div className="flex items-center gap-2">
-                                                  <span className="text-xs font-medium">{t('dialog.spotbugs.name')}</span>
-                                                  <span className="text-xs font-mono font-bold">{property.name || t('dialog.spotbugs.notAvailable')}</span>
+                                              {sourceLine.sourcefile && (
+                                                <div className="mt-1">
+                                                  <span className="text-xs font-medium">{t('table.file')}</span>
+                                                  <p className="text-xs font-mono mt-1">{sourceLine.sourcefile}</p>
                                                 </div>
-                                                {property.value && (
-                                                  <div className="mt-1">
-                                                    <span className="text-xs font-medium">{t('dialog.spotbugs.value')}</span>
-                                                    <p className="text-xs font-mono mt-1">{property.value}</p>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            ))}
-                                          </div>
+                                              )}
+
+                                              {(sourceLine.start !== null || sourceLine.end !== null) && (
+                                                <div className="mt-1">
+                                                  <span className="text-xs font-medium">{t('dialog.spotbugs.lines')}</span>
+                                                  <p className="text-xs mt-1">
+                                                    {sourceLine.start !== null ? sourceLine.start : '?'} -{sourceLine.end !== null ? sourceLine.end : '?'}
+                                                  </p>
+                                                </div>
+                                              )}
+
+                                              {sourceLine.role && (
+                                                <Badge variant="outline" className="text-xs mt-1">
+                                                  {sourceLine.role}
+                                                </Badge>
+                                              )}
+
+                                              {sourceLine.message && (
+                                                <div className="mt-1">
+                                                  <span className="text-xs font-medium">{t('table.message')}</span>
+                                                  <p className="text-xs mt-1">{sourceLine.message}</p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          ))}
                                         </div>
-                                      )}
-                                    </div>
-                                  </ScrollArea>
-                                </TabsContent>
-                              )}
+                                      </div>
+                                    )}
+
+                                    {/* Local Variables */}
+                                    {selectedBug.localVariables && selectedBug.localVariables.length > 0 && (
+                                      <div>
+                                        <h3 className="text-sm font-medium">{t('dialog.spotbugs.localVariables')}</h3>
+                                        <div className="mt-2 space-y-2">
+                                          {selectedBug.localVariables?.map((variable, index) => (
+                                            <div key={index} className="border rounded p-2 bg-muted/30">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium">{t('dialog.spotbugs.name')}</span>
+                                                <span className="text-xs font-mono font-bold">{variable.name || t('dialog.spotbugs.notAvailable')}</span>
+                                              </div>
+                                              {variable.message && (
+                                                <div className="mt-1">
+                                                  <span className="text-xs font-medium">{t('table.message')}:</span>
+                                                  <p className="text-xs mt-1">{variable.message}</p>
+                                                </div>
+                                              )}
+                                              <Badge variant="outline" className="text-xs">
+                                                {variable.role}
+                                              </Badge>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Properties */}
+                                    {selectedBug.properties && selectedBug.properties.length > 0 && (
+                                      <div>
+                                        <h3 className="text-sm font-medium">{t('dialog.spotbugs.properties')}</h3>
+                                        <div className="mt-2 space-y-2">
+                                          {selectedBug.properties.map((property, index) => (
+                                            <div key={index} className="border rounded p-2 bg-muted/30">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium">{t('dialog.spotbugs.name')}</span>
+                                                <span className="text-xs font-mono font-bold">{property.name || t('dialog.spotbugs.notAvailable')}</span>
+                                              </div>
+                                              {property.value && (
+                                                <div className="mt-1">
+                                                  <span className="text-xs font-medium">{t('dialog.spotbugs.value')}</span>
+                                                  <p className="text-xs font-mono mt-1">{property.value}</p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </ScrollArea>
+                              </TabsContent>
                             </Tabs>
                           </div>
                         ) : (
-                          <div className="border rounded-md p-4 flex items-center justify-center h-full">
+                          <div className="border rounded-md p-4 flex items-center justify-center h-full w-full">
                             <p className="text-muted-foreground">{t('message.selectIssue')}</p>
                           </div>
                         )}
@@ -562,62 +897,200 @@ export function SpotBugs() {
                   </div>
                 )}
                 {activeTab === 'chart' && (
-                  <div className="border rounded-md p-4 h-full flex items-center justify-center">
-                    {/* <OverlayLoader isLoading={isLoading} /> */}
-                    {!isLoading && spotbugsResult.totalBugs > 0 ? (
-                      <ChartContainer
-                        config={{
-                          count: {
-                            label: t('dialog.spotbugs.bugCount'),
-                            color: 'hsl(var(--chart-1))',
-                          },
-                        }}
-                        className="min-h-[200px] w-full"
-                      >
-                        <BarChart
-                          accessibilityLayer
-                          data={[
-                            { severity: t('dialog.spotbugs.high'), count: spotbugsResult.bugsBySeverity.high, fill: 'hsl(var(--chart-5))' },
-                            { severity: t('dialog.spotbugs.medium'), count: spotbugsResult.bugsBySeverity.medium, fill: 'hsl(var(--chart-3))' },
-                            { severity: t('dialog.spotbugs.low'), count: spotbugsResult.bugsBySeverity.low, fill: 'hsl(var(--chart-1))' },
-                          ]}
-                          margin={{
-                            left: 12,
-                            right: 12,
-                          }}
-                        >
-                          <CartesianGrid vertical={false} />
-                          <XAxis dataKey="severity" tickLine={false} tickMargin={10} axisLine={false} />
-                          <YAxis allowDecimals={false} />
-                          <ChartTooltip
-                            cursor={false}
-                            content={({ active, payload }) => {
-                              if (active && payload && payload.length) {
-                                return (
-                                  <div className="rounded-lg border bg-background p-2 shadow-sm">
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div className="flex flex-col">
-                                        <span className="text-[0.70rem] uppercase text-muted-foreground">{t('table.severity')}</span>
-                                        <span className="font-bold text-muted-foreground">{payload[0].payload.severity}</span>
-                                      </div>
-                                      <div className="flex flex-col">
-                                        <span className="text-[0.70rem] uppercase text-muted-foreground">{t('dialog.spotbugs.bugCount')}</span>
-                                        <span className="font-bold">{payload[0].value}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )
-                              }
-                              return null
+                  <div className="h-full flex flex-column gap-2">
+                    <Card className="flex flex-col w-full relative">
+                      <CardHeader className="items-center pb-0">
+                        <CardTitle>{t('dialog.spotbugs.priorityChart')}</CardTitle>
+                        <CardDescription>{t('dialog.spotbugs.priorityChartDescription')}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 pb-0 overflow-hidden flex">
+                        <OverlayLoader isLoading={isLoading} />
+                        {!isLoading && spotbugsResult.bugCount.total > 0 ? (
+                          <ChartContainer
+                            config={{
+                              count: {
+                                label: t('dialog.spotbugs.bugCount'),
+                                color: 'var(--color-red-500)',
+                              },
                             }}
-                          />
-                          <ChartLegend content={() => null} />
-                          <Bar dataKey="count" radius={4} />
-                        </BarChart>
-                      </ChartContainer>
-                    ) : (
-                      <p className="text-muted-foreground">{isLoading ? t('message.loading') : t('message.noDataForChart')}</p>
-                    )}
+                            className="w-full"
+                          >
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  {
+                                    priority: t('dialog.spotbugs.high'),
+                                    count: spotbugsResult.bugCount.byPriority.high,
+                                    fill: 'var(--color-red-500)',
+                                  },
+                                  {
+                                    priority: t('dialog.spotbugs.medium'),
+                                    count: spotbugsResult.bugCount.byPriority.medium,
+                                    fill: 'var(--color-yellow-500)',
+                                  },
+                                  {
+                                    priority: t('dialog.spotbugs.low'),
+                                    count: spotbugsResult.bugCount.byPriority.low,
+                                    fill: 'var(--color-blue-500)',
+                                  },
+                                ]}
+                                dataKey="count"
+                                nameKey="priority"
+                                label
+                              />
+                              <ChartTooltip content={<ChartTooltipContent />} />
+                              <ChartLegend layout="horizontal" verticalAlign="bottom" align="center" />
+                            </PieChart>
+                          </ChartContainer>
+                        ) : (
+                          <div className="flex items-center justify-center h-full w-full">
+                            <p className="text-muted-foreground">{isLoading ? t('message.loading') : t('common.noData')}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="flex flex-col w-full relative">
+                      <CardHeader className="items-center pb-0">
+                        <CardTitle>{t('dialog.spotbugs.fileStatsChart')}</CardTitle>
+                        <CardDescription>{t('dialog.spotbugs.fileStatsChartDescription')}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 pb-0 overflow-hidden flex">
+                        <OverlayLoader isLoading={isLoading} />
+                        {!isLoading && spotbugsResult.fileStats.length > 0 ? (
+                          <ChartContainer
+                            config={{
+                              bugCount: {
+                                label: t('dialog.spotbugs.bugCount'),
+                                color: 'var(--chart-1)',
+                              },
+                            }}
+                            className="w-full"
+                          >
+                            <BarChart
+                              accessibilityLayer
+                              data={spotbugsResult.fileStats.slice(0, 10).map(stat => ({
+                                path: stat.path.split('/').pop() || stat.path,
+                                bugCount: stat.bugCount,
+                                fullPath: stat.path,
+                              }))}
+                            >
+                              <CartesianGrid vertical={false} />
+                              <XAxis dataKey="path" tickLine={false} tickMargin={10} axisLine={false} height={60} />
+                              <YAxis allowDecimals={false} />
+                              <ChartTooltip
+                                cursor={false}
+                                content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                        <div className="grid grid-cols-1 gap-2">
+                                          <div className="flex flex-row gap-2">
+                                            <span className="font-bold text-muted-foreground break-all max-w-[200px]">{payload[0].payload.fullPath}</span>
+                                          </div>
+                                          <div className="flex flex-row gap-2">
+                                            <span className="text-[0.70rem] text-muted-foreground">{t('dialog.spotbugs.bugCount')}</span>
+                                            <span className="font-bold">{payload[0].payload.bugCount}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                }}
+                              />
+                              <ChartLegend content={() => null} />
+                              <Bar dataKey="bugCount" fill="var(--chart-1)" radius={4} />
+                            </BarChart>
+                          </ChartContainer>
+                        ) : (
+                          <div className="flex items-center justify-center h-full w-full">
+                            <p className="text-muted-foreground">{isLoading ? t('message.loading') : t('common.noData')}</p>
+                          </div>
+                        )}{' '}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="flex flex-col w-full relative">
+                      <CardHeader className="items-center pb-0">
+                        <CardTitle>{t('dialog.spotbugs.packageStatsChart')}</CardTitle>
+                        <CardDescription>{t('dialog.spotbugs.packageStatsChartDescription')}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 pb-0 overflow-hidden flex">
+                        <OverlayLoader isLoading={isLoading} />
+                        {!isLoading && spotbugsResult.packageStats.length > 0 ? (
+                          <ChartContainer
+                            config={{
+                              priority1: {
+                                label: t('dialog.spotbugs.high'),
+                                color: 'var(--color-red-500)',
+                              },
+                              priority2: {
+                                label: t('dialog.spotbugs.medium'),
+                                color: 'var(--color-yellow-500)',
+                              },
+                              priority3: {
+                                label: t('dialog.spotbugs.low'),
+                                color: 'var(--color-blue-500)',
+                              },
+                            }}
+                            className="w-full"
+                          >
+                            <BarChart
+                              accessibilityLayer
+                              data={spotbugsResult.packageStats.slice(0, 10).map(stat => ({
+                                packageName: stat.packageName.split('.').pop() || stat.packageName,
+                                priority1: stat.priority1,
+                                priority2: stat.priority2,
+                                priority3: stat.priority3,
+                                fullPackage: stat.packageName,
+                              }))}
+                            >
+                              <CartesianGrid vertical={false} />
+                              <XAxis dataKey="packageName" tickLine={false} tickMargin={10} axisLine={false} height={60} />
+                              <YAxis allowDecimals={false} />
+                              <ChartTooltip
+                                cursor={false}
+                                content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                        <div className="grid grid-cols-1 gap-2">
+                                          <div className="flex flex-row gap-2">
+                                            <span className="font-bold text-muted-foreground break-all max-w-[200px]">{payload[0].payload.fullPackage}</span>
+                                          </div>
+                                          <div className="flex flex-row gap-2">
+                                            <span className="text-[0.70rem] text-muted-foreground">{t('dialog.spotbugs.high')}</span>
+                                            <span className="font-bold text-red-500">{payload[0].payload.priority1}</span>
+                                          </div>
+                                          <div className="flex flex-row gap-2">
+                                            <span className="text-[0.70rem] text-muted-foreground">{t('dialog.spotbugs.medium')}</span>
+                                            <span className="font-bold text-yellow-500">{payload[0].payload.priority2}</span>
+                                          </div>
+                                          <div className="flex flex-row gap-2">
+                                            <span className="text-[0.70rem] text-muted-foreground">{t('dialog.spotbugs.low')}</span>
+                                            <span className="font-bold text-blue-500">{payload[0].payload.priority3}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                }}
+                              />
+                              <ChartLegend />
+                              <Bar dataKey="priority1" name={t(getPriorityName(1))} fill="var(--color-red-500)" stackId="a" radius={4} />
+                              <Bar dataKey="priority2" name={t(getPriorityName(2))} fill="var(--color-yellow-500)" stackId="a" radius={4} />
+                              <Bar dataKey="priority3" name={t(getPriorityName(3))} fill="var(--color-blue-500)" stackId="a" radius={4} />
+                            </BarChart>
+                          </ChartContainer>
+                        ) : (
+                          <div className="flex items-center justify-center h-full w-full">
+                            <p className="text-muted-foreground">{isLoading ? t('message.loading') : t('common.noData')}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
                   </div>
                 )}
               </div>

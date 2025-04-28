@@ -1,10 +1,10 @@
+import { app } from 'electron'
+import log from 'electron-log'
+import { XMLParser } from 'fast-xml-parser'
 import { exec } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import { app } from 'electron'
-import log from 'electron-log'
-import { XMLParser } from 'fast-xml-parser'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
@@ -13,7 +13,8 @@ const getSpotBugsPath = () => {
   if (process.env.NODE_ENV === 'development') {
     return path.resolve(process.cwd(), 'spotbugs-4.9.3')
   }
-  return path.resolve(app.getAppPath(), '../spotbugs-4.9.3')
+  // Trong môi trường sản phẩm, tìm trong thư mục resources
+  return path.join(process.resourcesPath, 'spotbugs-4.9.3')
 }
 
 /**
@@ -185,149 +186,391 @@ export function parseSpotBugsResult(xmlContent: string): any {
     })
     const jsonObj = parser.parse(xmlContent)
     const bugCollection = jsonObj?.BugCollection
-    log.info(bugCollection)
+    log.info('Parsed BugCollection')
     if (!bugCollection) {
       throw new Error('Missing BugCollection root element')
     }
 
-    const bugCategories: Record<string, string> = {}
-    const bugCategoryList = Array.isArray(bugCollection.BugCategory) ? bugCollection.BugCategory : [bugCollection.BugCategory]
+    // Thông tin phiên bản
+    const version = {
+      version: bugCollection.version || '',
+      sequence: bugCollection.sequence ? Number(bugCollection.sequence) : null,
+      timestamp: bugCollection.timestamp ? Number(bugCollection.timestamp) : null,
+      analysisTimestamp: bugCollection.analysisTimestamp ? Number(bugCollection.analysisTimestamp) : null,
+      release: bugCollection.release || ''
+    }
+
+    // Phân tích thông tin dự án
+    const project = bugCollection.Project || {}
+    const projectInfo = {
+      projectName: project.projectName || '',
+      filename: project.filename || '',
+      jars: Array.isArray(project.Jar) ? project.Jar : (project.Jar ? [project.Jar] : []),
+      srcDirs: Array.isArray(project.SrcDir) ? project.SrcDir : (project.SrcDir ? [project.SrcDir] : []),
+      auxClasspathEntries: Array.isArray(project.AuxClasspathEntry) ? project.AuxClasspathEntry : (project.AuxClasspathEntry ? [project.AuxClasspathEntry] : []),
+      wrkDir: project.WrkDir || ''
+    }
+
+    // Phân tích danh mục lỗi
+    const bugCategories: Record<string, any> = {}
+    const bugCategoryList = bugCollection.BugCategory ?
+      (Array.isArray(bugCollection.BugCategory) ? bugCollection.BugCategory : [bugCollection.BugCategory]) : []
+
     for (const category of bugCategoryList) {
-      const { category: categoryName, Description } = category
-      bugCategories[categoryName] = Description
+      if (category) {
+        const { category: categoryName, Description, Abbreviation, Details } = category
+        bugCategories[categoryName] = {
+          name: categoryName,
+          description: Description || '',
+          abbreviation: Abbreviation || '',
+          details: Details || ''
+        }
+      }
     }
     log.info(`Found ${Object.keys(bugCategories).length} bug categories`)
 
+    // Phân tích mẫu lỗi
     const bugPatterns: Record<string, any> = {}
-    const bugPatternList = Array.isArray(bugCollection.BugPattern) ? bugCollection.BugPattern : [bugCollection.BugPattern]
+    const bugPatternList = bugCollection.BugPattern ?
+      (Array.isArray(bugCollection.BugPattern) ? bugCollection.BugPattern : [bugCollection.BugPattern]) : []
+
     for (const bugPattern of bugPatternList) {
-      const { type, ShortDescription, Details } = bugPattern
-      const details = Details?.['#text'] || Details?.CDATA || Details || ''
-      bugPatterns[type] = {
-        type,
-        shortDescription: ShortDescription,
-        details: details.trim?.() || '',
+      if (bugPattern) {
+        const { type, abbrev, category, cweid, ShortDescription, Details } = bugPattern
+        const details = Details?.['#text'] || Details?.CDATA || Details || ''
+        bugPatterns[type] = {
+          type,
+          abbrev: abbrev || '',
+          category: category || '',
+          cweid: cweid ? Number(cweid) : null,
+          shortDescription: ShortDescription || '',
+          details: details.trim?.() || '',
+        }
       }
     }
     log.info(`Found ${Object.keys(bugPatterns).length} bug patterns`)
 
+    // Phân tích mã lỗi
+    const bugCodes: Record<string, any> = {}
+    const bugCodeList = bugCollection.BugCode ?
+      (Array.isArray(bugCollection.BugCode) ? bugCollection.BugCode : [bugCollection.BugCode]) : []
+
+    for (const bugCode of bugCodeList) {
+      if (bugCode) {
+        const { abbrev, cweid, Description } = bugCode
+        bugCodes[abbrev] = {
+          abbrev,
+          cweid: cweid ? Number(cweid) : null,
+          description: Description || ''
+        }
+      }
+    }
+    log.info(`Found ${Object.keys(bugCodes).length} bug codes`)
+
+    // Phân tích các lỗi
     const bugInstances: any[] = []
     const bugInstanceList = bugCollection.BugInstance || []
-    bugInstanceList.forEach((bugInstance: any, index: number) => {
-      const { type, priority, rank, instanceHash, category, Method, Class, SourceLine, ShortMessage, LongMessage, LocalVariable, Property } = bugInstance
+    bugInstanceList.forEach((instance: any, index: number) => {
+      if (!instance) return
+
+      const {
+        type, priority, rank, abbrev, category, cweid, instanceHash,
+        ShortMessage, LongMessage, Class, Method, Field, LocalVariable,
+        SourceLine, Int, String: StringValue, Property, UserAnnotation
+      } = instance
 
       const id = instanceHash || `BUG-${index + 1}`
-      const methodName = Method?.name || 'unknown'
-      const signature = Method?.signature || '()V'
-      const isStatic = Method?.isStatic === 'true'
-      const isPrimary = Method?.primary === 'true'
 
-      // Trích xuất thông tin SourceLine từ Method
-      const methodSourceLine = Method?.SourceLine || {}
-      const methodStartLine = methodSourceLine?.start || 0
-      const methodEndLine = methodSourceLine?.end || 0
-      const methodStartBytecode = methodSourceLine?.startBytecode || 0
-      const methodEndBytecode = methodSourceLine?.endBytecode || 0
+      // Xử lý thông tin lớp
+      const classList = Class ? (Array.isArray(Class) ? Class : [Class]) : []
+      const classes = classList.map((c: any) => ({
+        classname: c?.classname || '',
+        role: c?.role || '',
+        primary: c?.primary || false,
+        sourceLine: c?.SourceLine ? {
+          classname: c.SourceLine?.classname,
+          start: c.SourceLine?.start ? Number(c.SourceLine.start) : null,
+          end: c.SourceLine?.end ? Number(c.SourceLine.end) : null,
+          startBytecode: c.SourceLine?.startBytecode ? Number(c.SourceLine.startBytecode) : null,
+          endBytecode: c.SourceLine?.endBytecode ? Number(c.SourceLine.endBytecode) : null,
+          sourcefile: c.SourceLine?.sourcefile || '',
+          sourcepath: c.SourceLine?.sourcepath || '',
+          relSourcepath: c.SourceLine?.relSourcepath || '',
+          synthetic: c.SourceLine?.synthetic || false,
+          role: c.SourceLine?.role || '',
+          primary: c.SourceLine?.primary || false,
+          message: c.SourceLine?.Message || ''
+        } : null,
+        message: c?.Message || ''
+      }))
 
-      // Trích xuất thông tin Message từ Method
-      const methodMessage = Method?.Message || ''
+      // Xử lý thông tin phương thức
+      const methodList = Method ? (Array.isArray(Method) ? Method : [Method]) : []
+      const methods = methodList.map((m: any) => ({
+        classname: m?.classname || '',
+        name: m?.name || '',
+        signature: m?.signature || '',
+        isStatic: m?.isStatic || false,
+        role: m?.role || '',
+        primary: m?.primary || false,
+        sourceLine: m?.SourceLine ? {
+          classname: m.SourceLine?.classname,
+          start: m.SourceLine?.start ? Number(m.SourceLine.start) : null,
+          end: m.SourceLine?.end ? Number(m.SourceLine.end) : null,
+          startBytecode: m.SourceLine?.startBytecode ? Number(m.SourceLine.startBytecode) : null,
+          endBytecode: m.SourceLine?.endBytecode ? Number(m.SourceLine.endBytecode) : null,
+          sourcefile: m.SourceLine?.sourcefile || '',
+          sourcepath: m.SourceLine?.sourcepath || '',
+          relSourcepath: m.SourceLine?.relSourcepath || '',
+          synthetic: m.SourceLine?.synthetic || false,
+          role: m.SourceLine?.role || '',
+          primary: m.SourceLine?.primary || false,
+          message: m.SourceLine?.Message || ''
+        } : null,
+        message: m?.Message || ''
+      }))
 
-      const className = Class?.classname || 'unknown'
-      const sourceFile = Class?.SourceLine?.sourcefile || 'unknown'
-      const startLine = SourceLine?.start || 0
-      const endLine = SourceLine?.end || 0
-      const shortMessage = ShortMessage || bugPatterns[type]?.shortDescription || type
-      const longMessage = LongMessage || ''
-      let severity: 'High' | 'Medium' | 'Low' = 'Medium'
+      // Xử lý thông tin trường
+      const fieldList = Field ? (Array.isArray(Field) ? Field : [Field]) : []
+      const fields = fieldList.map((f: any) => ({
+        classname: f?.classname || '',
+        name: f?.name || '',
+        signature: f?.signature || '',
+        sourceSignature: f?.sourceSignature || '',
+        isStatic: f?.isStatic || false,
+        role: f?.role || '',
+        primary: f?.primary || false,
+        sourceLine: f?.SourceLine ? {
+          classname: f.SourceLine?.classname,
+          start: f.SourceLine?.start ? Number(f.SourceLine.start) : null,
+          end: f.SourceLine?.end ? Number(f.SourceLine.end) : null,
+          sourcefile: f.SourceLine?.sourcefile || '',
+          sourcepath: f.SourceLine?.sourcepath || '',
+          message: f.SourceLine?.Message || ''
+        } : null,
+        message: f?.Message || ''
+      }))
 
-      if (Number.parseInt(priority) === 1) severity = 'High'
-      else if (Number.parseInt(priority) >= 3) severity = 'Low'
-
-      // Local Variable and Property extraction
+      // Xử lý thông tin biến cục bộ
       const localVariableList = LocalVariable ? (Array.isArray(LocalVariable) ? LocalVariable : [LocalVariable]) : []
       const localVariables = localVariableList.map((lv: any) => ({
-        name: lv?.name,
-        message: lv?.Message,
+        name: lv?.name || '',
+        register: lv?.register ? Number(lv.register) : null,
+        pc: lv?.pc ? Number(lv.pc) : null,
+        role: lv?.role || '',
+        message: lv?.Message || ''
       }))
 
+      // Xử lý thuộc tính
       const propertyList = Property ? (Array.isArray(Property) ? Property : [Property]) : []
       const properties = propertyList.map((p: any) => ({
-        name: p?.name,
-        value: p?.value,
+        name: p?.name || '',
+        value: p?.value || ''
       }))
 
-      bugInstances.push({
+      // Xử lý giá trị Int
+      const intList = Int ? (Array.isArray(Int) ? Int : [Int]) : []
+      const ints = intList.map((i: any) => ({
+        value: i?.value ? Number(i.value) : null,
+        role: i?.role || '',
+        message: i?.Message || ''
+      }))
+
+      // Xử lý giá trị String
+      const stringList = StringValue ? (Array.isArray(StringValue) ? StringValue : [StringValue]) : []
+      const strings = stringList.map((s: any) => ({
+        value: s?.value || '',
+        role: s?.role || '',
+        message: s?.Message || ''
+      }))
+
+      // Xử lý thông tin dòng mã nguồn
+      const sourceLineList = SourceLine ? (Array.isArray(SourceLine) ? SourceLine : [SourceLine]) : []
+      const sourceLines = sourceLineList.map((sl: any) => ({
+        classname: sl?.classname || '',
+        start: sl?.start ? Number(sl.start) : null,
+        end: sl?.end ? Number(sl.end) : null,
+        startBytecode: sl?.startBytecode ? Number(sl.startBytecode) : null,
+        endBytecode: sl?.endBytecode ? Number(sl.endBytecode) : null,
+        sourcefile: sl?.sourcefile || '',
+        sourcepath: sl?.sourcepath || '',
+        relSourcepath: sl?.relSourcepath || '',
+        synthetic: sl?.synthetic || false,
+        role: sl?.role || '',
+        primary: sl?.primary || false,
+        message: sl?.Message || ''
+      }))
+
+      // Xử lý chú thích người dùng
+      const userAnnotation = UserAnnotation ? {
+        designation: UserAnnotation.designation || '',
+        user: UserAnnotation.user || '',
+        needsSync: UserAnnotation.needsSync || false,
+        timestamp: UserAnnotation.timestamp ? Number(UserAnnotation.timestamp) : null,
+        value: UserAnnotation['#text'] || UserAnnotation.CDATA || ''
+      } : null
+
+      // Tạo đối tượng lỗi
+      const bugData = {
         id,
         type,
-        category: category || type.split('_')[0],
-        priority: Number.parseInt(priority),
-        rank: Number.parseInt(rank),
-        className,
-        methodName,
-        signature,
-        isStatic,
-        isPrimary,
-        methodInfo: {
-          startLine: methodStartLine,
-          endLine: methodEndLine,
-          startBytecode: methodStartBytecode,
-          endBytecode: methodEndBytecode,
-          message: methodMessage,
-        },
-        sourceFile,
-        startLine,
-        endLine,
-        message: shortMessage,
-        longMessage,
-        details: bugPatterns[type]?.details || '',
-        severity,
-        categoryDescription: bugCategories[category || type.split('_')[0]] || '',
+        priority: priority ? Number(priority) : null,
+        rank: rank ? Number(rank) : null,
+        abbrev: abbrev || '',
+        category: category || '',
+        cweid: cweid ? Number(cweid) : null,
+        shortMessage: ShortMessage || '',
+        longMessage: LongMessage || '',
+        classes,
+        methods,
+        fields,
         localVariables,
+        sourceLines,
+        ints,
+        strings,
         properties,
-      })
+        userAnnotation,
+
+        // Thông tin bổ sung từ các định nghĩa
+        patternDetails: bugPatterns[type] || null,
+        categoryDetails: bugCategories[category] || null,
+        codeDetails: bugCodes[abbrev] || null
+      }
+
+      bugInstances.push(bugData)
     })
 
     log.info(`Found ${bugInstances.length} bug instances`)
 
-    const projectName = bugCollection.Project?.projectName || ''
-    const summary = bugCollection.FindBugsSummary || {}
-    const timestamp = summary.timestamp || ''
-    const totalClasses = Number.parseInt(summary.total_classes) || 0
-    const totalBugs = Number.parseInt(summary.total_bugs) || bugInstances.length
-    const priority1 = Number.parseInt(summary.priority_1) || 0
-    const priority2 = Number.parseInt(summary.priority_2) || 0
-    const priority3 = Number.parseInt(summary.priority_3) || 0
-    const high = bugInstances.filter(bug => bug.severity === 'High').length
-    const medium = bugInstances.filter(bug => bug.severity === 'Medium').length
-    const low = bugInstances.filter(bug => bug.severity === 'Low').length
+    // Phân tích tóm tắt
+    const findBugsSummary = bugCollection.FindBugsSummary || {}
 
-    const result = {
-      projectName,
-      timestamp,
-      totalClasses,
-      totalBugs,
-      bugsBySeverity: {
-        high: high || priority1,
-        medium: medium || priority2,
-        low: low || priority3,
-      },
-      bugPatterns,
-      bugCategories,
-      bugInstances,
+    // Thông tin tóm tắt
+    const summary = {
+      timestamp: findBugsSummary.timestamp || '',
+      totalClasses: findBugsSummary.total_classes ? Number(findBugsSummary.total_classes) : 0,
+      referencedClasses: findBugsSummary.referenced_classes ? Number(findBugsSummary.referenced_classes) : 0,
+      totalBugs: findBugsSummary.total_bugs ? Number(findBugsSummary.total_bugs) : bugInstances.length,
+      totalSize: findBugsSummary.total_size ? Number(findBugsSummary.total_size) : 0,
+      numPackages: findBugsSummary.num_packages ? Number(findBugsSummary.num_packages) : 0,
+      javaVersion: findBugsSummary.java_version || '',
+      vmVersion: findBugsSummary.vm_version || '',
+      cpuSeconds: findBugsSummary.cpu_seconds ? Number(findBugsSummary.cpu_seconds) : null,
+      clockSeconds: findBugsSummary.clock_seconds ? Number(findBugsSummary.clock_seconds) : null,
+      peakMbytes: findBugsSummary.peak_mbytes ? Number(findBugsSummary.peak_mbytes) : null,
+      allocMbytes: findBugsSummary.alloc_mbytes ? Number(findBugsSummary.alloc_mbytes) : null,
+      gcSeconds: findBugsSummary.gc_seconds ? Number(findBugsSummary.gc_seconds) : null,
+      priority1: findBugsSummary.priority_1 ? Number(findBugsSummary.priority_1) : 0,
+      priority2: findBugsSummary.priority_2 ? Number(findBugsSummary.priority_2) : 0,
+      priority3: findBugsSummary.priority_3 ? Number(findBugsSummary.priority_3) : 0,
     }
 
-    log.info(`Analysis complete. Found ${result.totalBugs} bugs.`)
+    // Thông tin thống kê tệp
+    const fileStatList = findBugsSummary.FileStats ?
+      (Array.isArray(findBugsSummary.FileStats) ? findBugsSummary.FileStats : [findBugsSummary.FileStats]) : []
+
+    const fileStats = fileStatList.map((fs: any) => ({
+      path: fs?.path || '',
+      bugCount: fs?.bugCount ? Number(fs.bugCount) : 0,
+      size: fs?.size ? Number(fs.size) : null,
+      bugHash: fs?.bugHash || ''
+    }))
+
+    // Thông tin thống kê gói
+    const packageStatList = findBugsSummary.PackageStats ?
+      (Array.isArray(findBugsSummary.PackageStats) ? findBugsSummary.PackageStats : [findBugsSummary.PackageStats]) : []
+
+    const packageStats = packageStatList.map((ps: any) => {
+      const classStats = ps.ClassStats ?
+        (Array.isArray(ps.ClassStats) ? ps.ClassStats : [ps.ClassStats]) : []
+
+      const classStatsList = classStats.map((cs: any) => ({
+        className: cs?.class || '',
+        sourceFile: cs?.sourceFile || '',
+        interface: cs?.interface || false,
+        size: cs?.size ? Number(cs.size) : 0,
+        bugs: cs?.bugs ? Number(cs.bugs) : 0,
+        priority1: cs?.priority_1 ? Number(cs.priority_1) : 0,
+        priority2: cs?.priority_2 ? Number(cs.priority_2) : 0,
+        priority3: cs?.priority_3 ? Number(cs.priority_3) : 0
+      }))
+
+      return {
+        packageName: ps?.package || '',
+        totalBugs: ps?.total_bugs ? Number(ps.total_bugs) : 0,
+        totalTypes: ps?.total_types ? Number(ps.total_types) : 0,
+        totalSize: ps?.total_size ? Number(ps.total_size) : 0,
+        priority1: ps?.priority_1 ? Number(ps.priority_1) : 0,
+        priority2: ps?.priority_2 ? Number(ps.priority_2) : 0,
+        priority3: ps?.priority_3 ? Number(ps.priority_3) : 0,
+        classStats: classStatsList
+      }
+    })
+
+    // Thông tin lỗi
+    const errors = bugCollection.Errors || {}
+    const errorInfo = {
+      errors: errors.errors ? Number(errors.errors) : 0,
+      missingClasses: errors.missingClasses ? Number(errors.missingClasses) : 0,
+      missingClassList: errors.MissingClass ?
+        (Array.isArray(errors.MissingClass) ? errors.MissingClass : [errors.MissingClass]) : []
+    }
+
+    // Kết quả cuối cùng
+    const result = {
+      version,
+      project: projectInfo,
+      summary,
+      fileStats,
+      packageStats,
+      errors: errorInfo,
+      bugCategories,
+      bugPatterns,
+      bugCodes,
+      bugInstances,
+      bugCount: {
+        total: summary.totalBugs,
+        byPriority: {
+          high: summary.priority1,
+          medium: summary.priority2,
+          low: summary.priority3
+        }
+      }
+    }
+
+    log.info(`Analysis complete. Found ${result.bugCount.total} bugs.`)
     return result
   } catch (error) {
     log.error('Error parsing SpotBugs result:', error)
     return {
-      totalBugs: 0,
-      bugsBySeverity: {
-        high: 0,
-        medium: 0,
-        low: 0,
+      version: { version: '', sequence: null, timestamp: null, analysisTimestamp: null, release: '' },
+      project: { projectName: '', filename: '', jars: [], srcDirs: [] },
+      summary: {
+        timestamp: '',
+        totalClasses: 0,
+        referencedClasses: 0,
+        totalBugs: 0,
+        totalSize: 0,
+        numPackages: 0,
+        priority1: 0,
+        priority2: 0,
+        priority3: 0
       },
+      fileStats: [],
+      packageStats: [],
+      errors: { errors: 0, missingClasses: 0, missingClassList: [] },
+      bugCategories: {},
+      bugPatterns: {},
+      bugCodes: {},
       bugInstances: [],
+      bugCount: {
+        total: 0,
+        byPriority: {
+          high: 0,
+          medium: 0,
+          low: 0
+        }
+      }
     }
   }
 }

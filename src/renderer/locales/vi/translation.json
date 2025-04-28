@@ -18,7 +18,8 @@
     "copy": "Sao chép",
     "generate": "Tạo thông điệp commit",
     "check": "Kiểm tra quy tắc mã hóa",
-    "commit": "Commit mã"
+    "commit": "Commit mã",
+    "noData": "Không có dữ liệu"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -268,7 +269,6 @@
         "total": "Tổng cộng"
       },
       "cardFooter": "Dữ liệu commit trong khoảng thời gian được chọn",
-      "noData": "Không có dữ liệu",
       "errorLoading": "Lỗi khi tải dữ liệu thống kê"
     },
     "spotbugs": {
@@ -293,7 +293,14 @@
       "static": "tĩnh",
       "primary": "chính",
       "fileList": "Danh sách file",
-      "chart": "Biểu đồ"
+      "chart": "Biểu đồ",
+      "bugCount": "Số lượng",
+      "priorityChart": "Số lượng lỗi theo mức độ ưu tiên",
+      "priorityChartDescription": "Hiển thị sự phân bố của các lỗi theo mức độ.",
+      "fileStatsChart": "Số lượng lỗi theo file",
+      "fileStatsChartDescription": "Hiển thị số lượng lỗi tìm thấy trong mỗi file của dự án.",
+      "packageStatsChart": "Số lượng lỗi theo package",
+      "packageStatsChartDescription": "Hiển thị sự phân bố của các lỗi trong các package khác nhau của dự án."
     },
     "diffViewer": {
       "title": "Diff Viewer",

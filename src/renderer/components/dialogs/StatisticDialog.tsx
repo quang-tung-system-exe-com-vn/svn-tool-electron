@@ -413,7 +413,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
+                  <p className="text-muted-foreground">{t('common.noData')}</p>
                 </div>
               )}
             </div>
@@ -499,7 +499,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
+                  <p className="text-muted-foreground">{t('common.noData')}</p>
                 </div>
               )}
             </div>
@@ -527,7 +527,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                 </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
+                  <p className="text-muted-foreground">{t('common.noData')}</p>
                 </div>
               )}
             </div>
@@ -564,7 +564,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   </table>
                 ) : (
                   <div className="h-full flex items-center justify-center">
-                    <p className="text-muted-foreground">{t('dialog.statisticSvn.noData')}</p>
+                    <p className="text-muted-foreground">{t('common.noData')}</p>
                   </div>
                 )}
               </div>

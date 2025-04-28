@@ -94,7 +94,7 @@ Split the message into Frontend and Backend sections. If any part is missing, th
 Based on this diff:
 {diff_content}
 
-Respond in {language}.
+Respond strictly in {language}. Format plain-text.
 `,
 }
 

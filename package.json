@@ -10,7 +10,7 @@
     "email": "quang-tung@system-exe.com.vn"
   },
   "license": "MIT",
-  "packageManager": "pnpm@10.9.0",
+  "packageManager": "pnpm@10.10.0",
   "pnpm": {
     "onlyBuiltDependenciesFile": "./trusted-dependencies-scripts.json"
   },
