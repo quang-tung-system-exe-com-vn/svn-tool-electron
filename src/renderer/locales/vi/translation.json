@@ -175,8 +175,8 @@
       "developer": "Người phát triển",
       "version": "Phiên bản",
       "email": "Email",
-      "github": "GitHub",
-      "close": "Đóng"
+      "thankYou": "Cảm ơn bạn đã sử dụng công cụ này!",
+      "sourceCode": "Mã nguồn"
     },
     "codingRules": {
       "title": "Phân tích quy tắc mã nguồn",
@@ -356,12 +356,14 @@
       "changedFiles": "Tệp đã thay đổi",
       "action": "Hành động",
       "path": "Đường dẫn",
-      "commitMessage": "Thông điệp commit"
+      "commitMessage": "Thông điệp commit",
+      "description": "Một phiên bản SVN mới đã được phát hiện. Vui lòng cập nhật thư mục làm việc từ phiên bản {{1}} lên phiên bản mới nhất {{0}} để đảm bảo bạn có được tất cả thay đổi mới nhất."
     },
     "updateApp": {
       "title": "Có bản cập nhật mới",
       "appVersion": "Phiên bản SVNTool mới đã có sẵn: ",
-      "message": "Ứng dụng sẽ khởi động lại sau khi cập nhật"
+      "message": "Ứng dụng sẽ khởi động lại sau khi cập nhật",
+      "description": "Có bản cập nhật mới cho ứng dụng này. Vui lòng cập nhật ngay để nhận được những tính năng và sửa lỗi mới nhất."
     },
     "newWebhook": {
       "title": "Thêm Webhook Mới",

@@ -1,3 +1,4 @@
+'use client'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'

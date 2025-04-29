@@ -3,9 +3,9 @@ import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
-const { sourceFolder } = configurationStore.store
 
 export async function blame(filePath: string): Promise<SVNResponse> {
+  const { sourceFolder } = configurationStore.store
   try {
     const { stdout, stderr } = await execPromise(`svn blame "${filePath}"`, { cwd: sourceFolder })
     if (stderr) return { status: 'error', message: stderr }

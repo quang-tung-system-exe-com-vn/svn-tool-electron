@@ -1,3 +1,4 @@
+'use client'
 import { InfoDialog } from '@/components/dialogs/AboutDialog'
 import { CleanDialog } from '@/components/dialogs/CleanDialog'
 import { NewRevisionDialog } from '@/components/dialogs/NewRevisionDialog'
@@ -158,29 +159,13 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
     setShowSvnUpdateDialog(true)
   }
 
-  const handleSvnUpdate = () => {
-    toast.info(t('Updating SVN...'))
-    window.api.svn
-      .update()
-      .then(result => {
-        if (result.status === 'success') {
-          setShowSvnUpdateDialog(false)
-          setHasSvnUpdate(false)
-          toast.success(t('SVN updated successfully'))
-        } else {
-          toast.error(result.message)
-        }
-      })
-      .catch((error: Error) => {
-        toast.error(error.message || 'Error updating SVN')
-      })
-  }
-
   const handleCurRevisionUpdate = (revision: string) => {
     setSvnInfo(prev => ({
       ...prev,
       curRevision: revision,
     }))
+    setShowSvnUpdateDialog(false)
+    setHasSvnUpdate(false)
   }
 
   return (
@@ -195,7 +180,6 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
         open={showSvnUpdateDialog}
         onOpenChange={setShowSvnUpdateDialog}
         svnInfo={svnInfo}
-        onUpdate={handleSvnUpdate}
         hasSvnUpdate={hasSvnUpdate}
         onCurRevisionUpdate={handleCurRevisionUpdate}
       />

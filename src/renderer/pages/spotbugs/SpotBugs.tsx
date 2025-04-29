@@ -1,3 +1,4 @@
+'use client'
 import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
@@ -613,7 +614,10 @@ export function SpotBugs() {
                                 sortedBugs.map(bug => (
                                   <TableRow
                                     key={bug.id}
-                                    className={cn(selectedBug?.id === bug.id ? 'bg-muted/50' : '', 'transition-colors duration-150')}
+                                    className={cn(
+                                      selectedBug?.id === bug.id ? 'bg-blue-100 hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-900' : '',
+                                      'transition-colors duration-150'
+                                    )}
                                     onClick={() => setSelectedBug(bug)}
                                     style={{ cursor: 'pointer' }}
                                   >
@@ -661,7 +665,7 @@ export function SpotBugs() {
                                 <div className="flex flex-row items-center gap-2">
                                   <h3 className="text-sm font-semibold">{t('table.severity')}</h3>
                                   <Badge variant="outline" className={`${getPriorityColor(selectedBug.priority)} w-fit`}>
-                                    {selectedBug.priority} ({t(getPriorityName(selectedBug.priority))})
+                                    {t(getPriorityName(selectedBug.priority))} ({selectedBug.priority})
                                   </Badge>
                                   <h3 className="text-sm font-semibold">{t('table.rank')}</h3>
                                   <Badge variant="outline" className={`${getRankColor(selectedBug.rank)} w-fit`}>
@@ -690,7 +694,7 @@ export function SpotBugs() {
                               {/* Issue Details Tab */}
                               <TabsContent value="issue" className="mt-0 border-0 p-0">
                                 <ScrollArea className="h-full">
-                                  <div className="p-4 space-y-6">
+                                  <div className="space-y-2">
                                     {/* Category */}
                                     <div className="border rounded-md bg-muted/30 p-4 space-y-2">
                                       <div className="flex items-center justify-between">
@@ -732,7 +736,7 @@ export function SpotBugs() {
                                         <h3 className="text-sm font-medium">{t('dialog.spotbugs.methods')}</h3>
                                         <div className="space-y-4 mt-2">
                                           {selectedBug.methods.map((method, index) => (
-                                            <div key={index} className="overflow-x-auto border rounded bg-muted/30">
+                                            <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
                                               <table className="min-w-full">
                                                 <tbody>
                                                   {/* Method Name */}
@@ -794,7 +798,7 @@ export function SpotBugs() {
                                         <h3 className="text-sm font-medium">{t('dialog.spotbugs.sourceLines')}</h3>
                                         <div className="mt-2 space-y-4">
                                           {selectedBug.sourceLines.map((sourceLine, index) => (
-                                            <div key={index} className="overflow-x-auto border rounded bg-muted/30">
+                                            <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
                                               <table className="min-w-full">
                                                 <tbody>
                                                   <tr>
@@ -849,7 +853,7 @@ export function SpotBugs() {
                                         <h3 className="text-sm font-medium">{t('dialog.spotbugs.localVariables')}</h3>
                                         <div className="mt-2 space-y-4">
                                           {selectedBug.localVariables?.map((variable, index) => (
-                                            <div key={index} className="overflow-x-auto border rounded bg-muted/30">
+                                            <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
                                               <table className="min-w-full">
                                                 <tbody>
                                                   <tr>
@@ -884,7 +888,7 @@ export function SpotBugs() {
                                         <h3 className="text-sm font-medium">{t('dialog.spotbugs.properties')}</h3>
                                         <div className="mt-2 space-y-4">
                                           {selectedBug.properties?.map((property, index) => (
-                                            <div key={index} className="overflow-x-auto border rounded bg-muted/30">
+                                            <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
                                               <table className="min-w-full">
                                                 <tbody>
                                                   <tr>

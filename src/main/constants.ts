@@ -82,19 +82,25 @@ Maintain all original variable and function names exactly as provided.
 Evaluate the following diff:
 {diff_content}
 
-Respond strictly in {language}.
-
 End your report with a brief summary starting with the symbol: =>
+
+Respond strictly in {language}.
 `,
 
   GENERATE_COMMIT: `
 You are a source code management expert. Generate a professional commit message using the Conventional Commit Specification.
+
 Write a general summary only, no need for detailed explanation.
+
 Split the message into Frontend and Backend sections. If any part is missing, then there is no need to mention Frontend or Backend.
+
 Based on this diff:
 {diff_content}
 
-Respond strictly in {language}. Format plain-text.
+Deleted Files:
+{deletedFiles}
+
+Respond strictly in {language}, without using Markdown formatting.
 `,
 }
 

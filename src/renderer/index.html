@@ -3,16 +3,15 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+    font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
+    worker-src 'self' blob:;
+    object-src 'none';
+  ">
 
-  <!--
-      https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-
-      If you want restrict the sources from where you can load resources:
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" />
-    -->
-  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; worker-src blob:;"> -->
-
-  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' *; script-src 'self' *; style-src 'self' 'unsafe-inline' *;" /> -->
 </head>
 
 <body>

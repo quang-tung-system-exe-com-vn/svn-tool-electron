@@ -1,3 +1,4 @@
+'use client'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'

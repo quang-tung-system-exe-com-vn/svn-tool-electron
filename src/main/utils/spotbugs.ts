@@ -8,7 +8,6 @@ import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
-const { sourceFolder } = configurationStore.store
 const getSpotBugsPath = () => {
   if (process.env.NODE_ENV === 'development') {
     return path.resolve(process.cwd(), 'spotbugs-4.9.3')
@@ -24,6 +23,7 @@ const getSpotBugsPath = () => {
  */
 export async function runSpotBugs(filePaths: string[]): Promise<any> {
   try {
+    const { sourceFolder } = configurationStore.store
     const javaFiles = filePaths.filter(file => file.endsWith('.java'))
     if (javaFiles.length === 0) {
       return { status: 'error', message: 'No Java files to analyze' }

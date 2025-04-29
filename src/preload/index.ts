@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, PROMPT } from 'main/constants'
 
-// This preload script is used to expose APIs to the renderer process
 declare global {
   interface Window {
     api: {

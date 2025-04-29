@@ -1,16 +1,18 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { Clock, Hash, User } from 'lucide-react'
-import { forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useButtonVariant } from '../../stores/useAppearanceStore'
 import type { SvnStatusCode } from '../shared/constants'
+import { GlowLoader } from '../ui-elements/GlowLoader'
 import { StatusIcon } from '../ui-elements/StatusIcon'
+import toast from '../ui-elements/Toast'
 import { ScrollArea } from '../ui/scroll-area'
 
 interface NewRevisionDialogProps {
@@ -24,20 +26,34 @@ interface NewRevisionDialogProps {
     commitMessage: string
     changedFiles: { status: SvnStatusCode; path: string }[]
   }
-  onUpdate: () => void
   onCurRevisionUpdate: (revision: string) => void
   hasSvnUpdate: boolean
 }
 
-export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCurRevisionUpdate, hasSvnUpdate }: NewRevisionDialogProps) {
+export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUpdate, hasSvnUpdate }: NewRevisionDialogProps) {
   const { t, i18n } = useTranslation()
   const variant = useButtonVariant()
+  const [isLoading, setLoading] = useState(false)
+
   const handleSvnUpdate = () => {
-    onUpdate()
-    if (svnInfo?.revision && typeof onCurRevisionUpdate === 'function') {
-      onCurRevisionUpdate(svnInfo.revision)
-    }
-    if (onOpenChange) onOpenChange(false)
+    toast.info(t('Updating SVN...'))
+    setLoading(true)
+    window.api.svn
+      .update()
+      .then(result => {
+        if (result.status === 'success') {
+          if (svnInfo?.revision && typeof onCurRevisionUpdate === 'function') {
+            onCurRevisionUpdate(svnInfo.revision)
+          }
+          toast.success(t('SVN updated successfully'))
+        } else {
+          toast.error(result.message)
+        }
+      })
+      .catch((error: Error) => {
+        toast.error(error.message || 'Error updating SVN')
+      })
+      .finally(() => setLoading(false))
   }
 
   const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => {
@@ -51,9 +67,10 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCur
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby={t('dialog.updateSvn.title')}>
         <DialogHeader>
           <DialogTitle>{t('dialog.updateSvn.title')}</DialogTitle>
+          <DialogDescription>{t('dialog.updateSvn.description', { 0: svnInfo.revision, 1: svnInfo.curRevision })}</DialogDescription>
         </DialogHeader>
 
         {svnInfo && (
@@ -129,14 +146,26 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onUpdate, onCur
           <Textarea value={svnInfo?.commitMessage} readOnly={true} className="min-h-[80px] cursor-not-allowed resize-none" />
         </div>
 
-        <DialogFooter className="mt-4">
-          <DialogClose asChild>
-            <Button variant={variant}>{t('common.cancel')}</Button>
-          </DialogClose>
-          <Button variant={variant} disabled={!hasSvnUpdate} onClick={handleSvnUpdate}>
-            {t('common.update')}
-          </Button>
-        </DialogFooter>
+        {hasSvnUpdate && (
+          <DialogFooter className="mt-4">
+            <DialogClose asChild>
+              <Button disabled={isLoading} variant={variant}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
+            <Button
+              className={`relative ${isLoading ? 'border-effect cursor-progress' : ''}`}
+              variant={variant}
+              onClick={() => {
+                if (!isLoading) {
+                  handleSvnUpdate()
+                }
+              }}
+            >
+              {isLoading ? <GlowLoader /> : null} {t('common.update')}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

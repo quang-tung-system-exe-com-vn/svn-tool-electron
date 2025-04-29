@@ -6,9 +6,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import configurationStore from '../store/ConfigurationStore'
 import { findUser } from './find-user'
-const { svnFolder, sourceFolder } = configurationStore.store
 
 function isSVNDirectory(path: string) {
+  const { sourceFolder } = configurationStore.store
   return new Promise(resolve => {
     exec(`svn info "${path}"`, { cwd: sourceFolder }, (err, stdout, stderr) => {
       if (err) return resolve(false)
@@ -41,6 +41,7 @@ export async function commit(commitMessage: string, violations: string, selected
   const unsortedPaths: string[] = []
 
   for (const filePath of deletedFiles) {
+    const { sourceFolder } = configurationStore.store
     const absolutePath = path.join(sourceFolder, filePath)
     const isDir = await isSVNDirectory(filePath)
 
@@ -88,8 +89,26 @@ export async function commit(commitMessage: string, violations: string, selected
   const allFiles = [...modifiedFiles, ...addedFiles, ...targetFiles]
   if (allFiles.length > 0) {
     try {
-      const escapedMessage = `"${commitMessage.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
-      const commitResult = await runSVNCommand('commit', allFiles, escapedMessage)
+      console.log('commitMessage: ', commitMessage)
+      // Sử dụng một file tạm thời để lưu thông điệp commit
+      const os = require('node:os')
+      const tempFile = path.join(os.tmpdir(), `svn-commit-message-${Date.now()}.txt`)
+      fs.writeFileSync(tempFile, commitMessage)
+
+      let commitResult: SVNResponse;
+      try {
+        commitResult = await runSVNCommand('commit', allFiles, tempFile, true)
+      } finally {
+        // Xóa file tạm thời sau khi commit, bất kể thành công hay thất bại
+        try {
+          if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile)
+          }
+        } catch (err) {
+          log.warn('⚠️ Không thể xóa file tạm thời:', err)
+        }
+      }
+
       if (commitResult.status === 'error') {
         log.error('🛑 Commit failed:', commitResult.message)
         return { status: 'error', message: `${commitResult.message}` }
@@ -127,9 +146,9 @@ export async function commit(commitMessage: string, violations: string, selected
   }
 }
 
-async function runSVNCommand(command: string, selectedFiles: string[], commitMessage?: string): Promise<SVNResponse> {
+async function runSVNCommand(command: string, selectedFiles: string[], commitMessage?: string, isMessageFile = false): Promise<SVNResponse> {
   const batchSize = 100
-
+  const { svnFolder, sourceFolder } = configurationStore.store
   if (!fs.existsSync(svnFolder)) {
     return Promise.reject({ status: 'error', message: 'Invalid path to svn.exe.' })
   }
@@ -146,13 +165,19 @@ async function runSVNCommand(command: string, selectedFiles: string[], commitMes
         const fullPath = path.join(sourceFolder, arg)
         if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
           if (command === 'add') return `--depth=empty "${arg}"`
-          if (command === 'delete') return `"${arg}"  --force`
+          if (command === 'delete') return `"${arg}" --force`
         }
         return `"${arg}"`
       })
 
       if (commitMessage && command !== 'add' && command !== 'delete') {
-        modifiedArgs.unshift(`-m ${commitMessage.trim()}`)
+        if (isMessageFile) {
+          // Sử dụng tùy chọn -F để đọc thông điệp từ file
+          modifiedArgs.unshift(`-F "${commitMessage}"`)
+        } else {
+          // Sử dụng tùy chọn -m cho thông điệp trực tiếp
+          modifiedArgs.unshift(`-m ${commitMessage}`)
+        }
       }
 
       const fullCommand = `${svnExePath} ${command} ${modifiedArgs.join(' ')}`.trim()
@@ -209,29 +234,12 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 }
 
 function getMinimalParentFolders(filePaths: string[]): string[] {
-  const dirSet = new Set<string>()
-  for (const filePath of filePaths) {
-    const dir = path.dirname(filePath)
-    dirSet.add(filePath) // Thêm file vào Set
-    dirSet.add(dir) // Thêm thư mục cha vào Set
-  }
-
-  const allDirs = Array.from(dirSet)
-  allDirs.sort()
-
-  const result: string[] = []
-
-  // Nếu chỉ có một file duy nhất, trả về chính file đó mà không cần thư mục cha
+  // Nếu chỉ có một file duy nhất, trả về chính file đó
   if (filePaths.length === 1) {
-    return result.concat(filePaths)
+    return [...filePaths]
   }
 
-  // Tiến hành lọc các thư mục cha tối thiểu
-  for (const dir of allDirs) {
-    if (!result.some(parent => dir.startsWith(parent + path.sep))) {
-      result.push(dir)
-    }
-  }
-
-  return result
+  // Chỉ trả về danh sách các file, không thêm thư mục cha
+  // Điều này đảm bảo chỉ xóa các file được chỉ định, không xóa cả thư mục
+  return [...new Set(filePaths)]
 }

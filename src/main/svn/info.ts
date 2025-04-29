@@ -2,7 +2,6 @@ import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
 
-const { sourceFolder } = configurationStore.store
 const execPromise = promisify(exec)
 
 export type SVNResponse = { status: 'success'; data: any } | { status: 'no-change'; data: any } | { status: 'error'; message: string }
@@ -16,6 +15,7 @@ export interface SVNLastChangedInfo {
 
 export async function info(filePath: string): Promise<SVNResponse> {
   try {
+    const { sourceFolder } = configurationStore.store
     const quotedPath = `"${filePath}"`
 
     const runInfo = async (rev?: string): Promise<string> => {
@@ -58,6 +58,7 @@ export async function info(filePath: string): Promise<SVNResponse> {
 
 async function getCommitInfo(): Promise<any> {
   try {
+    const { sourceFolder } = configurationStore.store
     const command = 'svn log -r HEAD:1 -l 1 -v'
     const { stdout, stderr } = await execPromise(command, { cwd: sourceFolder })
     if (stderr?.trim()) {

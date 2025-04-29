@@ -1,3 +1,4 @@
+'use client'
 import { StatisticDialog } from '@/components/dialogs/StatisticDialog'
 import { STATUS_TEXT, type SvnStatusCode } from '@/components/shared/constants'
 import { StatusIcon } from '@/components/ui-elements/StatusIcon'

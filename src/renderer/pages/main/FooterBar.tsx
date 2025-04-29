@@ -1,3 +1,4 @@
+'use client'
 import { ProgressBar } from '@/components/ui-elements/ProgressBar'
 
 interface FooterBarProps {

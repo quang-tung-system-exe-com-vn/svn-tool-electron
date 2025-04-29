@@ -1,12 +1,12 @@
+import log from 'electron-log'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import log from 'electron-log'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
-const { sourceFolder } = configurationStore.store
 
 export async function cleanup(options?: string[]): Promise<SVNResponse> {
+  const { sourceFolder } = configurationStore.store
   try {
     const command = 'svn cleanup'
     const args: string[] = []

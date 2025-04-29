@@ -1,3 +1,4 @@
+'use client'
 import { LANGUAGES } from '@/components/shared/constants'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
@@ -6,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
 import { DataTable } from '@/pages/main/DataTable'
-import { FooterBar } from '@/pages/main/FooterBar'
 import { TitleBar } from '@/pages/main/TitleBar'
+import logger from '@/services/logger'
 import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { CircleAlert } from 'lucide-react'
@@ -22,7 +23,6 @@ export function MainPage() {
   const { addHistory } = useHistoryStore()
   const [isLoadingGenerate, setLoadingGenerate] = useState(false)
   const [isLoadingCommit, setLoadingCommit] = useState(false)
-  const [progress, setProgress] = useState(0)
   const tableRef = useRef<any>(null)
   const commitMessageRef = useRef<HTMLTextAreaElement>(null)
   const commitMessage = useRef('')
@@ -33,7 +33,6 @@ export function MainPage() {
   }
 
   const generateCommitMessage = async () => {
-    setProgress(0)
     const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
     const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
       filePath: row.original.filePath,
@@ -45,26 +44,26 @@ export function MainPage() {
     }
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
     setLoadingGenerate(true)
-    await updateProgress(0, 20, 1000)
     const result = await window.api.svn.get_diff(selectedFiles)
     const { status, message, data } = result
     if (status === 'success') {
-      await updateProgress(20, 50, 1000)
+      const diffContent = data.diffContent ? data.diffContent : 'No modifications found.'
+      const deletedFilesList = data.deletedFiles?.length > 0 ? data.deletedFiles.map((f: any) => `- ${f}`).join('\n') : []
       const params = {
         type: 'GENERATE_COMMIT',
         values: {
-          diff_content: data,
+          diff_content: diffContent,
           language: languageName,
+          deletedFiles: deletedFilesList,
         },
       }
       const openai_result = await window.api.openai.send_message(params)
       if (commitMessageRef.current) {
         commitMessageRef.current.value = openai_result
+        logger.info(commitMessageRef.current.value)
       }
-      // Save commit message to history
       addHistory({ message: openai_result, date: new Date().toISOString() })
       toast.success(t('toast.generateSuccess'))
-      await updateProgress(50, 100, 1000)
       setLoadingGenerate(false)
     } else {
       toast.error(message)
@@ -85,8 +84,7 @@ export function MainPage() {
   }
 
   const commitCode = async () => {
-    setProgress(0)
-    if (!commitMessage.current) {
+    if (!commitMessageRef.current?.value) {
       toast.warning(t('message.commitMessageWarning'))
       return
     }
@@ -100,15 +98,12 @@ export function MainPage() {
       return
     }
     setLoadingCommit(true)
-    await updateProgress(0, 20, 1000)
-    const result = await window.api.svn.commit(commitMessage.current, '', selectedFiles)
+    const result = await window.api.svn.commit(commitMessageRef.current?.value, '', selectedFiles)
     const { status, message } = result
-    await updateProgress(20, 50, 1000)
 
     if (status === 'success') {
-      await updateProgress(50, 100, 1000)
       setLoadingCommit(false)
-      toast.success(t('toast.generateSuccess'))
+      toast.success(t('toast.commitSuccess'))
       if (tableRef.current) {
         tableRef.current.reloadData()
         setTimeout(() => {
@@ -122,29 +117,6 @@ export function MainPage() {
       toast.error(message)
       setLoadingCommit(false)
     }
-  }
-
-  const isMountedRef = useRef(true)
-  const updateProgress = (from: number, to: number, duration: number) => {
-    return new Promise<void>(resolve => {
-      const startTime = performance.now()
-      const easeInOut = (t: number) => {
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-      }
-      const step = () => {
-        const currentTime = performance.now() - startTime
-        const progress = Math.min(from + (to - from) * easeInOut(currentTime / duration), to)
-        if (isMountedRef.current) {
-          setProgress(progress)
-        }
-        if (currentTime < duration && isMountedRef.current) {
-          requestAnimationFrame(step)
-        } else {
-          resolve()
-        }
-      }
-      requestAnimationFrame(step)
-    })
   }
 
   return (
@@ -238,8 +210,6 @@ export function MainPage() {
             </Button>
           </div>
         </div>
-        {/* Footer Bar */}
-        <FooterBar isLoading={isLoadingGenerate || isLoadingCommit} progress={progress} />
       </div>
     </div>
   )

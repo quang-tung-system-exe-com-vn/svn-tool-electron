@@ -1,3 +1,5 @@
+'use client'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import i18n from '@/lib/i18n'
 import logger from '@/services/logger'
@@ -8,7 +10,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DiffFooterBar } from './DiffFooterBar'
 import { DiffToolbar } from './DiffToolbar'
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 
 export function CodeDiffViewer() {
   const monaco = useMonaco()
@@ -197,7 +198,6 @@ export function CodeDiffViewer() {
     window.api.on('load-diff-data', handler)
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('Key pressed:', e.key)
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
         handleSaveFile()

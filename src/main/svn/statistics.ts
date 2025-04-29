@@ -1,12 +1,10 @@
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import { format, subDays, subMonths, subWeeks, subYears } from 'date-fns'
 import log from 'electron-log'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
-const { sourceFolder } = configurationStore.store
-
 export interface StatisticsOptions {
   period?: 'day' | 'week' | 'month' | 'year' | 'all'
   dateFrom?: string
@@ -56,6 +54,7 @@ export interface StatisticsResponse {
  */
 export async function getStatistics(filePath = '.', options?: StatisticsOptions): Promise<SVNResponse> {
   try {
+    const { sourceFolder } = configurationStore.store
     const { period = 'all', dateFrom, dateTo } = options || {}
     log.info(`Fetching SVN statistics for file: ${filePath} with period: ${period}, dateFrom: ${dateFrom}, dateTo: ${dateTo}`)
     // Xây dựng lệnh cơ bản

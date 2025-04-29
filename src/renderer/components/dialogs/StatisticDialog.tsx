@@ -1,7 +1,8 @@
+'use client'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logger from '@/services/logger'
 import { AreaChart as AreaChartIcon, BarChart2, BarChart3, BarChartIcon, LineChart as LineChartIcon } from 'lucide-react'
@@ -63,7 +64,6 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
   const [isLoadingStatistics, setIsLoadingStatistics] = useState(false)
   const [commitByDateChartType, setCommitByDateChartType] = useState<CommitByDateChartType>('bar-stacked')
   const [commitByAuthorChartType, setCommitByAuthorChartType] = useState<CommitByAuthorChartType>('bar-vertical')
-
   const loadStatisticsData = useCallback(async () => {
     if (!filePath) return
 
@@ -241,6 +241,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
       <DialogContent className="table">
         <DialogHeader className="w-[750px]">
           <DialogTitle>{t('dialog.statisticSvn.title')}</DialogTitle>
+          <DialogDescription>{t('dialog.statisticSvn.description')}</DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
@@ -412,8 +413,8 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   <CardFooter className="text-sm text-muted-foreground">{t('dialog.statisticSvn.cardFooter')}</CardFooter>
                 </Card>
               ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('common.noData')}</p>
+                <div className="h-full flex items-center justify-center min-h-[550px]">
+                  <p className="text-sm text-muted-foreground">{t('common.noData')}</p>
                 </div>
               )}
             </div>
@@ -498,8 +499,8 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   <CardFooter className="text-sm text-muted-foreground">{t('dialog.statisticSvn.cardFooter')}</CardFooter>
                 </Card>
               ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('common.noData')}</p>
+                <div className="h-full flex items-center justify-center min-h-[550px]">
+                  <p className="text-sm text-muted-foreground">{t('common.noData')}</p>
                 </div>
               )}
             </div>
@@ -526,8 +527,8 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                   <CardFooter className="text-sm text-muted-foreground">{t('dialog.statisticSvn.cardFooter')}</CardFooter>
                 </Card>
               ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">{t('common.noData')}</p>
+                <div className="h-full flex items-center justify-center min-h-[550px]">
+                  <p className="text-sm text-muted-foreground">{t('common.noData')}</p>
                 </div>
               )}
             </div>
@@ -563,8 +564,8 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
                     </tbody>
                   </table>
                 ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <p className="text-muted-foreground">{t('common.noData')}</p>
+                  <div className="h-full flex items-center justify-center min-h-[550px]">
+                    <p className="text-sm text-muted-foreground">{t('common.noData')}</p>
                   </div>
                 )}
               </div>

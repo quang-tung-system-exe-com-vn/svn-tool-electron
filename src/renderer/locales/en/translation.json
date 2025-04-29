@@ -175,8 +175,8 @@
       "developer": "Developer",
       "version": "Version",
       "email": "Email",
-      "github": "GitHub",
-      "close": "Close"
+      "thankYou": "Thank you for using this tool!",
+      "sourceCode": "Source Code"
     },
     "codingRules": {
       "title": "Coding Rules Analysis",
@@ -358,12 +358,14 @@
       "changedFiles": "Changed Files",
       "action": "Action",
       "path": "Path",
-      "commitMessage": "Commit Message"
+      "commitMessage": "Commit Message",
+      "description": "A new SVN revision has been detected. Please update your working copy from revision [{{1}}] to the latest revision [{{0}}] to ensure you have the most recent changes."
     },
     "updateApp": {
       "title": "New Update Available",
       "appVersion": "A new version of SVNTool is available: ",
-      "message": "The app will relaunch after updating"
+      "message": "The app will relaunch after updating",
+      "description": "There’s a new update for this app. Upgrade now to get the most recent features and fixes."
     },
     "newWebhook": {
       "title": "Add New Webhook",

@@ -1,9 +1,8 @@
+import logger from 'electron-log'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import logger from 'electron-log'
 import configurationStore from '../store/ConfigurationStore'
 const execPromise = promisify(exec)
-const { sourceFolder } = configurationStore.store
 export interface LogOptions {
   dateFrom?: string
   dateTo?: string
@@ -22,6 +21,7 @@ async function fetchAllLogData(
   let baseCommand = `svn log "${filePath}"`
   let detailCommandBase = `svn log -v "${filePath}"`
   const effectiveStartDate = startDate
+  const { sourceFolder } = configurationStore.store
 
   // Apply date range if specified
   if (effectiveStartDate) {
@@ -102,6 +102,7 @@ export async function log(filePath = '.', options?: LogOptions): Promise<SVNResp
   try {
     logger.info('Initial Log options (fetching all data):', options)
     const { dateFrom, dateTo } = options || {} // Bỏ limit, offset
+    const { sourceFolder } = configurationStore.store
     let suggestedStartDate: string | null = null
 
     logger.info(`--- Attempt 1: Fetching ALL logs for [${dateFrom || 'Beginning'}, ${dateTo || 'HEAD'}] ---`)

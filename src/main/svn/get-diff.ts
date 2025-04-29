@@ -1,8 +1,8 @@
+import log from 'electron-log'
+import { isTextFile } from 'main/utils/utils'
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import log from 'electron-log'
-import { isTextFile } from 'main/utils/utils'
 import configurationStore from '../store/ConfigurationStore'
 interface SelectedFile {
   status: string
@@ -16,6 +16,7 @@ export async function getDiff(selectedFiles: SelectedFile[]) {
       if (!fs.existsSync(sourceFolder)) return resolve({ status: 'error', message: 'Invalid source folder.' })
       if (selectedFiles.length === 0) return resolve({ status: 'error', message: 'No files selected.' })
       let diffResult = ''
+      const deletedFiles = selectedFiles.filter(file => file.status === '!').map(file => file.filePath);
       const unversionedFiles = selectedFiles.filter(file => file.status === '?')
       for (const file of unversionedFiles) {
         const status = file.status
@@ -38,7 +39,7 @@ export async function getDiff(selectedFiles: SelectedFile[]) {
       }
 
       const diffFiles = selectedFiles.filter(f => !['?', '!'].includes(f.status)).map(f => f.filePath)
-      if (diffFiles.length === 0) return resolve({ status: 'success', data: diffResult.trim() })
+      if (diffFiles.length === 0) return resolve({ status: 'success', data: { diffContent: diffResult.trim(), deletedFiles } })
       const svnExe = path.join(svnFolder, 'bin', 'svn.exe')
       execFile(svnExe, ['diff', ...diffFiles], { cwd: sourceFolder }, (error, stdout, stderr) => {
         if (error) return resolve({ status: 'error', message: error.message })
@@ -79,7 +80,7 @@ export async function getDiff(selectedFiles: SelectedFile[]) {
           }
           diffResult += '\n'
         }
-        resolve({ status: 'success', data: diffResult.trim() })
+        resolve({ status: 'success', data: { diffContent: diffResult.trim(), deletedFiles } })
       })
     } catch (err) {
       log.error('❌ getDiff - SVN status error:', err)

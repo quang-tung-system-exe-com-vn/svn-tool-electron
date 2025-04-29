@@ -1,6 +1,7 @@
+'use client'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { CircleAlert, MoveRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -30,7 +31,7 @@ export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, r
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px]" aria-describedby={t('dialog.updateApp.appVersion')}>
         <DialogHeader>
           <DialogTitle className="flex flex-row items-center gap-2">
             {t('dialog.updateApp.appVersion')}
@@ -38,6 +39,7 @@ export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, r
               <span className="text-gray-500/100">{currentVersion}</span> <MoveRight className="w-4 h-4" /> {newVersion}
             </div>
           </DialogTitle>
+          <DialogDescription>{t('dialog.updateApp.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-2 prose prose-sm dark:prose-invert max-h-[40vh] overflow-y-auto p-4 border rounded bg-muted/30 max-w-none">

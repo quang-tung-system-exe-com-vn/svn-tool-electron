@@ -1,3 +1,4 @@
+'use client'
 import { LANGUAGES } from '@/components/shared/constants'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
@@ -58,7 +59,7 @@ export function CheckCodingRules() {
       const params = {
         type: 'CHECK_VIOLATIONS',
         values: {
-          diff_content: data,
+          diff_content: data.diffContent,
           language: languageName,
         },
       }

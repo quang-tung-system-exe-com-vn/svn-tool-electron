@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+'use client'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import logger from '@/services/logger'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,8 +11,6 @@ interface InfoDialogProps {
 export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
   const { t } = useTranslation()
   const [appVersion, setAppVersion] = useState('1.0.0')
-
-  // Get app version when dialog opens
   useEffect(() => {
     if (open) {
       const getAppVersion = async () => {
@@ -23,40 +21,52 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
           logger.error('Error getting app version:', error)
         }
       }
-
       getAppVersion()
     }
   }, [open])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} aria-label={t('dialog.aboutDialog.title')}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('dialog.aboutDialog.title')}</DialogTitle>
           <DialogDescription>{t('dialog.aboutDialog.description')}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-2 text-sm">
-          <p>
-            <strong>{t('dialog.aboutDialog.developer')}:</strong> Nguyễn Quang Tùng
-          </p>
-          <p>
-            <strong>{t('dialog.aboutDialog.version')}:</strong> {appVersion}
-          </p>
-          <p>
-            <strong>{t('dialog.aboutDialog.email')}:</strong> quang-tung@system-exe.com.vn
-          </p>
-          <p>
-            <strong>{t('dialog.aboutDialog.github')}:</strong>{' '}
-            <a href="https://github.com/quang-tung-system-exe-com-vn" className="text-blue-600" target="_blank" rel="noreferrer">
-              https://github.com/quang-tung-system-exe-com-vn
-            </a>
-          </p>
+        <div className="flex flex-col items-center space-y-4 text-sm w-full">
+          {/* Logo */}
+          <div className="w-25 h-25">
+            <img src="/icon.png" alt="App Logo" className="w-full h-full object-contain" />
+          </div>
+
+          {/* Thông tin bảng */}
+          <table className="text-sm w-full max-w-md">
+            <tbody>
+              <tr className="h-[25px]">
+                <td className="font-semibold">{t('dialog.aboutDialog.developer')}:</td>
+                <td>Nguyễn Quang Tùng</td>
+              </tr>
+              <tr className="h-[25px]">
+                <td className="font-semibold">{t('dialog.aboutDialog.email')}:</td>
+                <td>quang-tung@system-exe.com.vn</td>
+              </tr>
+              <tr className="h-[25px]">
+                <td className="font-semibold">{t('dialog.aboutDialog.sourceCode')}:</td>
+                <td>
+                  <a href="https://github.com/quang-tung-system-exe-com-vn/svn-tool-electron" className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
+                    https://github.com/quang-tung-system-exe-com-vn/svn-tool-electron
+                  </a>
+                </td>
+              </tr>
+              <tr className="h-[25px]">
+                <td className="font-semibold">{t('dialog.aboutDialog.version')}:</td>
+                <td>{appVersion}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Lời cảm ơn */}
+          <p className="text-center text-muted-foreground m-4">{t('dialog.aboutDialog.thankYou')}</p>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button>{t('dialog.aboutDialog.close')}</Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
