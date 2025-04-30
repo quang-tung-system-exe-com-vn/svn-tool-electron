@@ -103,6 +103,51 @@
     "copied": "Copied to clipboard!",
     "loadSuccess": "Load successfully."
   },
+  "joyride": {
+    "titlebar": {
+      "settings": "Open the settings dialog to configure application preferences like theme, language, and API keys.",
+      "about": "View information about the application, including version and developer details.",
+      "support": "Open the support and feedback dialog to submit requests or suggestions.",
+      "history": "View the history of generated commit messages.",
+      "appUpdate": "Check for application updates. A red dot indicates a new version is downloaded and ready to install.",
+      "svnUpdate": "Check for SVN updates in your working copy. A red dot indicates new revisions are available.",
+      "svnClean": "Open the SVN cleanup dialog to manage your working copy.",
+      "svnLog": "Show the SVN log history for the current working copy.",
+      "startTour": "A quick guide to help you get familiar with the main features. Click “Start” to begin using the app with ease!"
+    },
+    "main": {
+      "step1": "This table displays files that have been changed, added, or deleted in your SVN working copy. Select the files you want to include in your commit.",
+      "step2": "This area is for your commit message. You can write it manually or generate one using AI.",
+      "step3": "Click this button to generate a commit message based on the selected file changes using AI.",
+      "step4": "Click this button to check the selected files against predefined coding rules.",
+      "step5": "Click this button to run SpotBugs analysis on the selected Java files.",
+      "step6": "Click this button to commit the selected files with the provided commit message to the SVN repository."
+    },
+    "settings": {
+      "appearanceTab": "Appearance Tab: Customize the look and feel, including language, theme, dark mode, fonts, and button styles.",
+      "language": "Language: Select your preferred language for the application interface.",
+      "theme": "Theme: Choose a color theme for the application.",
+      "darkMode": "Dark Mode: Toggle between light and dark themes.",
+      "fontFamily": "Font Family: Select the font style for the application.",
+      "fontSize": "Font Size: Adjust the text size (Small, Medium, Large).",
+      "buttonVariant": "Button Variant: Choose the style for buttons (Default, Destructive, Outline, Secondary, Ghost, Link).",
+      "configurationTab": "Configuration Tab: Set up essential settings like API keys, folder paths, and integrations.",
+      "openaiApiKey": "OpenAI API Key: Enter your key for AI features like commit message generation.",
+      "svnFolder": "SVN Folder: Specify the path to your main SVN working copy.",
+      "sourceFolder": "Source Folder: Specify the path to your project's source code folder (used for analysis tools like SpotBugs).",
+      "emailPL": "Email PL: Enter the email address of the Project Leader for notifications.",
+      "webhookMS": "Webhook MS: Select or add a Microsoft Teams webhook URL for sending notifications.",
+      "mailserverTab": "Mail Server Tab: Configure SMTP settings for sending email notifications.",
+      "smtpServer": "SMTP Server: Enter the address of your SMTP server (e.g., smtp.example.com).",
+      "port": "Port: Enter the port number for the SMTP server (e.g., 587).",
+      "mailEmail": "Email: Enter the email address to send notifications from.",
+      "mailPassword": "Password: Enter the password for the email account.",
+      "onedriveTab": "OneDrive Tab: Configure Microsoft OneDrive credentials for uploading images (e.g., for feedback attachments).",
+      "onedriveClientId": "Client ID: Enter your Microsoft App Client ID.",
+      "onedriveClientSecret": "Client Secret: Enter your Microsoft App Client Secret.",
+      "onedriveRefreshToken": "Refresh Token: Enter your OneDrive Refresh Token (obtained separately) for persistent access."
+    }
+  },
   "svn": {
     "status": {
       "added": "Added",
@@ -384,27 +429,6 @@
       "noResults": "No results yet.",
       "date": "Date",
       "commitMessage": "Commit Message"
-    }
-  },
-  "tour": {
-    "titlebar": {
-      "settings": "Open the settings dialog to configure application preferences like theme, language, and API keys.",
-      "about": "View information about the application, including version and developer details.",
-      "support": "Open the support and feedback dialog to submit requests or suggestions.",
-      "history": "View the history of generated commit messages.",
-      "appUpdate": "Check for application updates. A red dot indicates a new version is downloaded and ready to install.",
-      "svnUpdate": "Check for SVN updates in your working copy. A red dot indicates new revisions are available.",
-      "svnClean": "Open the SVN cleanup dialog to manage your working copy.",
-      "svnLog": "Show the SVN log history for the current working copy.",
-      "startTour": "A quick guide to help you get familiar with the main features. Click “Start” to begin using the app with ease!"
-    },
-    "main": {
-      "step1": "This table displays files that have been changed, added, or deleted in your SVN working copy. Select the files you want to include in your commit.",
-      "step2": "This area is for your commit message. You can write it manually or generate one using AI.",
-      "step3": "Click this button to generate a commit message based on the selected file changes using AI.",
-      "step4": "Click this button to check the selected files against predefined coding rules.",
-      "step5": "Click this button to run SpotBugs analysis on the selected Java files.",
-      "step6": "Click this button to commit the selected files with the provided commit message to the SVN repository."
     }
   },
   "welcome": {

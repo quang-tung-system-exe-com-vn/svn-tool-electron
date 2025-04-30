@@ -9,16 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logger from '@/services/logger'
-import { Cloud, Mail, Palette, Settings } from 'lucide-react'
+import { ALargeSmall, Cloud, Database, Folder, HelpCircle, KeyRound, Languages, Lock, Mail, Network, Palette, RefreshCw, Settings, TypeOutline, User, Webhook } from 'lucide-react'
 import type { Theme } from 'main/store/AppearanceStore'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Joyride, { type CallBackProps, STATUS, type Step, ACTIONS } from 'react-joyride' // Import ACTIONS
 
 import { useAppearanceStore } from '../../stores/useAppearanceStore'
 import { useConfigurationStore } from '../../stores/useConfigurationStore'
 import { useMailServerStore } from '../../stores/useMailServerStore'
 import { useWebhookStore } from '../../stores/useWebhookStore'
 import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES, THEMES } from '../shared/constants'
+import { JoyrideTooltip } from '../tooltips/joyride-tooltip'
 import { AddWebhookDialog } from './AddNewWebhookDialog'
 
 interface SettingsDialogProps {
@@ -50,6 +52,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [nestedDialogOpen, setNestedDialogOpen] = useState(false)
   const [webhookName, setWebhookName] = useState('')
   const [webhookUrl, setWebhookUrl] = useState('')
+  const [runTour, setRunTour] = useState(false)
+  const [steps, setTourSteps] = useState<Step[]>([])
+  const [activeTab, setActiveTab] = useState('appearance')
 
   useEffect(() => {
     i18n.changeLanguage(language)
@@ -63,7 +68,125 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       loadMailServerConfig()
       setIsDarkMode(themeMode === 'dark')
     }
-  }, [open])
+  }, [open, loadWebhookConfig, loadConfigurationConfig, loadMailServerConfig, themeMode])
+
+  useEffect(() => {
+    // Define steps when translation is ready
+    const steps: Step[] = [
+      {
+        target: '#settings-tab-appearance',
+        content: t('joyride.settings.appearanceTab'),
+        placement: 'bottom',
+        disableBeacon: true,
+      },
+      {
+        target: '#settings-language-card',
+        content: t('joyride.settings.language'),
+        placement: 'right',
+      },
+      {
+        target: '#settings-theme-card',
+        content: t('joyride.settings.theme'),
+        placement: 'right',
+      },
+      {
+        target: '#settings-dark-mode-switch',
+        content: t('joyride.settings.darkMode'),
+        placement: 'left',
+      },
+      {
+        target: '#settings-font-family-card',
+        content: t('joyride.settings.fontFamily'),
+        placement: 'left',
+      },
+      {
+        target: '#settings-font-size-card',
+        content: t('joyride.settings.fontSize'),
+        placement: 'left',
+      },
+      {
+        target: '#settings-button-variant-card',
+        content: t('joyride.settings.buttonVariant'),
+        placement: 'top',
+      },
+      {
+        target: '#settings-tab-configuration',
+        content: t('joyride.settings.configurationTab'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-openai-key',
+        content: t('joyride.settings.openaiApiKey'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-svn-folder',
+        content: t('joyride.settings.svnFolder'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-source-folder',
+        content: t('joyride.settings.sourceFolder'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-email-pl',
+        content: t('joyride.settings.emailPL'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-webhook-ms',
+        content: t('joyride.settings.webhookMS'),
+        placement: 'top',
+      },
+      {
+        target: '#settings-tab-mailserver',
+        content: t('joyride.settings.mailserverTab'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-smtp-server',
+        content: t('joyride.settings.smtpServer'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-port',
+        content: t('joyride.settings.port'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-mail-email',
+        content: t('joyride.settings.mailEmail'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-mail-password',
+        content: t('joyride.settings.mailPassword'),
+        placement: 'top',
+      },
+      {
+        target: '#settings-tab-onedrive',
+        content: t('joyride.settings.onedriveTab'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-onedrive-client-id',
+        content: t('joyride.settings.onedriveClientId'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-onedrive-client-secret',
+        content: t('joyride.settings.onedriveClientSecret'),
+        placement: 'bottom',
+      },
+      {
+        target: '#settings-onedrive-refresh-token',
+        content: t('joyride.settings.onedriveRefreshToken'),
+        placement: 'top',
+      },
+    ]
+    setTourSteps(steps)
+  }, [t]) // Re-run when translation changes
 
   const handleAddWebhook = async () => {
     if (!webhookName.trim() || !webhookUrl.trim()) {
@@ -128,31 +251,133 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   }
 
+  const handleJoyrideCallback = useCallback(
+    (data: CallBackProps) => {
+      const { status, type, step, action } = data
+      const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
+      if (type === 'step:before') {
+        if (step.target === '#settings-tab-configuration' && activeTab !== 'configuration') {
+          setActiveTab('configuration')
+        } else if (step.target === '#settings-tab-mailserver' && activeTab !== 'mailserver') {
+          setActiveTab('mailserver')
+        } else if (step.target === '#settings-tab-onedrive' && activeTab !== 'onedrive') {
+          setActiveTab('onedrive')
+        } else if (step.target === '#settings-tab-appearance' && activeTab !== 'appearance') {
+          setActiveTab('appearance')
+        }
+      }
+      if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
+        setRunTour(false)
+      }
+    },
+    [setActiveTab, activeTab]
+  )
+
+  const startTour = () => {
+    setRunTour(true)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <Joyride
+        steps={steps}
+        run={runTour}
+        continuous
+        showSkipButton
+        disableCloseOnEsc={true}
+        callback={handleJoyrideCallback}
+        spotlightPadding={0}
+        styles={{
+          options: {
+            arrowColor: 'var(--card)',
+            backgroundColor: 'var(--card)',
+            overlayColor: 'rgba(0, 0, 0, 0.5)',
+            primaryColor: 'var(--primary)',
+            spotlightShadow: '0 0 0 2px var(--primary)',
+            textColor: 'var(--card-foreground)',
+            zIndex: 10000,
+          },
+          tooltip: {
+            borderRadius: 'calc(var(--radius) - 2px)',
+            boxShadow: '0px 4px 16px rgba(0,0,0,0.1)',
+          },
+          tooltipContainer: {
+            fontSize: '0.875rem',
+            textAlign: 'left',
+          },
+          tooltipContent: {},
+          tooltipTitle: {},
+          tooltipFooter: {},
+          buttonNext: {
+            backgroundColor: 'var(--primary)',
+            color: 'var(--primary-foreground)',
+            borderRadius: 'calc(var(--radius) - 2px)',
+            fontSize: '0.875rem',
+          },
+          buttonBack: {
+            color: 'var(--secondary-foreground)',
+            borderRadius: 'calc(var(--radius) - 2px)',
+            fontSize: '0.875rem',
+            marginRight: '0.5rem',
+          },
+          buttonSkip: {
+            color: 'var(--muted-foreground)',
+            borderRadius: 'calc(var(--radius) - 2px)',
+            fontSize: '0.875rem',
+          },
+          buttonClose: {
+            borderRadius: 'calc(var(--radius) - 2px)',
+            color: 'var(--muted-foreground)',
+          },
+          spotlight: {
+            borderRadius: 'calc(var(--radius) - 2px)',
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
+          },
+          overlay: {},
+          overlayLegacy: {},
+          overlayLegacyCenter: {},
+          beacon: {
+            width: 25,
+            height: 25,
+          },
+          beaconInner: {},
+          beaconOuter: {},
+          tooltipFooterSpacer: {},
+        }}
+        locale={{
+          back: t('common.back'),
+          close: t('common.close'),
+          last: t('common.finish'),
+          next: t('common.next'),
+          skip: t('common.skip'),
+        }}
+        tooltipComponent={JoyrideTooltip}
+      />
+      <DialogContent onPointerDownOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()} className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{t('title.settings')}</DialogTitle>
+          <div className="flex items-center">
+            <DialogTitle>{t('title.settings')}</DialogTitle>
+            <Button variant="ghost" size="icon" onClick={startTour} aria-label={t('common.startTour') || 'Start Tour'}>
+              <HelpCircle className="h-5 w-5" />
+            </Button>
+          </div>
           <DialogDescription>{t('settings.description')}</DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="appearance" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="appearance" className="flex items-center">
+            <TabsTrigger id="settings-tab-appearance" value="appearance" className="flex items-center">
               <Palette />
               {t('settings.tab.appearance')}
             </TabsTrigger>
-
-            <TabsTrigger value="configuration" className="flex items-center">
+            <TabsTrigger id="settings-tab-configuration" value="configuration" className="flex items-center">
               <Settings />
               {t('settings.tab.configuration')}
             </TabsTrigger>
-
-            <TabsTrigger value="mailserver" className="flex items-center">
+            <TabsTrigger id="settings-tab-mailserver" value="mailserver" className="flex items-center">
               <Mail />
               {t('settings.tab.mailserver')}
             </TabsTrigger>
-
-            <TabsTrigger value="onedrive" className="flex items-center">
+            <TabsTrigger id="settings-tab-onedrive" value="onedrive" className="flex items-center">
               <Cloud />
               {t('settings.tab.onedrive') || 'OneDrive'}
             </TabsTrigger>
@@ -163,9 +388,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Left side */}
               <div className="space-y-4">
                 {/* Language Selector */}
-                <Card className="gap-2 py-4">
+                <Card id="settings-language-card" className="gap-2 py-4 rounded-md">
                   <CardHeader>
-                    <CardTitle>{t('settings.language')}</CardTitle>
+                    <CardTitle className="flex flex-row gap-2">
+                      <Languages className="w-5 h-5" />
+                      {t('settings.language')}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Select value={language} onValueChange={value => setLanguage(value as any)}>
@@ -184,12 +412,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </Card>
 
                 {/* Theme Selector */}
-                <Card className="gap-2 py-4">
+                <Card id="settings-theme-card" className="gap-2 py-4 rounded-md">
                   <CardHeader>
-                    <CardTitle>
-                      <div className="flex items-center justify-between">
+                    <CardTitle className="flex flex-row gap-2">
+                      <Palette className="w-5 h-5" />
+                      <div className="flex items-center justify-between w-full">
                         {t('settings.theme')}
-                        <div className="flex items-center space-x-2">
+                        <div id="settings-dark-mode-switch" className="flex items-center space-x-2">
                           <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={handleDarkModeToggle} />
                           <Label className="cursor-pointer" htmlFor="dark-mode">
                             {t('settings.darkMode')}
@@ -221,9 +450,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Right side */}
               <div className="space-y-4">
                 {/* Font Family Selector */}
-                <Card className="gap-2 py-4">
+                <Card id="settings-font-family-card" className="gap-2 py-4 rounded-md">
                   <CardHeader>
-                    <CardTitle>{t('settings.fontFamily')}</CardTitle>
+                    <CardTitle className="flex flex-row gap-2">
+                      <TypeOutline className="w-5 h-5" />
+                      {t('settings.fontFamily')}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Select value={fontFamily} onValueChange={value => setFontFamily(value as any)}>
@@ -242,9 +474,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </Card>
 
                 {/* Font Size Selector */}
-                <Card className="gap-2 py-4">
+                <Card id="settings-font-size-card" className="gap-2 py-4 rounded-md">
                   <CardHeader>
-                    <CardTitle>{t('settings.fontSize.title')}</CardTitle>
+                    <CardTitle className="flex flex-row gap-2">
+                      <ALargeSmall className="w-5 h-5" />
+                      {t('settings.fontSize.title')}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-3 gap-2">
@@ -266,7 +501,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
             {/* Bottom */}
             {/* Button Variant Selector */}
-            <Card className="gap-2 py-4 mb-4">
+            <Card id="settings-button-variant-card" className="gap-2 py-4 mb-4 rounded-md">
               <CardHeader>
                 <CardTitle>{t('settings.buttonVariant')}</CardTitle>
               </CardHeader>
@@ -289,15 +524,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
           {/* Configuration */}
           <TabsContent value="configuration">
-            <Card className="gap-2 py-4">
+            <Card className="gap-2 py-4 rounded-md">
               <CardHeader className="pb-2">
                 <CardTitle>{t('settings.tab.configuration')}</CardTitle>
                 <CardDescription>{t('settings.configuration.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* OpenAI API Key */}
-                <div className="space-y-1">
-                  <Label>{t('settings.configuration.openaiApiKey')}</Label>
+                <div id="settings-openai-key" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <KeyRound className="w-4 h-4" /> {t('settings.configuration.openaiApiKey')}
+                  </Label>
                   <Input
                     type="text"
                     placeholder={t('settings.configuration.openaiApiKeyPlaceholder')}
@@ -307,8 +544,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
 
                 {/* SVN Folder */}
-                <div className="space-y-1">
-                  <Label>{t('settings.configuration.svnFolder')}</Label>
+                <div id="settings-svn-folder" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Folder className="w-4 h-4" /> {t('settings.configuration.svnFolder')}
+                  </Label>
                   <div className="flex items-center space-x-2">
                     <Input
                       type="text"
@@ -328,8 +567,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label>{t('settings.configuration.sourceFolder')}</Label>
+                <div id="settings-source-folder" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Folder className="w-4 h-4" /> {t('settings.configuration.sourceFolder')}
+                  </Label>
                   <div className="flex items-center space-x-2">
                     <Input
                       type="text"
@@ -350,14 +591,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
 
                 {/* Email PL */}
-                <div className="space-y-1">
-                  <Label>{t('settings.configuration.emailPL')}</Label>
+                <div id="settings-email-pl" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> {t('settings.configuration.emailPL')}
+                  </Label>
                   <Input type="email" placeholder={t('settings.configuration.emailPlaceholder')} value={emailPL} onChange={e => setFieldConfiguration('emailPL', e.target.value)} />
                 </div>
 
                 {/* Webhook MS */}
-                <div className="space-y-1">
-                  <Label className="mr-2">{t('settings.configuration.webhookMS')}</Label>
+                <div id="settings-webhook-ms" className="space-y-1">
+                  <Label className="mr-2 flex items-center gap-2">
+                    <Webhook className="w-4 h-4" /> {t('settings.configuration.webhookMS')}
+                  </Label>
                   <div className="flex items-center justify-between gap-2">
                     <Select value={webhookMS} onValueChange={value => setFieldConfiguration('webhookMS', value)}>
                       <SelectTrigger className="border rounded-md w-full">
@@ -407,14 +652,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
           {/* Mail Server Configuration */}
           <TabsContent value="mailserver">
-            <Card className="gap-2 py-4">
+            <Card className="gap-2 py-4 rounded-md">
               <CardHeader className="pb-2">
                 <CardTitle>{t('settings.tab.mailserver')}</CardTitle>
                 <CardDescription>{t('settings.mailserver.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-1">
-                  <Label>{t('settings.mailserver.smtpServer')}</Label>
+                <div id="settings-smtp-server" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Database className="w-4 h-4" /> {t('settings.mailserver.smtpServer')}
+                  </Label>
                   <Input
                     type="text"
                     value={smtpServer}
@@ -422,16 +669,22 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     placeholder={t('settings.mailserver.smtpServerPlaceholder')}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label>{t('settings.mailserver.port')}</Label>
+                <div id="settings-port" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Network className="w-4 h-4" /> {t('settings.mailserver.port')}
+                  </Label>
                   <Input type="text" value={port} onChange={e => setFieldMailServer('port', e.target.value)} placeholder={t('settings.mailserver.portPlaceholder')} />
                 </div>
-                <div className="space-y-1">
-                  <Label>{t('settings.mailserver.email')}</Label>
+                <div id="settings-mail-email" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> {t('settings.mailserver.email')}
+                  </Label>
                   <Input type="email" value={email} onChange={e => setFieldMailServer('email', e.target.value)} placeholder={t('settings.mailserver.emailPlaceholder')} />
                 </div>
-                <div className="space-y-1">
-                  <Label>{t('settings.mailserver.password')}</Label>
+                <div id="settings-mail-password" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Lock className="w-4 h-4" /> {t('settings.mailserver.password')}
+                  </Label>
                   <Input
                     type="password"
                     value={password}
@@ -450,14 +703,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
           {/* OneDrive Configuration */}
           <TabsContent value="onedrive">
-            <Card className="gap-2 py-4">
+            <Card className="gap-2 py-4 rounded-md">
               <CardHeader className="pb-2">
                 <CardTitle>{t('settings.tab.onedrive')}</CardTitle>
                 <CardDescription>{t('settings.onedrive.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-1">
-                  <Label>{t('settings.onedrive.clientId')}</Label>
+                <div id="settings-onedrive-client-id" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <User className="w-4 h-4" /> {t('settings.onedrive.clientId')}
+                  </Label>
                   <Input
                     type="text"
                     value={oneDriveClientId}
@@ -466,8 +721,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   />
                 </div>
                 {/* Client Secret */}
-                <div className="space-y-1">
-                  <Label>{t('settings.onedrive.clientSecret', 'Client Secret')}</Label> {/* Thêm key translation nếu cần */}
+                <div id="settings-onedrive-client-secret" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <Lock className="w-4 h-4" /> {t('settings.onedrive.clientSecret', 'Client Secret')}
+                  </Label>{' '}
+                  {/* Thêm key translation nếu cần */}
                   <Input
                     type="password" // Sử dụng type="password" để ẩn giá trị
                     value={oneDriveClientSecret}
@@ -477,8 +735,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   {/* Thêm key translation nếu cần */} {/* Đóng thẻ Input đúng cách */}
                 </div>
                 {/* Refresh Token */}
-                <div className="space-y-1">
-                  <Label>{t('settings.onedrive.refreshToken')}</Label>
+                <div id="settings-onedrive-refresh-token" className="space-y-1">
+                  <Label className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4" /> {t('settings.onedrive.refreshToken')}
+                  </Label>
                   <Input
                     type="password"
                     value={oneDriveRefreshToken}

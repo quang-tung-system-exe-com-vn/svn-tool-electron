@@ -103,6 +103,52 @@
     "copied": "Đã sao chép vào clipboard!",
     "loadSuccess": "Tải thành công."
   },
+
+  "joyride": {
+    "titlebar": {
+      "settings": "Mở hộp thoại cài đặt để cấu hình các tùy chọn ứng dụng như chủ đề, ngôn ngữ và khóa API.",
+      "about": "Xem thông tin về ứng dụng, bao gồm phiên bản và chi tiết nhà phát triển.",
+      "support": "Mở hộp thoại hỗ trợ và phản hồi để gửi yêu cầu hoặc đề xuất.",
+      "history": "Xem lịch sử các thông điệp commit đã tạo.",
+      "appUpdate": "Kiểm tra cập nhật ứng dụng. Dấu chấm đỏ cho biết phiên bản mới đã được tải xuống và sẵn sàng cài đặt.",
+      "svnUpdate": "Kiểm tra cập nhật SVN trong bản sao làm việc của bạn. Dấu chấm đỏ cho biết có các phiên bản mới.",
+      "svnClean": "Mở hộp thoại dọn dẹp SVN để quản lý bản sao làm việc của bạn.",
+      "svnLog": "Hiển thị lịch sử nhật ký SVN cho bản sao làm việc hiện tại.",
+      "startTour": "Hướng dẫn nhanh giúp bạn làm quen với các tính năng chính. Nhấn 'Bắt đầu' để bắt đầu sử dụng ứng dụng dễ dàng hơn!"
+    },
+    "main": {
+      "step1": "Bảng này hiển thị các tệp đã bị thay đổi, thêm mới hoặc xóa trong bản sao làm việc SVN của bạn. Chọn các tệp bạn muốn đưa vào commit.",
+      "step2": "Khu vực này dành cho thông điệp commit của bạn. Bạn có thể viết thủ công hoặc tạo tự động bằng AI.",
+      "step3": "Nhấp vào nút này để tạo thông điệp commit dựa trên các thay đổi của tệp đã chọn bằng AI.",
+      "step4": "Nhấp vào nút này để kiểm tra các tệp đã chọn theo các quy tắc mã hóa được định sẵn.",
+      "step5": "Nhấp vào nút này để chạy phân tích SpotBugs trên các tệp Java đã chọn.",
+      "step6": "Nhấp vào nút này để commit các tệp đã chọn cùng với thông điệp commit đã cung cấp vào kho lưu trữ SVN."
+    },
+    "settings": {
+      "appearanceTab": "Tab Giao diện: Tùy chỉnh giao diện, bao gồm ngôn ngữ, chủ đề, chế độ tối, phông chữ và kiểu nút.",
+      "language": "Ngôn ngữ: Chọn ngôn ngữ ưa thích cho giao diện ứng dụng.",
+      "theme": "Chủ đề: Chọn chủ đề màu sắc cho ứng dụng.",
+      "darkMode": "Chế độ tối: Chuyển đổi giữa chủ đề sáng và tối.",
+      "fontFamily": "Phông chữ: Chọn kiểu phông chữ cho ứng dụng.",
+      "fontSize": "Cỡ chữ: Điều chỉnh kích thước văn bản (Nhỏ, Trung bình, Lớn).",
+      "buttonVariant": "Kiểu nút: Chọn kiểu cho các nút (Mặc định, Phá hủy, Viền, Phụ, Mờ, Liên kết).",
+      "configurationTab": "Tab Cấu hình: Thiết lập các cài đặt cần thiết như khóa API, đường dẫn thư mục và tích hợp.",
+      "openaiApiKey": "Khóa API OpenAI: Nhập khóa của bạn cho các tính năng AI như tạo thông điệp commit.",
+      "svnFolder": "Thư mục SVN: Chỉ định đường dẫn đến bản sao làm việc SVN chính của bạn.",
+      "sourceFolder": "Thư mục nguồn: Chỉ định đường dẫn đến thư mục mã nguồn của dự án (dùng cho các công cụ phân tích như SpotBugs).",
+      "emailPL": "Email PL: Nhập địa chỉ email của Trưởng dự án để nhận thông báo.",
+      "webhookMS": "Webhook MS: Chọn hoặc thêm URL webhook Microsoft Teams để gửi thông báo.",
+      "mailserverTab": "Tab Máy chủ Mail: Cấu hình cài đặt SMTP để gửi thông báo qua email.",
+      "smtpServer": "Máy chủ SMTP: Nhập địa chỉ máy chủ SMTP của bạn (ví dụ: smtp.example.com).",
+      "port": "Cổng: Nhập số cổng cho máy chủ SMTP (ví dụ: 587).",
+      "mailEmail": "Email: Nhập địa chỉ email để gửi thông báo từ đó.",
+      "mailPassword": "Mật khẩu: Nhập mật khẩu cho tài khoản email.",
+      "onedriveTab": "Tab OneDrive: Cấu hình thông tin đăng nhập Microsoft OneDrive để tải lên hình ảnh (ví dụ: cho tệp đính kèm phản hồi).",
+      "onedriveClientId": "Client ID: Nhập Client ID ứng dụng Microsoft của bạn.",
+      "onedriveClientSecret": "Client Secret: Nhập Client Secret ứng dụng Microsoft của bạn.",
+      "onedriveRefreshToken": "Refresh Token: Nhập Refresh Token OneDrive của bạn (lấy riêng) để truy cập lâu dài."
+    }
+  },
   "svn": {
     "status": {
       "added": "Thêm",
@@ -382,27 +428,6 @@
       "noResults": "Chưa có kết quả nào.",
       "date": "Thời gian",
       "commitMessage": "Thông điệp Commit"
-    }
-  },
-  "tour": {
-    "titlebar": {
-      "settings": "Mở hộp thoại cài đặt để cấu hình các tùy chọn ứng dụng như chủ đề, ngôn ngữ và khóa API.",
-      "about": "Xem thông tin về ứng dụng, bao gồm phiên bản và chi tiết nhà phát triển.",
-      "support": "Mở hộp thoại hỗ trợ và phản hồi để gửi yêu cầu hoặc đề xuất.",
-      "history": "Xem lịch sử các thông điệp commit đã tạo.",
-      "appUpdate": "Kiểm tra cập nhật ứng dụng. Dấu chấm đỏ cho biết phiên bản mới đã được tải xuống và sẵn sàng cài đặt.",
-      "svnUpdate": "Kiểm tra cập nhật SVN trong bản sao làm việc của bạn. Dấu chấm đỏ cho biết có các phiên bản mới.",
-      "svnClean": "Mở hộp thoại dọn dẹp SVN để quản lý bản sao làm việc của bạn.",
-      "svnLog": "Hiển thị lịch sử nhật ký SVN cho bản sao làm việc hiện tại.",
-      "startTour": "Hướng dẫn nhanh giúp bạn làm quen với các tính năng chính. Nhấn 'Bắt đầu' để bắt đầu sử dụng ứng dụng dễ dàng hơn!"
-    },
-    "main": {
-      "step1": "Bảng này hiển thị các tệp đã bị thay đổi, thêm mới hoặc xóa trong bản sao làm việc SVN của bạn. Chọn các tệp bạn muốn đưa vào commit.",
-      "step2": "Khu vực này dành cho thông điệp commit của bạn. Bạn có thể viết thủ công hoặc tạo tự động bằng AI.",
-      "step3": "Nhấp vào nút này để tạo thông điệp commit dựa trên các thay đổi của tệp đã chọn bằng AI.",
-      "step4": "Nhấp vào nút này để kiểm tra các tệp đã chọn theo các quy tắc mã hóa được định sẵn.",
-      "step5": "Nhấp vào nút này để chạy phân tích SpotBugs trên các tệp Java đã chọn.",
-      "step6": "Nhấp vào nút này để commit các tệp đã chọn cùng với thông điệp commit đã cung cấp vào kho lưu trữ SVN."
     }
   },
   "welcome": {

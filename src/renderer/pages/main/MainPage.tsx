@@ -1,11 +1,11 @@
 'use client'
 import { LANGUAGES } from '@/components/shared/constants'
+import { JoyrideTooltip } from '@/components/tooltips/joyride-tooltip'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -21,7 +21,6 @@ import type { Language } from 'main/store/AppearanceStore'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Joyride, { type Step, type CallBackProps, STATUS } from 'react-joyride'
-import type { TooltipRenderProps } from 'react-joyride'
 
 export function MainPage() {
   const { language, setLanguage } = useAppearanceStore()
@@ -58,65 +57,65 @@ export function MainPage() {
   const steps: Step[] = [
     {
       target: '#settings-button',
-      content: t('tour.titlebar.settings'),
+      content: t('joyride.titlebar.settings'),
       disableBeacon: true,
     },
     {
       target: '#about-button',
-      content: t('tour.titlebar.about'),
+      content: t('joyride.titlebar.about'),
     },
     {
       target: '#support-button',
-      content: t('tour.titlebar.support'),
+      content: t('joyride.titlebar.support'),
     },
     {
       target: '#history-button',
-      content: t('tour.titlebar.history'),
+      content: t('joyride.titlebar.history'),
     },
     {
       target: '#app-update-button',
-      content: t('tour.titlebar.appUpdate'),
+      content: t('joyride.titlebar.appUpdate'),
     },
     {
       target: '#svn-update-button',
-      content: t('tour.titlebar.svnUpdate'),
+      content: t('joyride.titlebar.svnUpdate'),
     },
     {
       target: '#svn-clean-button',
-      content: t('tour.titlebar.svnClean'),
+      content: t('joyride.titlebar.svnClean'),
     },
     {
       target: '#svn-log-button',
-      content: t('tour.titlebar.svnLog'),
+      content: t('joyride.titlebar.svnLog'),
     },
     {
       target: '#changed-files-table',
-      content: t('tour.main.step1'),
+      content: t('joyride.main.step1'),
       disableBeacon: true,
     },
     {
       target: '#commit-message-area',
-      content: t('tour.main.step2'),
+      content: t('joyride.main.step2'),
     },
     {
       target: '#generate-button',
-      content: t('tour.main.step3'),
+      content: t('joyride.main.step3'),
     },
     {
       target: '#check-button',
-      content: t('tour.main.step4'),
+      content: t('joyride.main.step4'),
     },
     {
       target: '#spotbugs-button',
-      content: t('tour.main.step5'),
+      content: t('joyride.main.step5'),
     },
     {
       target: '#commit-button',
-      content: t('tour.main.step6'),
+      content: t('joyride.main.step6'),
     },
     {
       target: '#start-tour-button',
-      content: t('tour.titlebar.startTour'),
+      content: t('joyride.titlebar.startTour'),
       disableBeacon: true,
     },
   ]
@@ -510,43 +509,5 @@ export function MainPage() {
         </AlertDialog>
       </div>
     </div>
-  )
-}
-
-const JoyrideTooltip = ({ index, step, size, backProps, closeProps, primaryProps, skipProps, tooltipProps, isLastStep, continuous }: TooltipRenderProps) => {
-  const { t } = useTranslation()
-  const variant = useButtonVariant()
-
-  return (
-    <Card {...tooltipProps} className="rounded-md bg-card text-card-foreground shadow-lg w-[320px] border-none">
-      <CardHeader className="flex flex-row items-center justify-between text-base font-semibold px-4 pt-1">
-        <div className="rounded-md border px-2.5 py-1.25 fg-primary">
-          {step.title || `${index + 1}`} / {size}
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* Skip Button */}
-          {skipProps && (
-            <Button variant={variant} size="sm" {...skipProps} className="text-muted-foreground">
-              {t('common.skip')}
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="text-sm px-4">{step.content}</CardContent>
-      <CardFooter className="flex items-center justify-between px-4 py-1 border-t">
-        <div>
-          {index > 0 && (
-            <Button variant={variant} size="sm" {...backProps} className="text-muted-foreground">
-              {t('common.back')}
-            </Button>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button variant={variant} size="sm" {...primaryProps}>
-            {isLastStep ? t('common.finish') : continuous ? 'Tiếp' : 'OK'}
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
   )
 }
