@@ -11,15 +11,16 @@ import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import logger from '@/services/logger'
-import { useButtonVariant } from '@/stores/useAppearanceStore'
-import { CircleArrowDown, Eraser, FileText, History, Info, LifeBuoy, Minus, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { CircleArrowDown, Eraser, FileText, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react' // Added PlayCircle
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface TitleBarProps {
   isLoading: boolean
-  tableRef: any
+  onTourIconClick: () => void
+  hasCompletedTour: boolean
+  showTourIconForLastStep: boolean // Add new prop for tour state
 }
 type SvnInfo = {
   author: string
@@ -30,9 +31,8 @@ type SvnInfo = {
   changedFiles: { status: SvnStatusCode; path: string }[]
 }
 
-export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
+export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTourIconForLastStep }: TitleBarProps) => {
   const { t } = useTranslation()
-  const variant = useButtonVariant()
   const [showSettings, setShowSettings] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const [showClean, setShowClean] = useState(false)
@@ -203,6 +203,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    id="settings-button"
                     variant="link"
                     size="sm"
                     onClick={openSettingsDialog}
@@ -217,6 +218,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    id="about-button"
                     variant="link"
                     size="sm"
                     onClick={openInfoDialog}
@@ -231,6 +233,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    id="support-button"
                     variant="link"
                     size="sm"
                     onClick={openSupportFeedbackDialog}
@@ -245,6 +248,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    id="history-button"
                     variant="link"
                     size="sm"
                     onClick={openHistoryWindow}
@@ -256,10 +260,28 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
                 <TooltipContent>{t('title.historyCommitMessage')}</TooltipContent>
               </Tooltip>
 
+              {(hasCompletedTour || showTourIconForLastStep) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      id="start-tour-button"
+                      variant="link"
+                      size="sm"
+                      onClick={onTourIconClick}
+                      className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                    >
+                      <PlayCircle strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('title.startTour')}</TooltipContent>
+                </Tooltip>
+              )}
+
               {showIconUpdateApp && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
+                      id="app-update-button"
                       variant="link"
                       size="sm"
                       onClick={checkForUpdates}
@@ -276,12 +298,12 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
           </div>
         </div>
 
-        {/* Right Section (Window Controls) */}
         <div className="flex gap-1 items-center justify-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <div className="flex items-center gap-1 pt-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  id="svn-update-button"
                   variant="link"
                   size="sm"
                   onClick={openSvnUpdateDialog}
@@ -299,6 +321,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  id="svn-clean-button"
                   variant="link"
                   size="sm"
                   onClick={openCleanDialog}
@@ -313,6 +336,7 @@ export const TitleBar = ({ isLoading, tableRef }: TitleBarProps) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  id="svn-log-button"
                   variant="link"
                   size="sm"
                   onClick={openShowLogWindow}

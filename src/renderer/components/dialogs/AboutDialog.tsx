@@ -33,12 +33,9 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
           <DialogDescription>{t('dialog.aboutDialog.description')}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4 text-sm w-full">
-          {/* Logo */}
           <div className="w-25 h-25">
-            <img src="icon.png" alt="App Logo" className="w-full h-full object-contain" />
+            <img src="icon.png" alt="App Logo" className="w-full h-full object-contain dark:brightness-130" />
           </div>
-
-          {/* Thông tin bảng */}
           <table className="text-sm w-full max-w-md">
             <tbody>
               <tr className="h-[25px]">
@@ -63,8 +60,6 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
               </tr>
             </tbody>
           </table>
-
-          {/* Lời cảm ơn */}
           <p className="text-center text-muted-foreground m-4">{t('dialog.aboutDialog.thankYou')}</p>
         </div>
       </DialogContent>

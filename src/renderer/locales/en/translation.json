@@ -19,7 +19,10 @@
     "generate": "Generate Commit Message",
     "check": "Check Coding Rules",
     "commit": "Commit Code",
-    "noData": "No data available"
+    "noData": "No data available",
+    "skip": "Skip",
+    "finish": "Finish",
+    "startTour": "Start"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -42,7 +45,8 @@
     "cleanSvn": "Clean SVN",
     "showLogsSvn": "Show Logs SVN",
     "supportFeedback": "Support & Feedback",
-    "historyCommitMessage": "Commit Message History"
+    "historyCommitMessage": "Commit Message History",
+    "startTour": "Start Application Tour"
   },
   "label": {
     "line": "Ln",
@@ -381,6 +385,31 @@
       "date": "Date",
       "commitMessage": "Commit Message"
     }
+  },
+  "tour": {
+    "titlebar": {
+      "settings": "Open the settings dialog to configure application preferences like theme, language, and API keys.",
+      "about": "View information about the application, including version and developer details.",
+      "support": "Open the support and feedback dialog to submit requests or suggestions.",
+      "history": "View the history of generated commit messages.",
+      "appUpdate": "Check for application updates. A red dot indicates a new version is downloaded and ready to install.",
+      "svnUpdate": "Check for SVN updates in your working copy. A red dot indicates new revisions are available.",
+      "svnClean": "Open the SVN cleanup dialog to manage your working copy.",
+      "svnLog": "Show the SVN log history for the current working copy.",
+      "startTour": "A quick guide to help you get familiar with the main features. Click “Start” to begin using the app with ease!"
+    },
+    "main": {
+      "step1": "This table displays files that have been changed, added, or deleted in your SVN working copy. Select the files you want to include in your commit.",
+      "step2": "This area is for your commit message. You can write it manually or generate one using AI.",
+      "step3": "Click this button to generate a commit message based on the selected file changes using AI.",
+      "step4": "Click this button to check the selected files against predefined coding rules.",
+      "step5": "Click this button to run SpotBugs analysis on the selected Java files.",
+      "step6": "Click this button to commit the selected files with the provided commit message to the SVN repository."
+    }
+  },
+  "welcome": {
+    "title": "Welcome to SVN Tool!",
+    "description": "It looks like this is your first time using the application. Would you like to take a quick tour to learn about the main features?"
   },
   "spotbugs": {
     "categoryDescriptions": {

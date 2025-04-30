@@ -510,14 +510,14 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
             <div className="flex flex-col h-full">
               <h3 className="text-lg font-medium mb-2">{t('dialog.statisticSvn.authorship.cardTitle')}</h3>
               {(chartData2.length ?? 0) > 0 ? (
-                <Card className="flex flex-col max-w-full sticky h-[550px]">
+                <Card className="flex flex-col max-w-full sticky h-[518px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
                   <CardHeader className="items-center pb-0">
                     <CardTitle>{t('dialog.statisticSvn.authorship.cardTitle')}</CardTitle>
                     <CardDescription>{t('dialog.statisticSvn.authorship.cardDescription')}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0 overflow-hidden">
-                    <ChartContainer config={chartConfig1} className="w-full mx-auto h-[350px]">
+                    <ChartContainer config={chartConfig1} className="w-full mx-auto h-full">
                       <PieChart accessibilityLayer>
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Pie data={chartData2} dataKey="count" label nameKey="author" />
@@ -534,7 +534,7 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
             </div>
           </TabsContent>
 
-          <TabsContent value="summary" className="h-[550px]">
+          <TabsContent value="summary" className="h-[550px] min-h-[550px]">
             <div className="flex flex-col h-full">
               <h3 className="text-lg font-medium mb-2">{t('dialog.statisticSvn.summary.title')}</h3>
               <div className="flex-1 border rounded-md p-4 overflow-auto sticky">

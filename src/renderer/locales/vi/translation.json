@@ -19,7 +19,10 @@
     "generate": "Tạo thông điệp commit",
     "check": "Kiểm tra quy tắc mã hóa",
     "commit": "Commit mã",
-    "noData": "Không có dữ liệu"
+    "noData": "Không có dữ liệu",
+    "skip": "Bỏ qua",
+    "finish": "Hoàn thành",
+    "startTour": "Bắt đầu"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -42,7 +45,8 @@
     "cleanSvn": "Dọn dẹp SVN",
     "showLogsSvn": "Hiển thị nhật ký SVN",
     "supportFeedback": "Hỗ trợ & Phản hồi",
-    "historyCommitMessage": "Lịch sử thông điệp commit"
+    "historyCommitMessage": "Lịch sử thông điệp commit",
+    "startTour": "Bắt đầu Hướng dẫn Ứng dụng"
   },
   "label": {
     "line": "Dòng",
@@ -379,6 +383,31 @@
       "date": "Thời gian",
       "commitMessage": "Thông điệp Commit"
     }
+  },
+  "tour": {
+    "titlebar": {
+      "settings": "Mở hộp thoại cài đặt để cấu hình các tùy chọn ứng dụng như chủ đề, ngôn ngữ và khóa API.",
+      "about": "Xem thông tin về ứng dụng, bao gồm phiên bản và chi tiết nhà phát triển.",
+      "support": "Mở hộp thoại hỗ trợ và phản hồi để gửi yêu cầu hoặc đề xuất.",
+      "history": "Xem lịch sử các thông điệp commit đã tạo.",
+      "appUpdate": "Kiểm tra cập nhật ứng dụng. Dấu chấm đỏ cho biết phiên bản mới đã được tải xuống và sẵn sàng cài đặt.",
+      "svnUpdate": "Kiểm tra cập nhật SVN trong bản sao làm việc của bạn. Dấu chấm đỏ cho biết có các phiên bản mới.",
+      "svnClean": "Mở hộp thoại dọn dẹp SVN để quản lý bản sao làm việc của bạn.",
+      "svnLog": "Hiển thị lịch sử nhật ký SVN cho bản sao làm việc hiện tại.",
+      "startTour": "Hướng dẫn nhanh giúp bạn làm quen với các tính năng chính. Nhấn 'Bắt đầu' để bắt đầu sử dụng ứng dụng dễ dàng hơn!"
+    },
+    "main": {
+      "step1": "Bảng này hiển thị các tệp đã bị thay đổi, thêm mới hoặc xóa trong bản sao làm việc SVN của bạn. Chọn các tệp bạn muốn đưa vào commit.",
+      "step2": "Khu vực này dành cho thông điệp commit của bạn. Bạn có thể viết thủ công hoặc tạo tự động bằng AI.",
+      "step3": "Nhấp vào nút này để tạo thông điệp commit dựa trên các thay đổi của tệp đã chọn bằng AI.",
+      "step4": "Nhấp vào nút này để kiểm tra các tệp đã chọn theo các quy tắc mã hóa được định sẵn.",
+      "step5": "Nhấp vào nút này để chạy phân tích SpotBugs trên các tệp Java đã chọn.",
+      "step6": "Nhấp vào nút này để commit các tệp đã chọn cùng với thông điệp commit đã cung cấp vào kho lưu trữ SVN."
+    }
+  },
+  "welcome": {
+    "title": "Chào mừng đến với SVN Tool!",
+    "description": "Có vẻ đây là lần đầu bạn sử dụng ứng dụng. Bạn có muốn tham gia một chuyến tham quan nhanh để tìm hiểu về các tính năng chính không?"
   },
   "spotbugs": {
     "categoryDescriptions": {
