@@ -42,9 +42,11 @@ Công cụ này được thiết kế cho **mọi nhân viên trong công ty** c
   - Chế độ Sáng/Tối (Theme) tùy chỉnh.
 - **Cấu hình:** Lưu trữ và quản lý cấu hình người dùng (đường dẫn working copy, thông tin máy chủ mail, webhook Teams,...).
 
-## Ảnh chụp màn hình (Tùy chọn)
+## Giao diện
 
-_(Placeholder: Có thể thêm ảnh chụp màn hình giao diện chính, màn hình xem log, xem diff, commit, SpotBugs,...)_
+![{711B6DC2-46F3-4144-AB59-07AF8F59F5DD}](https://github.com/user-attachments/assets/fe280726-6d64-40fa-ab74-d17586af8464)
+![{F6F165D0-04C7-4ECE-85CD-F3F1DAE37BD9}](https://github.com/user-attachments/assets/083a6607-fa24-4111-ae70-951b71c8bda5)
+
 
 ## Yêu cầu cài đặt
 
