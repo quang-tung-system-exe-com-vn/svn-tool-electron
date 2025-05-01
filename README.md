@@ -25,7 +25,9 @@ SVNTool là một ứng dụng desktop mạnh mẽ được xây dựng bằng E
 Công cụ này được thiết kế cho **mọi nhân viên trong công ty** có nhu cầu làm việc với kho mã nguồn SVN.
 
 ## Tính năng chính
-
+- **Tích hợp AI:**
+  - Sử dụng AI để  tạo message commit theo nội dung file được chọn(diff content).
+  - Sử dụng AI để check coding rules.
 - **Quản lý SVN:**
   - Xem lịch sử commit (SVN Log) với bộ lọc và tìm kiếm nâng cao.
   - Xem chi tiết thay đổi giữa các phiên bản (Diff Viewer) trực quan, hỗ trợ syntax highlighting.
