@@ -50,7 +50,7 @@ Công cụ này được thiết kế cho **mọi nhân viên trong công ty** c
     <div><strong>Spotbugs Dialog</strong></div>
     <img src="https://github.com/user-attachments/assets/50263b2d-3808-4c36-a8a5-fd276121f0f0" width="500" />
     <div><strong>Spotbugs Analysis</strong></div>
-    <img src="https://github.com/user-attachments/assets/2e17785a-8210-4083-912e-9bc59f446c9c" width="500" />
+    <img src="https://github.com/user-attachments/assets/0d3ea1cb-3a9a-4a24-8b3a-c41bc83f647b" width="500" />
   </div>
   <div style="margin-bottom: 35px;">
     <div><strong>Show Log SVN Dialog</strong></div>
