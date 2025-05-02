@@ -36,10 +36,15 @@ export default {
 
   extraResources: [
     {
-      from: "spotbugs-4.9.3",
-      to: "spotbugs-4.9.3",
-      filter: ["**/*"]
-    }
+      from: 'spotbugs-4.9.3',
+      to: 'spotbugs-4.9.3',
+      filter: ['**/*'],
+    },
+    {
+      from: 'src/resources/public',
+      to: 'public',
+      filter: ['**/*'],
+    },
   ],
 
   mac: {
