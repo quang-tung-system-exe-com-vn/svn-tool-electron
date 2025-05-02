@@ -41,10 +41,30 @@ Công cụ này được thiết kế cho **mọi nhân viên trong công ty** c
 - **Cấu hình:** Lưu trữ và quản lý cấu hình người dùng (đường dẫn working copy, thông tin máy chủ mail, webhook Teams,...).
 
 ## Giao diện
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/fe280726-6d64-40fa-ab74-d17586af8464" style="display: inline-block; margin-right: 10px;" />
-  <img src="https://github.com/user-attachments/assets/083a6607-fa24-4111-ae70-951b71c8bda5" style="display: inline-block;" />
-</p>
+<div align="center">
+  <div style="margin-bottom: 35px;">
+    <div><strong>Giao diện chính</strong></div>
+    <img src="https://github.com/user-attachments/assets/fe280726-6d64-40fa-ab74-d17586af8464" width="500" />
+  </div>
+  <div style="margin-bottom: 35px;">
+    <div><strong>Spotbugs Dialog</strong></div>
+    <img src="https://github.com/user-attachments/assets/50263b2d-3808-4c36-a8a5-fd276121f0f0" width="500" />
+    <div><strong>Spotbugs Analysis</strong></div>
+    <img src="https://github.com/user-attachments/assets/2e17785a-8210-4083-912e-9bc59f446c9c" width="500" />
+  </div>
+  <div style="margin-bottom: 35px;">
+    <div><strong>Show Log SVN Dialog</strong></div>
+    <img src="https://github.com/user-attachments/assets/43821a39-37b5-4e21-be2e-db6025561143" width="500" />
+  </div>
+  <div style="margin-bottom: 35px;">
+    <div><strong>Statistic Dialog (SVN Log Analysis)</strong></div>
+    <img src="https://github.com/user-attachments/assets/a57dbe2c-f578-4441-8b5e-f7b568bcc0c7" width="500" />
+  </div>
+  <div style="margin-bottom: 35px;">
+    <div><strong>Check coding rule Dialog</strong></div>
+    <img src="https://github.com/user-attachments/assets/682a8fe2-7edf-4311-9114-83a686982d6a" width="500" />
+  </div>
+</div>
 
 ## Yêu cầu cài đặt
 
