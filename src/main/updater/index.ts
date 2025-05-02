@@ -20,16 +20,6 @@ export function initAutoUpdater(window: BrowserWindow) {
 
   autoUpdater.on('update-available', info => {
     log.info(`Update available: ${info.version}`)
-    updateAppStatus(true)
-    if (showNotifications && Notification.isSupported()) {
-      const notification = new Notification({
-        title: 'Update Available',
-        body: `Version ${info.version} is available. It will be downloaded in the background.`,
-      })
-      notification.show()
-    } else {
-      log.warn('[Updater] Notifications not supported on this system.')
-    }
     window.webContents.send(IPC.UPDATER.STATUS, {
       status: 'available',
       version: info.version,
@@ -57,6 +47,15 @@ export function initAutoUpdater(window: BrowserWindow) {
 
   autoUpdater.on('update-downloaded', info => {
     updateAppStatus(true)
+    if (showNotifications && Notification.isSupported()) {
+      const notification = new Notification({
+        title: 'Update Available',
+        body: `Version ${info.version} is available. It will be downloaded in the background.`,
+      })
+      notification.show()
+    } else {
+      log.warn('[Updater] Notifications not supported on this system.')
+    }
     window.webContents.send(IPC.UPDATER.STATUS, {
       status: 'downloaded',
       version: info.version,

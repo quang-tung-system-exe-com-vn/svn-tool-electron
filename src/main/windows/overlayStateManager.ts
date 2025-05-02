@@ -1,7 +1,7 @@
-import path from 'node:path'
-import { type BrowserWindow, type Tray, app, nativeImage } from 'electron'
+import { type BrowserWindow, type Tray, nativeImage } from 'electron'
 import log from 'electron-log'
 import { setOverlay as setActualOverlay } from '../utils/overlayHelper'
+import { getResourcePath } from '../utils/utils'
 
 let appUpdateAvailable = false
 let newRevisionAvailable = false
@@ -65,13 +65,13 @@ export function initOverlayManager(window: BrowserWindow | null, tray: Tray | nu
   currentWindow = window
   currentTray = tray
   try {
-    const defaultIconPath = path.join(app.getAppPath(), 'src/resources/public/icon.ico')
+    const defaultIconPath = getResourcePath('icon.ico')
     defaultTrayIcon = nativeImage.createFromPath(defaultIconPath).resize({ width: 16, height: 16 })
   } catch (error) {
     log.error('[OverlayManager] Failed to load default tray icon:', error)
   }
   try {
-    const notificationIconPath = path.join(app.getAppPath(), 'src/resources/public/icon-dot.png')
+    const notificationIconPath = getResourcePath('icon-dot.png')
     notificationTrayIcon = nativeImage.createFromPath(notificationIconPath).resize({ width: 16, height: 16 })
   } catch (error) {
     log.error('[OverlayManager] Failed to load notification tray icon:', error)

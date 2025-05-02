@@ -1,9 +1,9 @@
-import path from 'node:path'
-import { type BrowserWindow, app, nativeImage } from 'electron'
+import { type BrowserWindow, nativeImage } from 'electron'
 import log from 'electron-log'
+import { getResourcePath } from './utils'
 
 let overlayIcon: Electron.NativeImage | null = null
-const overlayIconPath = path.join(app.getAppPath(), 'src/resources/public/dot.png')
+const overlayIconPath = getResourcePath('dot.png')
 try {
   overlayIcon = nativeImage.createFromPath(overlayIconPath).resize({ width: 20, height: 20 })
 } catch (error) {

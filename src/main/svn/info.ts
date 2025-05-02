@@ -1,8 +1,8 @@
 import { exec } from 'node:child_process'
-import path from 'node:path'
 import { promisify } from 'node:util'
-import { Notification, app } from 'electron'
+import { Notification } from 'electron'
 import configurationStore from '../store/ConfigurationStore'
+import { getResourcePath } from '../utils/utils'
 import { updateRevisionStatus } from '../windows/overlayStateManager'
 
 const execPromise = promisify(exec)
@@ -51,7 +51,7 @@ export async function info(filePath: string): Promise<SVNResponse> {
       try {
         updateRevisionStatus(true)
         if (showNotifications) {
-          const icon = path.join(app.getAppPath(), 'src/resources/public/icon.ico')
+          const icon = getResourcePath('icon.ico')
           const formattedDate = formatDate(head.date || '')
           const bodyLines = [`Revision: ${head.revision} (current: ${base.revision})`, `Author: ${head.author || 'Unknown'}`, `Date: ${formattedDate || 'Invalid date'}`]
           new Notification({

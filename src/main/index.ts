@@ -32,8 +32,8 @@ makeAppWithSingleInstanceLock(async () => {
 
   // Setup Tray, Startup
   if (mainWindow) {
-    const tray = setupAppFeatures(mainWindow) // Capture the returned Tray instance
-    initOverlayManager(mainWindow, tray) // Pass tray instance
+    const tray = setupAppFeatures(mainWindow)
+    initOverlayManager(mainWindow, tray)
     initAutoUpdater(mainWindow)
   }
 })
