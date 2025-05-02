@@ -9,11 +9,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logger from '@/services/logger'
-import { ALargeSmall, Cloud, Database, Folder, HelpCircle, KeyRound, Languages, Lock, Mail, Network, Palette, RefreshCw, Settings, TypeOutline, User, Webhook } from 'lucide-react'
+import {
+  ALargeSmall,
+  Bell,
+  Cloud,
+  Database,
+  Folder,
+  HelpCircle,
+  KeyRound,
+  Languages,
+  LayoutGrid,
+  Lock,
+  Mail,
+  Network,
+  Palette,
+  RefreshCw,
+  Settings,
+  TypeOutline,
+  User,
+  Webhook,
+} from 'lucide-react'
 import type { Theme } from 'main/store/AppearanceStore'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Joyride, { type CallBackProps, STATUS, type Step, ACTIONS } from 'react-joyride' // Import ACTIONS
+import Joyride, { type CallBackProps, STATUS, type Step, ACTIONS } from 'react-joyride'
 
 import { useAppearanceStore } from '../../stores/useAppearanceStore'
 import { useConfigurationStore } from '../../stores/useConfigurationStore'
@@ -32,7 +51,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { theme, setTheme, themeMode, setThemeMode, fontSize, setFontSize, fontFamily, setFontFamily, buttonVariant, setButtonVariant, language, setLanguage } =
     useAppearanceStore()
   const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'))
-  const { t, i18n } = useTranslation()
+  const { t, i18n } = useTranslation() // Use the hook correctly
 
   const {
     openaiApiKey,
@@ -43,10 +62,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     oneDriveClientId,
     oneDriveClientSecret,
     oneDriveRefreshToken,
+    startOnLogin,
+    showNotifications,
     setFieldConfiguration,
     saveConfigurationConfig,
     loadConfigurationConfig,
   } = useConfigurationStore()
+
   const { smtpServer, port, email, password, setFieldMailServer, saveMailServerConfig, loadMailServerConfig } = useMailServerStore()
   const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook } = useWebhookStore()
   const [nestedDialogOpen, setNestedDialogOpen] = useState(false)
@@ -57,12 +79,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [activeTab, setActiveTab] = useState('appearance')
 
   useEffect(() => {
-    i18n.changeLanguage(language)
+    if (language && i18n.language !== language) {
+      i18n.changeLanguage(language)
+    }
   }, [language, i18n])
 
   useEffect(() => {
     if (open) {
-      logger.info('Running load functions...')
+      logger.info('SettingsDialog opened, running load functions...')
       loadWebhookConfig()
       loadConfigurationConfig()
       loadMailServerConfig()
@@ -71,8 +95,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   }, [open, loadWebhookConfig, loadConfigurationConfig, loadMailServerConfig, themeMode])
 
   useEffect(() => {
-    // Define steps when translation is ready
-    const steps: Step[] = [
+    const tourSteps: Step[] = [
       {
         target: '#settings-tab-appearance',
         content: t('joyride.settings.appearanceTab'),
@@ -140,6 +163,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         placement: 'top',
       },
       {
+        target: '#settings-start-on-login',
+        content: t('joyride.settings.startOnLogin'),
+        placement: 'top',
+      },
+      {
+        target: '#settings-show-notifications',
+        content: t('joyride.settings.showNotifications'),
+        placement: 'top',
+      },
+      {
         target: '#settings-tab-mailserver',
         content: t('joyride.settings.mailserverTab'),
         placement: 'bottom',
@@ -185,8 +218,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         placement: 'top',
       },
     ]
-    setTourSteps(steps)
-  }, [t]) // Re-run when translation changes
+    setTourSteps(tourSteps)
+  }, [t])
 
   const handleAddWebhook = async () => {
     if (!webhookName.trim() || !webhookUrl.trim()) {
@@ -213,27 +246,30 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const handleSaveConfigurationConfig = async () => {
     try {
       await saveConfigurationConfig()
-      toast.success('Configuration saved!')
+      toast.success(t('toast.configSaved'))
     } catch (err) {
-      toast.error('Failed to save configuration')
+      logger.error('Failed to save configuration:', err)
+      toast.error(t('toast.configSaveFailed'))
     }
   }
 
   const handleSaveMailServerConfig = async () => {
     try {
       await saveMailServerConfig()
-      toast.success('Configuration saved!')
+      toast.success(t('toast.configSaved'))
     } catch (err) {
-      toast.error('Failed to save configuration')
+      logger.error('Failed to save mail server configuration:', err)
+      toast.error(t('toast.configSaveFailed'))
     }
   }
 
   const handleSaveOneDriveConfig = async () => {
     try {
       await saveConfigurationConfig()
-      toast.success('Configuration saved!')
+      toast.success(t('toast.configSaved'))
     } catch (err) {
-      toast.error('Failed to save configuration')
+      logger.error('Failed to save OneDrive configuration:', err)
+      toast.error(t('toast.configSaveFailed'))
     }
   }
 
@@ -256,6 +292,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       const { status, type, step, action } = data
       const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
       if (type === 'step:before') {
+        // Handle tab switching for tour
         if (step.target === '#settings-tab-configuration' && activeTab !== 'configuration') {
           setActiveTab('configuration')
         } else if (step.target === '#settings-tab-mailserver' && activeTab !== 'mailserver') {
@@ -270,7 +307,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         setRunTour(false)
       }
     },
-    [setActiveTab, activeTab]
+    [setActiveTab, activeTab] // Dependencies seem correct
   )
 
   const startTour = () => {
@@ -383,6 +420,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </TabsTrigger>
           </TabsList>
 
+          {/* Appearance Tab */}
           <TabsContent value="appearance">
             <div className="grid grid-cols-2 gap-4 space-y-4">
               {/* Left side */}
@@ -433,9 +471,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         <SelectValue placeholder={t('settings.selectTheme')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {THEMES.map((t: string) => (
-                          <SelectItem key={t} value={t}>
-                            {t
+                        {THEMES.map((themeName: string) => (
+                          <SelectItem key={themeName} value={themeName}>
+                            {themeName
                               .replace(/^theme-/, '')
                               .replace(/-/g, ' ')
                               .replace(/^./, c => c.toUpperCase())}
@@ -522,7 +560,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </Card>
           </TabsContent>
 
-          {/* Configuration */}
+          {/* Configuration Tab */}
           <TabsContent value="configuration">
             <Card className="gap-2 py-4 rounded-md">
               <CardHeader className="pb-2">
@@ -567,6 +605,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </div>
                 </div>
 
+                {/* Source Folder */}
                 <div id="settings-source-folder" className="space-y-1">
                   <Label className="flex items-center gap-2">
                     <Folder className="w-4 h-4" /> {t('settings.configuration.sourceFolder')}
@@ -641,6 +680,22 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     onAdd={handleAddWebhook}
                   />
                 </div>
+
+                {/* Start on Login Switch */}
+                <div id="settings-start-on-login" className="flex items-center justify-between space-x-2 py-1">
+                  <Label htmlFor="start-on-login" className="flex items-center gap-2 cursor-pointer">
+                    <LayoutGrid className="w-4 h-4" /> {t('settings.configuration.startOnLogin')}
+                  </Label>
+                  <Switch id="start-on-login" checked={startOnLogin} onCheckedChange={checked => setFieldConfiguration('startOnLogin', checked)} />
+                </div>
+
+                {/* Show SVN Notifications Switch */}
+                <div id="settings-show-notifications" className="flex items-center justify-between space-x-2 py-1">
+                  <Label htmlFor="show-notifications" className="flex items-center gap-2 cursor-pointer">
+                    <Bell className="w-4 h-4" /> {t('settings.configuration.showNotifications')}
+                  </Label>
+                  <Switch id="show-notifications" checked={showNotifications} onCheckedChange={checked => setFieldConfiguration('showNotifications', checked)} />
+                </div>
               </CardContent>
               <CardFooter className="flex justify-center pt-2">
                 <Button variant={buttonVariant} onClick={handleSaveConfigurationConfig}>
@@ -650,7 +705,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </Card>
           </TabsContent>
 
-          {/* Mail Server Configuration */}
+          {/* Mail Server Configuration Tab */}
           <TabsContent value="mailserver">
             <Card className="gap-2 py-4 rounded-md">
               <CardHeader className="pb-2">
@@ -701,7 +756,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </Card>
           </TabsContent>
 
-          {/* OneDrive Configuration */}
+          {/* OneDrive Configuration Tab */}
           <TabsContent value="onedrive">
             <Card className="gap-2 py-4 rounded-md">
               <CardHeader className="pb-2">
@@ -724,15 +779,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <div id="settings-onedrive-client-secret" className="space-y-1">
                   <Label className="flex items-center gap-2">
                     <Lock className="w-4 h-4" /> {t('settings.onedrive.clientSecret', 'Client Secret')}
-                  </Label>{' '}
-                  {/* Thêm key translation nếu cần */}
+                  </Label>
                   <Input
-                    type="password" // Sử dụng type="password" để ẩn giá trị
+                    type="password"
                     value={oneDriveClientSecret}
                     onChange={e => setFieldConfiguration('oneDriveClientSecret', e.target.value)}
                     placeholder={t('settings.onedrive.clientSecretPlaceholder', 'Enter Client Secret')}
-                  />{' '}
-                  {/* Thêm key translation nếu cần */} {/* Đóng thẻ Input đúng cách */}
+                  />
                 </div>
                 {/* Refresh Token */}
                 <div id="settings-onedrive-refresh-token" className="space-y-1">

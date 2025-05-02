@@ -101,9 +101,10 @@
     "errorSavingFile": "Lỗi khi lưu file.",
     "fetchHistoryError": "Lỗi khi lấy lịch sử commit",
     "copied": "Đã sao chép vào clipboard!",
-    "loadSuccess": "Tải thành công."
+    "loadSuccess": "Tải thành công.",
+    "configSaved": "Lưu thành công.",
+    "configSaveFailed": "Lưu thất bại."
   },
-
   "joyride": {
     "titlebar": {
       "settings": "Mở hộp thoại cài đặt để cấu hình các tùy chọn ứng dụng như chủ đề, ngôn ngữ và khóa API.",
@@ -146,7 +147,9 @@
       "onedriveTab": "Tab OneDrive: Cấu hình thông tin đăng nhập Microsoft OneDrive để tải lên hình ảnh (ví dụ: cho tệp đính kèm phản hồi).",
       "onedriveClientId": "Client ID: Nhập Client ID ứng dụng Microsoft của bạn.",
       "onedriveClientSecret": "Client Secret: Nhập Client Secret ứng dụng Microsoft của bạn.",
-      "onedriveRefreshToken": "Refresh Token: Nhập Refresh Token OneDrive của bạn (lấy riêng) để truy cập lâu dài."
+      "onedriveRefreshToken": "Refresh Token: Nhập Refresh Token OneDrive của bạn (lấy riêng) để truy cập lâu dài.",
+      "startOnLogin": "Tự động khởi động SVNTool: Bật tùy chọn này để tự động mở SVNTool khi máy tính khởi động.",
+      "showNotifications": "Hiển thị thông báo cửa sổ: Bật tùy chọn này để nhận thông báo trực quan về hoạt động SVN và cập nhật ứng dụng trong cửa sổ."
     }
   },
   "svn": {
@@ -195,7 +198,9 @@
       "emailPlaceholder": "Nhập địa chỉ email",
       "webhookMS": "Webhook MS",
       "selectWebhook": "Chọn Webhook",
-      "addNewWebhook": "Thêm Webhook mới"
+      "addNewWebhook": "Thêm Webhook mới",
+      "startOnLogin": "Tự động mở app SVNTool",
+      "showNotifications": "Hiển thị thông báo window"
     },
     "mailserver": {
       "description": "Cấu hình cài đặt máy chủ mail của bạn.",

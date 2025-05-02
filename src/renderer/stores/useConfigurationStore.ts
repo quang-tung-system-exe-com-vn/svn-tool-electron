@@ -9,7 +9,9 @@ type ConfigurationStore = {
   oneDriveClientId: string
   oneDriveClientSecret: string
   oneDriveRefreshToken: string
-  setFieldConfiguration: (key: keyof Omit<ConfigurationStore, 'setFieldConfiguration' | 'saveConfigurationConfig' | 'loadConfigurationConfig'>, value: string) => void
+  startOnLogin: boolean
+  showNotifications: boolean
+  setFieldConfiguration: (key: keyof Omit<ConfigurationStore, 'setFieldConfiguration' | 'saveConfigurationConfig' | 'loadConfigurationConfig'>, value: string | boolean) => void
   saveConfigurationConfig: () => Promise<void>
   loadConfigurationConfig: () => Promise<void>
 }
@@ -23,6 +25,8 @@ export const useConfigurationStore = create<ConfigurationStore>((set, get) => ({
   oneDriveClientId: '',
   oneDriveClientSecret: '',
   oneDriveRefreshToken: '',
+  startOnLogin: false,
+  showNotifications: true,
   setFieldConfiguration: (key, value) => set({ [key]: value }),
   saveConfigurationConfig: async () => {
     const { setFieldConfiguration, saveConfigurationConfig, loadConfigurationConfig, ...config } = get()
@@ -31,7 +35,9 @@ export const useConfigurationStore = create<ConfigurationStore>((set, get) => ({
   loadConfigurationConfig: async () => {
     const data = await window.api.configuration.get()
     for (const [key, value] of Object.entries(data)) {
-      set({ [key]: value })
+      if (key in get()) {
+        set({ [key]: value })
+      }
     }
   },
 }))

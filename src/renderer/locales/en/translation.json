@@ -101,7 +101,9 @@
     "errorSavingFile": "Error saving file.",
     "fetchHistoryError": "Error fetching commit history",
     "copied": "Copied to clipboard!",
-    "loadSuccess": "Load successfully."
+    "loadSuccess": "Load successfully.",
+    "configSaved": "Saved.",
+    "configSaveFailed": "Saved failed."
   },
   "joyride": {
     "titlebar": {
@@ -145,7 +147,9 @@
       "onedriveTab": "OneDrive Tab: Configure Microsoft OneDrive credentials for uploading images (e.g., for feedback attachments).",
       "onedriveClientId": "Client ID: Enter your Microsoft App Client ID.",
       "onedriveClientSecret": "Client Secret: Enter your Microsoft App Client Secret.",
-      "onedriveRefreshToken": "Refresh Token: Enter your OneDrive Refresh Token (obtained separately) for persistent access."
+      "onedriveRefreshToken": "Refresh Token: Enter your OneDrive Refresh Token (obtained separately) for persistent access.",
+      "startOnLogin": "Auto-start SVNTool: Enable this option to launch SVNTool automatically when your computer starts.",
+      "showNotifications": "Show window notifications: Toggle this to receive visual notifications for SVN activity and app updates within the app window."
     }
   },
   "svn": {
@@ -194,7 +198,9 @@
       "emailPlaceholder": "Enter email address",
       "webhookMS": "Webhook MS",
       "selectWebhook": "Select Webhook",
-      "addNewWebhook": "Add New Webhook"
+      "addNewWebhook": "Add New Webhook",
+      "startOnLogin": "Auto-start SVNTool",
+      "showNotifications": "Show window notifications"
     },
     "mailserver": {
       "description": "Configure your mail server settings.",

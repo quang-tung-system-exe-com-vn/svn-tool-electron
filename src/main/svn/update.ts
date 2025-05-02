@@ -1,5 +1,6 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
+import { updateRevisionStatus } from 'main/windows/overlayStateManager'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
@@ -10,6 +11,7 @@ export async function update(filePath = '.'): Promise<SVNResponse> {
     const targetPath = filePath === '.' ? '' : `"${filePath}"`
     const { stdout, stderr } = await execPromise(`svn update ${targetPath}`, { cwd: sourceFolder })
     if (stderr) return { status: 'error', message: stderr }
+    updateRevisionStatus(false)
     return { status: 'success', data: stdout.trim() || 'Update completed successfully' }
   } catch (error) {
     return { status: 'error', message: error instanceof Error ? error.message : String(error) }

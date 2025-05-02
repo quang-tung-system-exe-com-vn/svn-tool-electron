@@ -80,28 +80,30 @@
     "error": "エラー",
     "info": "情報",
     "warning": "警告",
-    "getListSuccess": "変更されたファイルの取得に成功しました",
-    "commitSuccess": "コミットが成功しました",
-    "commitError": "コミット中にエラーが発生しました",
-    "checkSuccess": "コーディングルールの確認が成功しました",
-    "checkError": "コーディングルールの確認中にエラーが発生しました",
-    "generateSuccess": "コミットメッセージの生成が成功しました",
-    "generateError": "コミットメッセージの生成中にエラーが発生しました",
+    "getListSuccess": "変更されたファイルの取得に成功しました。",
+    "commitSuccess": "コミットが成功しました。",
+    "commitError": "コミット中にエラーが発生しました。",
+    "checkSuccess": "コーディングルールの確認が成功しました。",
+    "checkError": "コーディングルールの確認中にエラーが発生しました。",
+    "generateSuccess": "コミットメッセージの生成が成功しました。",
+    "generateError": "コミットメッセージの生成中にエラーが発生しました。",
     "updateAvailable": "新しいアップデートが利用可能です！",
     "isLatestVersion": "すべて最新の状態です。",
     "checkUpdates": "アップデートを確認",
     "updatingMessage": "SVNを更新中...",
-    "updateSuccess": "SVNの更新が成功しました",
-    "updateError": "SVNの更新中にエラーが発生しました",
+    "updateSuccess": "SVNの更新が成功しました。",
+    "updateError": "SVNの更新中にエラーが発生しました。",
     "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {{0}}",
-    "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました",
+    "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました。",
     "refreshingSpotbugs": "SpotBugs分析を更新中...",
     "leastOneJavaFile": "少なくとも1つのJavaファイルを選択してください",
     "fileSaved": "ファイルの保存に成功しました。",
     "errorSavingFile": "ファイルの保存中にエラーが発生しました。",
     "fetchHistoryError": "コミット履歴の取得中にエラーが発生しました。",
     "copied": "クリップボードにコピーしました。",
-    "loadSuccess": "読み込みに成功しました."
+    "loadSuccess": "読み込みに成功しました。",
+    "configSaved": "保存しました。",
+    "configSaveFailed": "保存に失敗しました。"
   },
   "joyride": {
     "titlebar": {
@@ -145,7 +147,9 @@
       "onedriveTab": "OneDriveタブ：画像アップロード用のMicrosoft OneDrive認証情報を構成します（例：フィードバック添付ファイル用）。",
       "onedriveClientId": "クライアントID：MicrosoftアプリのクライアントIDを入力します。",
       "onedriveClientSecret": "クライアントシークレット：Microsoftアプリのクライアントシークレットを入力します。",
-      "onedriveRefreshToken": "リフレッシュトークン：永続的なアクセス用に（別途取得した）OneDriveリフレッシュトークンを入力します。"
+      "onedriveRefreshToken": "リフレッシュトークン：永続的なアクセス用に（別途取得した）OneDriveリフレッシュトークンを入力します。",
+      "startOnLogin": "SVNToolの自動起動: このオプションを有効にすると、パソコンの起動時にSVNToolが自動的に起動します。",
+      "showNotifications": "ウィンドウ通知の表示: このオプションを切り替えると、アプリウィンドウ内でSVNの操作やアップデートに関する通知が表示されます。"
     }
   },
   "svn": {
@@ -194,7 +198,9 @@
       "emailPlaceholder": "メールアドレスを入力",
       "webhookMS": "Webhook MS",
       "selectWebhook": "Webhookを選択",
-      "addNewWebhook": "新しいWebhookを追加"
+      "addNewWebhook": "新しいWebhookを追加",
+      "startOnLogin": "SVNToolを自動起動する",
+      "showNotifications": "ウィンドウ通知を表示する"
     },
     "mailserver": {
       "description": "メールサーバー設定を構成します。",

@@ -9,6 +9,8 @@ export type Schema = {
   oneDriveClientId: string
   oneDriveClientSecret: string
   oneDriveRefreshToken: string
+  startOnLogin: boolean
+  showNotifications: boolean
 }
 
 const config = new Store<Schema>({
@@ -22,6 +24,8 @@ const config = new Store<Schema>({
     oneDriveClientId: '',
     oneDriveClientSecret: '',
     oneDriveRefreshToken: '',
+    startOnLogin: false,
+    showNotifications: true,
   },
 })
 

@@ -1,8 +1,10 @@
 import type { BrowserWindow } from 'electron'
-import { app, ipcMain } from 'electron'
+import { Notification, app, ipcMain } from 'electron'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
 import { IPC } from '../constants'
+import configurationStore from '../store/ConfigurationStore'
+import { updateAppStatus } from '../windows/overlayStateManager'
 
 const currentVersion = app.getVersion()
 log.transports.file.level = 'info'
@@ -11,11 +13,23 @@ autoUpdater.forceDevUpdateConfig = true
 autoUpdater.autoDownload = true
 
 export function initAutoUpdater(window: BrowserWindow) {
+  const { showNotifications } = configurationStore.store
   autoUpdater.on('checking-for-update', () => {
     window.webContents.send(IPC.UPDATER.STATUS, { status: 'checking' })
   })
 
   autoUpdater.on('update-available', info => {
+    log.info(`Update available: ${info.version}`)
+    updateAppStatus(true)
+    if (showNotifications && Notification.isSupported()) {
+      const notification = new Notification({
+        title: 'Update Available',
+        body: `Version ${info.version} is available. It will be downloaded in the background.`,
+      })
+      notification.show()
+    } else {
+      log.warn('[Updater] Notifications not supported on this system.')
+    }
     window.webContents.send(IPC.UPDATER.STATUS, {
       status: 'available',
       version: info.version,
@@ -25,10 +39,12 @@ export function initAutoUpdater(window: BrowserWindow) {
   })
 
   autoUpdater.on('update-not-available', info => {
+    updateAppStatus(false)
     window.webContents.send(IPC.UPDATER.STATUS, { status: 'not-available' })
   })
 
   autoUpdater.on('error', err => {
+    updateAppStatus(false)
     window.webContents.send(IPC.UPDATER.STATUS, { status: 'error', error: err.message })
   })
 
@@ -40,6 +56,7 @@ export function initAutoUpdater(window: BrowserWindow) {
   })
 
   autoUpdater.on('update-downloaded', info => {
+    updateAppStatus(true)
     window.webContents.send(IPC.UPDATER.STATUS, {
       status: 'downloaded',
       version: info.version,

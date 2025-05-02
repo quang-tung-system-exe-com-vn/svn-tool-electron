@@ -112,11 +112,25 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
     }
     checkAppUpdates()
     checkSvnUpdates()
-    const interval = setInterval(() => {
-      checkAppUpdates()
-      checkSvnUpdates()
-    }, 300000) // Check every 5 minutes
-    return () => clearInterval(interval)
+
+    const appUpdateInterval = setInterval(
+      () => {
+        checkAppUpdates()
+      },
+      5 * 60 * 1000 // Check every 5 minutes
+    )
+
+    const svnUpdateInterval = setInterval(
+      () => {
+        checkSvnUpdates()
+      },
+      5 * 60 * 1000 // Check every 5 minutes
+    )
+
+    return () => {
+      clearInterval(appUpdateInterval)
+      clearInterval(svnUpdateInterval)
+    }
   }, [])
 
   const checkForUpdates = async () => {
@@ -196,7 +210,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
         {/* Left Section (Menu) */}
         <div className="flex items-center h-full">
           <div className="w-15 h-6 flex justify-center pt-1.5 pl-1">
-            {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="icon.png" alt="icon" draggable="false" className="w-10 h-3.5 dark:brightness-130" />}
+            {isLoading ? <GlowLoader className="w-10 h-4" /> : <img src="logo.png" alt="icon" draggable="false" className="w-10 h-3.5 dark:brightness-130" />}
           </div>
           <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
             <div className="flex items-center gap-1 pt-0.5">

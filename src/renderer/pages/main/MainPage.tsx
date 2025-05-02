@@ -445,7 +445,7 @@ export function MainPage() {
               className="flex flex-col items-center gap-4 my-4"
             >
               <div className="w-24 h-24">
-                <img src="icon.png" alt="App Logo" className="w-full h-full object-contain dark:brightness-125" />
+                <img src="logo.png" alt="App Logo" className="w-full h-full object-contain dark:brightness-125" />
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10">

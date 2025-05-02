@@ -34,7 +34,7 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4 text-sm w-full">
           <div className="w-25 h-25">
-            <img src="icon.png" alt="App Logo" className="w-full h-full object-contain dark:brightness-130" />
+            <img src="logo.png" alt="App Logo" className="w-full h-full object-contain dark:brightness-130" />
           </div>
           <table className="text-sm w-full max-w-md">
             <tbody>

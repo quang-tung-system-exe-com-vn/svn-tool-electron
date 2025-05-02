@@ -1,6 +1,9 @@
 import { exec } from 'node:child_process'
+import path from 'node:path'
 import { promisify } from 'node:util'
+import { Notification, app } from 'electron'
 import configurationStore from '../store/ConfigurationStore'
+import { updateRevisionStatus } from '../windows/overlayStateManager'
 
 const execPromise = promisify(exec)
 
@@ -15,7 +18,7 @@ export interface SVNLastChangedInfo {
 
 export async function info(filePath: string): Promise<SVNResponse> {
   try {
-    const { sourceFolder } = configurationStore.store
+    const { sourceFolder, showNotifications } = configurationStore.store
     const quotedPath = `"${filePath}"`
 
     const runInfo = async (rev?: string): Promise<string> => {
@@ -42,18 +45,41 @@ export async function info(filePath: string): Promise<SVNResponse> {
       ...head,
       changedFiles: commit.changedFiles,
       commitMessage: commit.commitMessage,
-      curRevision: base.revision
+      curRevision: base.revision,
     }
     if (head.revision !== base.revision) {
+      try {
+        updateRevisionStatus(true)
+        if (showNotifications) {
+          const icon = path.join(app.getAppPath(), 'src/resources/public/icon.ico')
+          const formattedDate = formatDate(head.date || '')
+          const bodyLines = [`Revision: ${head.revision} (current: ${base.revision})`, `Author: ${head.author || 'Unknown'}`, `Date: ${formattedDate || 'Invalid date'}`]
+          new Notification({
+            title: 'SVN Update Available',
+            body: bodyLines.join('\n'),
+            icon: icon,
+          }).show()
+        }
+      } catch (notificationError) {
+        console.error('Failed to process SVN update notification:', notificationError)
+      }
       return { status: 'success', data }
     }
+    updateRevisionStatus(false)
     return { status: 'no-change', data }
   } catch (error) {
+    updateRevisionStatus(false)
     return {
       status: 'error',
       message: error instanceof Error ? error.message : String(error),
     }
   }
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ` + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 async function getCommitInfo(): Promise<any> {
