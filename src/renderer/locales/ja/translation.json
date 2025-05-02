@@ -335,7 +335,7 @@
       "low": "低",
       "allIssues": "すべての問題",
       "issues": "問題",
-      "issueDetails": "問題の詳細",
+      "bugSummary": "バグ概要",
       "bugDetails": "バグの詳細",
       "location": "場所",
       "methodLocation": "メソッドの場所",
@@ -355,7 +355,17 @@
       "fileStatsChart": "ファイル別のバグの数",
       "fileStatsChartDescription": "プロジェクト内の各ファイルに見つかったバグの数を表示します。",
       "packageStatsChart": "パッケージ別のバグの数",
-      "packageStatsChartDescription": "プロジェクト内の異なるパッケージにおけるバグの分布を表示します。"
+      "packageStatsChartDescription": "プロジェクト内の異なるパッケージにおけるバグの分布を表示します。",
+      "aiAssistant": "AIアシスタント",
+      "ai": {
+        "title": "AIアシスタント",
+        "description": "ファイル {{file}}、行 {{line}}、タイプ {{type}} のエラーを説明します。",
+        "explainButton": "このエラーを説明する",
+        "customQueryLabel": "このバグに関するカスタム質問",
+        "customQueryPlaceholder": "例：この問題をベストプラクティスで修正するには？",
+        "sendQueryButton": "質問を送信",
+        "responseTitle": "AIの回答"
+      }
     },
     "diffViewer": {
       "title": "差分ビューア",

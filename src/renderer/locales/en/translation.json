@@ -335,7 +335,7 @@
       "low": "Low",
       "allIssues": "All Issues",
       "issues": "Issues",
-      "issueDetails": "Issue Details",
+      "bugSummary": "Bug Summary",
       "bugDetails": "Bug Details",
       "location": "Location",
       "methodLocation": "Method Location",
@@ -357,7 +357,17 @@
       "fileStatsChart": "Bug Count by File",
       "fileStatsChartDescription": "Shows the number of bugs found in each file within the project.",
       "packageStatsChart": "Bug Count by Package",
-      "packageStatsChartDescription": "Displays the distribution of bugs across different packages in the project."
+      "packageStatsChartDescription": "Displays the distribution of bugs across different packages in the project.",
+      "aiAssistant": "AI Assistant",
+      "ai": {
+        "title": "AI Assistant",
+        "description": "Explaining error in file: {{file}}, line: {{line}}, type: {{type}}.",
+        "explainButton": "Explain this error",
+        "customQueryLabel": "Custom question about this bug",
+        "customQueryPlaceholder": "E.g., How to fix this issue in best practice?",
+        "sendQueryButton": "Send question",
+        "responseTitle": "AI Response"
+      }
     },
     "diffViewer": {
       "title": "Diff Viewer",

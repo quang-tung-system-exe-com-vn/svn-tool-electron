@@ -39,6 +39,7 @@ declare global {
 
       openai: {
         send_message: (params: any) => Promise<string>
+        chat: (prompt: string) => Promise<string>
       }
 
       notification: {
@@ -119,17 +120,16 @@ contextBridge.exposeInMainWorld('api', {
 
   openai: {
     send_message: (data: {
-      apiKey: string
       type: keyof typeof PROMPT
       values: Record<string, string>
     }) => {
       const { type, values } = data
       const template = PROMPT[type]
       const prompt = Object.entries(values).reduce((result, [key, val]) => result.replaceAll(`{${key}}`, val), template)
-      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, {
-        apiKey: data.apiKey,
-        prompt,
-      })
+      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, prompt)
+    },
+    chat: (prompt: string) => {
+      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, prompt)
     },
   },
 

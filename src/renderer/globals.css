@@ -1425,48 +1425,49 @@
   /* === INFO === */
   .toast-info {
     font-size: 0.85rem !important;
-    /* background-color: oklch(0.932 0.032 255.585) !important; */
+    background-color: oklch(0.932 0.032 255.585) !important;
     color: oklch(0.424 0.199 265.638) !important;
   }
   [data-theme-mode="dark"] .toast-info {
-    /* background-color: oklch(0.379 0.146 265.522) !important; */
+    background-color: oklch(0.379 0.146 265.522) !important;
     color: oklch(0.882 0.059 254.128) !important;
   }
 
   /* === SUCCESS === */
   .toast-success {
     font-size: 0.85rem !important;
-    /* background-color: oklch(0.962 0.044 156.743) !important; */
+    background-color: oklch(0.962 0.044 156.743) !important;
     color: oklch(0.448 0.119 151.328) !important;
   }
   [data-theme-mode="dark"] .toast-success {
-    /* background-color: oklch(0.393 0.095 152.535) !important; */
+    background-color: oklch(0.393 0.095 152.535) !important;
     color: oklch(0.962 0.044 156.743) !important;
   }
 
   /* === WARNING === */
   .toast-warning {
     font-size: 0.85rem !important;
-    /* background-color: oklch(0.973 0.071 103.193) !important; */
+    background-color: oklch(0.973 0.071 103.193) !important;
     color: oklch(0.476 0.114 61.907) !important;
   }
   [data-theme-mode="dark"] .toast-warning {
-    /* background-color: oklch(0.476 0.114 61.907) !important; */
+    background-color: oklch(0.476 0.114 61.907) !important;
     color: oklch(0.973 0.071 103.193) !important;
   }
 
   /* === ERROR === */
   .toast-error {
     font-size: 0.85rem !important;
-    /* background-color: oklch(0.936 0.032 17.717) !important; */
+    background-color: oklch(0.936 0.032 17.717) !important;
     color: oklch(0.444 0.177 26.899) !important;
   }
   [data-theme-mode="dark"] .toast-error {
-    /* background-color: oklch(0.396 0.141 25.723) !important; */
+    background-color: oklch(0.396 0.141 25.723) !important;
     color: oklch(0.936 0.032 17.717) !important;
   }
   [data-radix-scroll-area-viewport] {
     position: absolute;
+    display: contents;
   }
   [data-radix-scroll-area-viewport] > div {
     height: 100%;

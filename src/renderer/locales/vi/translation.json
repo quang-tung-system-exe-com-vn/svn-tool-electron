@@ -335,7 +335,7 @@
       "low": "Thấp",
       "allIssues": "Tất cả vấn đề",
       "issues": "Vấn đề",
-      "issueDetails": "Chi tiết vấn đề",
+      "bugSummary": "Tổng quan lỗi",
       "bugDetails": "Chi tiết lỗi",
       "location": "Vị trí",
       "methodLocation": "Vị trí phương thức",
@@ -355,7 +355,17 @@
       "fileStatsChart": "Số lượng lỗi theo file",
       "fileStatsChartDescription": "Hiển thị số lượng lỗi tìm thấy trong mỗi file của dự án.",
       "packageStatsChart": "Số lượng lỗi theo package",
-      "packageStatsChartDescription": "Hiển thị sự phân bố của các lỗi trong các package khác nhau của dự án."
+      "packageStatsChartDescription": "Hiển thị sự phân bố của các lỗi trong các package khác nhau của dự án.",
+      "aiAssistant": "Trợ lý AI",
+      "ai": {
+        "title": "Trợ lý AI",
+        "description": "Giải thích lỗi trong tệp: {{file}}, dòng: {{line}}, loại: {{type}}.",
+        "explainButton": "Giải thích lỗi này",
+        "customQueryLabel": "Câu hỏi tùy chỉnh về lỗi này",
+        "customQueryPlaceholder": "Ví dụ: Cách tốt nhất để khắc phục lỗi này?",
+        "sendQueryButton": "Gửi câu hỏi",
+        "responseTitle": "Phản hồi từ AI"
+      }
     },
     "diffViewer": {
       "title": "Diff Viewer",
