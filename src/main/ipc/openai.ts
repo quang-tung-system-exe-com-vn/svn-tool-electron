@@ -6,7 +6,7 @@ import configurationStore from '../store/ConfigurationStore'
 
 export function registerOpenAiIpcHandlers() {
   log.info('🔄 Registering OpenAI IPC Handlers...')
-  ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, { prompt }) => {
+  ipcMain.handle(IPC.OPENAI.SEND_MESSAGE, async (_event, prompt) => {
     try {
       log.info('Sending message to OpenAI...')
       const { openaiApiKey } = configurationStore.store

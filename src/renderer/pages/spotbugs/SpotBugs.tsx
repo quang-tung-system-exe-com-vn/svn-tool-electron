@@ -2,330 +2,28 @@
 import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Label } from '@/components/ui/label'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import logger from '@/services/logger'
-import { AlertCircle, AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BarChart as BarChartIcon, Bot, Bug, Info, List, Loader2 } from 'lucide-react'
+import { AlertCircle, AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BarChart as BarChartIcon, Bot, Bug, FileCode, Info, List } from 'lucide-react'
 import { forwardRef, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts'
+import { SpotbugsAIChat } from './SpotbugsAIChat'
 import { SpotbugsToolbar } from './SpotbugsToolbar'
-
-// Định nghĩa cấu trúc dữ liệu cho một dòng mã nguồn
-interface SourceLineInfo {
-  classname: string
-  start: number | null
-  end: number | null
-  startBytecode?: number | null
-  endBytecode?: number | null
-  sourcefile: string
-  sourcepath: string
-  relSourcepath?: string
-  synthetic?: boolean
-  role?: string
-  primary?: boolean
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một phương thức
-interface MethodInfo {
-  classname: string
-  name: string
-  signature: string
-  isStatic: boolean
-  role?: string
-  primary?: boolean
-  sourceLine: SourceLineInfo | null
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một trường
-interface FieldInfo {
-  classname: string
-  name: string
-  signature: string
-  sourceSignature?: string
-  isStatic: boolean
-  role?: string
-  primary?: boolean
-  sourceLine?: SourceLineInfo | null
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một biến cục bộ
-interface LocalVariableInfo {
-  name: string
-  register?: number | null
-  pc?: number | null
-  role?: string
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một thuộc tính
-interface PropertyInfo {
-  name: string
-  value: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một giá trị Int
-interface IntInfo {
-  value: number | null
-  role?: string
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một giá trị String
-interface StringInfo {
-  value: string
-  role?: string
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một lớp
-interface ClassInfo {
-  classname: string
-  role?: string
-  primary?: boolean
-  sourceLine?: SourceLineInfo | null
-  message?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho một lỗi
-interface BugInstance {
-  id: string
-  type: string
-  priority: number
-  rank: number
-  abbrev: string
-  category: string
-  cweid?: number
-  shortMessage: string
-  longMessage: string
-  classes: ClassInfo[]
-  methods: MethodInfo[]
-  fields: FieldInfo[]
-  localVariables: LocalVariableInfo[]
-  sourceLines: SourceLineInfo[]
-  ints: IntInfo[]
-  strings: StringInfo[]
-  properties: PropertyInfo[]
-  userAnnotation?: {
-    designation: string
-    user: string
-    needsSync: boolean
-    timestamp: number
-    value: string
-  }
-  patternDetails?: {
-    type: string
-    abbrev: string
-    category: string
-    cweid?: number
-    shortDescription: string
-    details: string
-  }
-  categoryDetails?: {
-    name: string
-    description: string
-    abbreviation: string
-    details: string
-  }
-  codeDetails?: {
-    abbrev: string
-    cweid?: number
-    description: string
-  }
-
-  // Các trường phụ thêm cho UI
-  className?: string
-  sourceFile?: string
-  startLine?: number
-  endLine?: number
-  message?: string
-  details?: string
-  categoryDescription?: string
-}
-
-// Định nghĩa cấu trúc dữ liệu cho kết quả phân tích
-interface SpotBugsResult {
-  version: {
-    version: string
-    sequence: number | null
-    timestamp: number | null
-    analysisTimestamp: number | null
-    release: string
-  }
-  project: {
-    projectName: string
-    filename: string
-    jars: string[]
-    srcDirs: string[]
-    auxClasspathEntries?: string[]
-    wrkDir?: string
-  }
-  summary: {
-    timestamp: string
-    totalClasses: number
-    referencedClasses: number
-    totalBugs: number
-    totalSize: number
-    numPackages: number
-    javaVersion?: string
-    vmVersion?: string
-    cpuSeconds?: number | null
-    clockSeconds?: number | null
-    peakMbytes?: number | null
-    allocMbytes?: number | null
-    gcSeconds?: number | null
-    priority1: number
-    priority2: number
-    priority3: number
-  }
-  fileStats: Array<{
-    path: string
-    bugCount: number
-    size?: number | null
-    bugHash?: string
-  }>
-  packageStats: Array<{
-    packageName: string
-    totalBugs: number
-    totalTypes: number
-    totalSize: number
-    priority1: number
-    priority2: number
-    priority3: number
-    classStats: Array<{
-      className: string
-      sourceFile?: string
-      interface: boolean
-      size: number
-      bugs: number
-      priority1: number
-      priority2: number
-      priority3: number
-    }>
-  }>
-  errors: {
-    errors: number
-    missingClasses: number
-    missingClassList: string[]
-  }
-  bugCategories: Record<string, any>
-  bugPatterns: Record<string, any>
-  bugCodes: Record<string, any>
-  bugInstances: BugInstance[]
-  bugCount: {
-    total: number
-    byPriority: {
-      high: number
-      medium: number
-      low: number
-    }
-  }
-}
-
-// Component cho khung chat AI
-const SpotbugsAIChat = ({ bug, isLoading: isParentLoading }: { bug: BugInstance | null; isLoading: boolean }) => {
-  const { t } = useTranslation()
-  const [aiResponse, setAiResponse] = useState('')
-  const [isAiLoading, setIsAiLoading] = useState(false)
-  const [userQuery, setUserQuery] = useState('')
-
-  useEffect(() => {
-    setAiResponse('')
-    setUserQuery('')
-    setIsAiLoading(false)
-  }, [bug])
-
-  const handleExplainError = async () => {
-    if (!bug) return
-    setIsAiLoading(true)
-    setAiResponse('')
-    try {
-      const prompt = `Explain the following SpotBugs issue found in file "${bug.sourceFile}" at line ${bug.startLine} (or around this line). Bug type: "${bug.type}", Category: "${bug.category}", Priority: ${bug.priority}, Message: "${bug.longMessage}". Provide a concise explanation and suggest possible solutions in Vietnamese.`
-      const response = await window.api.openai.chat(prompt)
-      setAiResponse(response || t('dialog.spotbugs.ai.noResponse'))
-    } catch (error) {
-      logger.error('AI explanation error:', error)
-      setAiResponse(t('dialog.spotbugs.ai.error'))
-      toast.error(t('toast.aiError'))
-    } finally {
-      setIsAiLoading(false)
-    }
-  }
-
-  const handleCustomQuery = async () => {
-    if (!bug || !userQuery.trim()) return
-    setIsAiLoading(true)
-    setAiResponse('')
-    try {
-      const prompt = `Regarding the SpotBugs issue (Type: "${bug.type}", File: "${bug.sourceFile}", Line: ${bug.startLine}, Message: "${bug.longMessage}"), the user asks: "${userQuery}". Please answer in Vietnamese.`
-      const response = await window.api.openai.chat(prompt)
-      setAiResponse(response || t('dialog.spotbugs.ai.noResponse'))
-    } catch (error) {
-      logger.error('AI custom query error:', error)
-      setAiResponse(t('dialog.spotbugs.ai.error'))
-      toast.error(t('toast.aiError'))
-    } finally {
-      setIsAiLoading(false)
-    }
-  }
-
-  if (isParentLoading || !bug) {
-    return <div className="p-4 text-center text-muted-foreground">{isParentLoading ? t('message.loading') : t('message.selectIssueToUseAI')}</div>
-  }
-
-  return (
-    <ScrollArea className="h-full p-4">
-      <div className="space-y-4">
-        <h4 className="font-semibold">{t('dialog.spotbugs.ai.title')}</h4>
-        <p className="text-sm text-muted-foreground">
-          {t('dialog.spotbugs.ai.description', { file: bug.sourceFile || 'N/A', line: bug.startLine || 'N/A', type: bug.type || 'N/A' })}
-        </p>
-        <Button onClick={handleExplainError} disabled={isAiLoading} size="sm">
-          {isAiLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {t('dialog.spotbugs.ai.explainButton')}
-        </Button>
-
-        <div className="mt-4 space-y-2">
-          <Label htmlFor="custom-query">{t('dialog.spotbugs.ai.customQueryLabel')}</Label>
-          <Textarea id="custom-query" value={userQuery} onChange={e => setUserQuery(e.target.value)} placeholder={t('dialog.spotbugs.ai.customQueryPlaceholder')} rows={3} />
-          <Button onClick={handleCustomQuery} disabled={isAiLoading || !userQuery.trim()} size="sm">
-            {isAiLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t('dialog.spotbugs.ai.sendQueryButton')}
-          </Button>
-        </div>
-
-        {isAiLoading && !aiResponse && (
-          <div className="flex items-center justify-center p-4">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        )}
-
-        {aiResponse && (
-          <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-4">
-            <h5 className="font-semibold">{t('dialog.spotbugs.ai.responseTitle')}</h5>
-            <p className="text-sm whitespace-pre-wrap">{aiResponse}</p>
-          </div>
-        )}
-      </div>
-    </ScrollArea>
-  )
-}
+import type { BugInstance, SpotBugsResult } from './constants'
 
 export function SpotBugs() {
   const { t } = useTranslation()
-  const [isLoading, setIsLoading] = useState(true) // Start as true initially
+  const [isLoading, setIsLoading] = useState(true)
   const [filePaths, setFilePaths] = useState<string[]>([])
   const [spotbugsResult, setSpotbugsResult] = useState<SpotBugsResult>({
     version: { version: '', sequence: null, timestamp: null, analysisTimestamp: null, release: '' },
@@ -359,8 +57,14 @@ export function SpotBugs() {
         setSpotbugsResult(processedResult)
 
         if (processedResult.bugInstances.length > 0) {
-          setSelectedBug(processedResult.bugInstances[0])
+          const firstBug = processedResult.bugInstances[0]
+          setSelectedBug(firstBug)
           setActiveDetailTab('summary')
+
+          // Lấy code snippet cho bug đầu tiên
+          setTimeout(() => {
+            handleBugSelection(firstBug)
+          }, 100)
         } else {
           setSelectedBug(null)
         }
@@ -674,15 +378,59 @@ export function SpotBugs() {
     return getBarRadius(packageStatsData, ['priority3', 'priority2', 'priority1'])
   }, [packageStatsData])
 
-  const handleBugSelection = (bug: BugInstance) => {
+  const [codeSnippets, setCodeSnippets] = useState<Record<string, string>>({})
+  const [selectedSourceLineKey, setSelectedSourceLineKey] = useState<string>('')
+
+  const handleBugSelection = async (bug: BugInstance) => {
     setSelectedBug(bug)
     setActiveDetailTab('summary')
+
+    // Lấy code snippet cho tất cả source lines
+    if (bug.sourceLines && bug.sourceLines.length > 0) {
+      const snippets: Record<string, string> = {}
+
+      for (const sourceLine of bug.sourceLines) {
+        if (!sourceLine.sourcefile || sourceLine.start === null || sourceLine.end === null) continue
+
+        try {
+          // Tìm đường dẫn file tương ứng trong filePaths
+          const matchingFilePath = filePaths.find(filePath => filePath.endsWith(sourceLine.sourcefile) || sourceLine.sourcefile.endsWith(filePath))
+
+          if (matchingFilePath) {
+            logger.info(`Reading file from filePaths: ${matchingFilePath}`)
+
+            const fileContent = await window.api.system.read_file(matchingFilePath)
+            if (fileContent && typeof fileContent === 'string') {
+              const lines = fileContent.split('\n')
+              // Trừ đi 5 dòng ở start line và thêm 5 dòng ở end line để có cái nhìn tổng quan hơn
+              const startIdx = Math.max(0, sourceLine.start - 6) // -1 (0-based) - 5 (context)
+              const endIdx = Math.min(lines.length - 1, sourceLine.end + 4) // -1 (0-based) + 5 (context)
+              const codeSnippet = lines.slice(startIdx, endIdx + 1).join('\n')
+
+              const key = `${sourceLine.classname}:${sourceLine.start}-${sourceLine.end}`
+              snippets[key] = codeSnippet
+            }
+          }
+        } catch (error) {
+          logger.error('Error reading source file:', error)
+        }
+      }
+
+      setCodeSnippets(snippets)
+    }
+
     if (bug.sourceFile && bug.startLine && bug.startLine > 0) {
       logger.info(`Requesting to open file: ${bug.sourceFile} at line ${bug.startLine}`)
       window.api.electron.send('open-file-in-editor', { filePath: bug.sourceFile, lineNumber: bug.startLine })
     } else {
       logger.info('Cannot open file: sourceFile or startLine is missing or invalid.', bug)
     }
+  }
+
+  const handleExplainInAI = (sourceLine: any) => {
+    const sourceLineKey = `${sourceLine.classname}:${sourceLine.start}-${sourceLine.end}`
+    setSelectedSourceLineKey(sourceLineKey)
+    setActiveDetailTab('ai')
   }
 
   return (
@@ -889,66 +637,65 @@ export function SpotBugs() {
                                       <h3 className="text-sm font-semibold">{t('table.message')}</h3>
                                       <p className="text-xs mt-2 break-all text-muted-foreground">{selectedBug.longMessage}</p>
                                     </div>
-                                  </div>
-                                  <div className="space-y-4">
-                                    <div>
+
+                                    <div className="border rounded-md bg-muted/30 p-4">
                                       <h3 className="text-sm font-medium">{t('table.class')}</h3>
                                       <p className="text-sm font-mono">{selectedBug.className}</p>
-                                    </div>
 
-                                    {selectedBug.methods && selectedBug.methods.length > 0 && (
-                                      <div>
-                                        <h3 className="text-sm font-medium">{t('dialog.spotbugs.methods')}</h3>
-                                        <div className="space-y-4 mt-2">
-                                          {selectedBug.methods.map((method, index) => (
-                                            <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
-                                              <table className="min-w-full">
-                                                <tbody>
-                                                  {/* Method Name */}
-                                                  <tr>
-                                                    <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px] w-[90px]">{t('dialog.spotbugs.name')}</th>
-                                                    <td className="text-xs p-2 border-b-[1px] font-mono font-bold">{method.name}</td>
-                                                  </tr>
-
-                                                  {/* Message */}
-                                                  {method.message && (
+                                      {selectedBug.methods && selectedBug.methods.length > 0 && (
+                                        <div>
+                                          <h3 className="text-sm font-medium">{t('dialog.spotbugs.methods')}</h3>
+                                          <div className="space-y-4 mt-2">
+                                            {selectedBug.methods.map((method, index) => (
+                                              <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
+                                                <table className="min-w-full">
+                                                  <tbody>
+                                                    {/* Method Name */}
                                                     <tr>
-                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('table.message')}</th>
-                                                      <td className="text-xs p-2 border-b-[1px] break-all">{method.message}</td>
+                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px] w-[90px]">{t('dialog.spotbugs.name')}</th>
+                                                      <td className="text-xs p-2 border-b-[1px] font-mono font-bold">{method.name}</td>
                                                     </tr>
-                                                  )}
 
-                                                  {/* Lines */}
-                                                  {method.sourceLine && (
-                                                    <tr>
-                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('dialog.spotbugs.lines')}</th>
-                                                      <td className="text-xs p-2 border-b-[1px]">
-                                                        {method.sourceLine.start} - {method.sourceLine.end}
-                                                      </td>
-                                                    </tr>
-                                                  )}
+                                                    {/* Message */}
+                                                    {method.message && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('table.message')}</th>
+                                                        <td className="text-xs p-2 border-b-[1px] break-all">{method.message}</td>
+                                                      </tr>
+                                                    )}
 
-                                                  {/* Roles (Colspan 2) */}
-                                                  {(method.isStatic || method.primary || (method.role && method.role !== 'PRIMARY')) && (
-                                                    <tr>
-                                                      <td className="text-xs p-2" colSpan={2}>
-                                                        <div className="flex flex-wrap gap-2">
-                                                          {method.isStatic && <Badge className="bg-black text-white dark:bg-white dark:text-black">STATIC</Badge>}
-                                                          {method.primary && <Badge className="bg-black text-white dark:bg-white dark:text-black">PRIMARY</Badge>}
-                                                          {method.role && method.role !== 'PRIMARY' && (
-                                                            <Badge className="bg-black text-white dark:bg-white dark:text-black">{method.role}</Badge>
-                                                          )}
-                                                        </div>
-                                                      </td>
-                                                    </tr>
-                                                  )}
-                                                </tbody>
-                                              </table>
-                                            </div>
-                                          ))}
+                                                    {/* Lines */}
+                                                    {method.sourceLine && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('dialog.spotbugs.lines')}</th>
+                                                        <td className="text-xs p-2 border-b-[1px]">
+                                                          {method.sourceLine.start} - {method.sourceLine.end}
+                                                        </td>
+                                                      </tr>
+                                                    )}
+
+                                                    {/* Roles (Colspan 2) */}
+                                                    {(method.isStatic || method.primary || (method.role && method.role !== 'PRIMARY')) && (
+                                                      <tr>
+                                                        <td className="text-xs p-2" colSpan={2}>
+                                                          <div className="flex flex-wrap gap-2">
+                                                            {method.isStatic && <Badge className="bg-black text-white dark:bg-white dark:text-black">STATIC</Badge>}
+                                                            {method.primary && <Badge className="bg-black text-white dark:bg-white dark:text-black">PRIMARY</Badge>}
+                                                            {method.role && method.role !== 'PRIMARY' && (
+                                                              <Badge className="bg-black text-white dark:bg-white dark:text-black">{method.role}</Badge>
+                                                            )}
+                                                          </div>
+                                                        </td>
+                                                      </tr>
+                                                    )}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
+                                    </div>
                                   </div>
                                 </ScrollArea>
                               </TabsContent>
@@ -966,52 +713,98 @@ export function SpotBugs() {
                                       <div>
                                         <h3 className="text-sm font-medium">{t('dialog.spotbugs.sourceLines')}</h3>
                                         <div className="mt-2 space-y-4">
-                                          {selectedBug.sourceLines.map((sourceLine, index) => (
-                                            <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
-                                              <table className="min-w-full">
-                                                <tbody>
-                                                  <tr>
-                                                    <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px] w-[90px]">{t('table.class')}</th>
-                                                    <td className="text-xs p-2 border-b-[1px] break-all">{sourceLine.classname}</td>
-                                                  </tr>
-                                                  {sourceLine.sourcefile && (
+                                          {selectedBug.sourceLines.map((sourceLine, index) => {
+                                            const sourceLineKey = `${sourceLine.classname}:${sourceLine.start}-${sourceLine.end}`
+                                            const codeSnippet = codeSnippets[sourceLineKey]
+
+                                            return (
+                                              <div key={index} className="overflow-x-auto border rounded-md bg-muted/30">
+                                                <table className="min-w-full">
+                                                  <tbody>
                                                     <tr>
-                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('table.file')}</th>
-                                                      <td className="text-xs p-2 border-b-[1px] break-all">{sourceLine.sourcefile}</td>
+                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px] w-[90px]">{t('table.class')}</th>
+                                                      <td className="text-xs p-2 border-b-[1px] break-all">{sourceLine.classname}</td>
                                                     </tr>
-                                                  )}
-                                                  {(sourceLine.start !== null || sourceLine.end !== null) && (
+                                                    {sourceLine.sourcefile && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('table.file')}</th>
+                                                        <td className="text-xs p-2 border-b-[1px] break-all">{sourceLine.sourcefile}</td>
+                                                      </tr>
+                                                    )}
+                                                    {(sourceLine.start !== null || sourceLine.end !== null) && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('dialog.spotbugs.lines')}</th>
+                                                        <td className="text-xs p-2 border-b-[1px]">
+                                                          {`${sourceLine.start !== null ? sourceLine.start : '?'} - ${sourceLine.end !== null ? sourceLine.end : '?'}`}
+                                                        </td>
+                                                      </tr>
+                                                    )}
+                                                    {sourceLine.role && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">Role</th>
+                                                        <td className="text-xs p-2 border-b-[1px]">
+                                                          <Badge className="bg-black text-white dark:bg-white dark:text-black">{sourceLine.role}</Badge>
+                                                        </td>
+                                                      </tr>
+                                                    )}
                                                     <tr>
-                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('dialog.spotbugs.lines')}</th>
+                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">Primary</th>
                                                       <td className="text-xs p-2 border-b-[1px]">
-                                                        {`${sourceLine.start !== null ? sourceLine.start : '?'} - ${sourceLine.end !== null ? sourceLine.end : '?'}`}
+                                                        {sourceLine.primary ? <Badge className="bg-black text-white dark:bg-white dark:text-black">PRIMARY</Badge> : '-'}
                                                       </td>
                                                     </tr>
-                                                  )}
-                                                  {sourceLine.role && (
+                                                    {sourceLine.message && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">{t('table.message')}</th>
+                                                        <td className="text-xs p-2 border-b-[1px] break-all">{sourceLine.message}</td>
+                                                      </tr>
+                                                    )}
+                                                    {codeSnippet && (
+                                                      <tr>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">Code Snippet</th>
+                                                        <td className="text-xs p-2 border-b-[1px]">
+                                                          <Accordion type="single" collapsible className="w-full">
+                                                            <AccordionItem value="code-snippet">
+                                                              <AccordionTrigger className="text-xs py-1">
+                                                                <div className="flex items-center">
+                                                                  <FileCode className="h-4 w-4 mr-2" />
+                                                                  Xem Code Snippet
+                                                                </div>
+                                                              </AccordionTrigger>
+                                                              <AccordionContent>
+                                                                <div className="border rounded-md bg-slate-950 dark:bg-slate-900 overflow-hidden">
+                                                                  <div className="p-3 overflow-x-auto">
+                                                                    <div className="font-mono text-xs">
+                                                                      {codeSnippet.split('\n').map((line, i) => (
+                                                                        <div key={i} className="flex">
+                                                                          <div className="text-slate-500 w-10 text-right pr-2 select-none border-r border-slate-700 mr-3">
+                                                                            {sourceLine.start !== null ? Math.max(1, sourceLine.start - 5) + i : i + 1}
+                                                                          </div>
+                                                                          <div className="text-slate-200 dark:text-slate-300 whitespace-pre">{line || ' '}</div>
+                                                                        </div>
+                                                                      ))}
+                                                                    </div>
+                                                                  </div>
+                                                                </div>
+                                                              </AccordionContent>
+                                                            </AccordionItem>
+                                                          </Accordion>
+                                                        </td>
+                                                      </tr>
+                                                    )}
                                                     <tr>
-                                                      <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">Role</th>
-                                                      <td className="text-xs p-2 border-b-[1px]">
-                                                        <Badge className="bg-black text-white dark:bg-white dark:text-black">{sourceLine.role}</Badge>
+                                                      <td colSpan={2} className="p-2 text-right">
+                                                        <Button variant="outline" size="sm" onClick={() => handleExplainInAI(sourceLine)} className="text-xs">
+                                                          <Bot className="h-3 w-3 mr-1" />
+                                                          Giải thích lỗi
+                                                        </Button>
                                                       </td>
                                                     </tr>
-                                                  )}
-                                                  <tr>
-                                                    <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">Primary</th>
-                                                    <td className="text-xs p-2  border-b-[1px]">
-                                                      {sourceLine.primary ? <Badge className="bg-black text-white dark:bg-white dark:text-black">PRIMARY</Badge> : '-'}
-                                                    </td>
-                                                  </tr>
-                                                  {sourceLine.message && (
-                                                    <tr>
-                                                      <th className="text-xs p-2 text-left border-r-[1px]">{t('table.message')}</th>
-                                                      <td className="text-xs p-2 break-all">{sourceLine.message}</td>
-                                                    </tr>
-                                                  )}
-                                                </tbody>
-                                              </table>
-                                            </div>
-                                          ))}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            )
+                                          })}
                                         </div>
                                       </div>
                                     )}
@@ -1080,7 +873,7 @@ export function SpotBugs() {
                               </TabsContent>
                               {/* AI Assistant Tab */}
                               <TabsContent value="ai" className="mt-2 border-0 p-0 flex-1 overflow-hidden">
-                                <SpotbugsAIChat bug={selectedBug} isLoading={isLoading} />
+                                <SpotbugsAIChat bug={selectedBug} isLoading={isLoading} filePaths={filePaths} />
                               </TabsContent>
                             </Tabs>
                           </div>
