@@ -1,7 +1,7 @@
 'use client'
+import { CodeSnippetDialog } from '@/components/dialogs/CodeSnippetDialog' // Import mới
 import { LANGUAGES } from '@/components/shared/constants'
 import toast from '@/components/ui-elements/Toast'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -105,17 +105,12 @@ export const SpotbugsAIChat = ({
 
   const getCodeSnippet = async (sourceFile: string, startLine: number, endLine: number): Promise<string> => {
     try {
-      // Tìm đường dẫn file tương ứng trong filePaths
       const matchingFilePath = filePaths.find(filePath => filePath.endsWith(sourceFile) || sourceFile.endsWith(filePath))
-
       if (matchingFilePath) {
         logger.info(`Reading file from filePaths: ${matchingFilePath}`)
-
         const fileContent = await window.api.system.read_file(matchingFilePath)
         if (fileContent && typeof fileContent === 'string') {
           const lines = fileContent.split('\n')
-
-          // Trừ đi 5 dòng ở start line và thêm 5 dòng ở end line để có cái nhìn tổng quan hơn
           const startIdx = Math.max(0, startLine - 6) // -1 (0-based) - 5 (context)
           const endIdx = Math.min(lines.length - 1, endLine + 4) // -1 (0-based) + 5 (context)
           return lines.slice(startIdx, endIdx + 1).join('\n')
@@ -222,39 +217,22 @@ export const SpotbugsAIChat = ({
         {selectedOption && (
           <div className="space-y-2">
             <Label>Class</Label>
-            <div className="text-sm font-mono p-2 bg-muted rounded-md">{selectedOption.sourceLine.classname}</div>
+            <div className="text-sm p-2 bg-muted rounded-md">{selectedOption.sourceLine.classname}</div>
 
             <Label>Code Snippet</Label>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="code-snippet">
-                <AccordionTrigger className="text-sm font-medium">
-                  <div className="flex items-center">
-                    <FileCode className="h-4 w-4 mr-2" />
-                    Xem Code Snippet
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="border rounded-md bg-slate-950 dark:bg-slate-900 overflow-hidden">
-                    <div className="p-3 overflow-x-auto">
-                      {codeSnippets[selectedSourceLine] ? (
-                        <div className="font-mono text-xs">
-                          {codeSnippets[selectedSourceLine].split('\n').map((line, i) => (
-                            <div key={i} className="flex">
-                              <div className="text-slate-500 w-10 text-right pr-2 select-none border-r border-slate-700 mr-3">
-                                {selectedOption?.sourceLine.start !== null ? Math.max(1, selectedOption.sourceLine.start - 5) + i : i + 1}
-                              </div>
-                              <div className="text-slate-200 dark:text-slate-300 whitespace-pre">{line || ' '}</div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-slate-400 p-2">Không có code snippet</div>
-                      )}
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <CodeSnippetDialog
+              trigger={
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <FileCode className="h-4 w-4 mr-2" />
+                  Xem Code Snippet
+                </Button>
+              }
+              title={`${selectedOption.sourceLine.sourcefile} (${selectedOption.sourceLine.start}-${selectedOption.sourceLine.end})`}
+              fileContent={null}
+              codeSnippet={codeSnippets[selectedSourceLine]}
+              startLine={selectedOption.sourceLine.start}
+              endLine={selectedOption.sourceLine.end}
+            />
           </div>
         )}
 

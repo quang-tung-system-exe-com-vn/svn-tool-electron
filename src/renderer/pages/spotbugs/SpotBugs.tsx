@@ -1,8 +1,8 @@
 'use client'
+import { CodeSnippetDialog } from '@/components/dialogs/CodeSnippetDialog'
 import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
 import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,6 +42,10 @@ export function SpotBugs() {
   const [activeTab, setActiveTab] = useState('all')
   const [activeDetailTab, setActiveDetailTab] = useState('summary')
 
+  const [fileContent, setFileContent] = useState('')
+  const [codeSnippets, setCodeSnippets] = useState<Record<string, string>>({})
+  const [selectedSourceLineKey, setSelectedSourceLineKey] = useState<string>('')
+
   useEffect(() => {
     const handler = (_event: any, data: { filePaths: string[]; spotbugsResult?: any; error?: string }) => {
       setIsLoading(true)
@@ -60,11 +64,7 @@ export function SpotBugs() {
           const firstBug = processedResult.bugInstances[0]
           setSelectedBug(firstBug)
           setActiveDetailTab('summary')
-
-          // Lấy code snippet cho bug đầu tiên
-          setTimeout(() => {
-            handleBugSelection(firstBug)
-          }, 100)
+          // Không gọi handleBugSelection ở đây nữa, sẽ dùng useEffect riêng
         } else {
           setSelectedBug(null)
         }
@@ -82,6 +82,58 @@ export function SpotBugs() {
       window.api.removeAllListeners('load-diff-data') // Corrected: Use removeAllListeners
     }
   }, [t])
+
+  // useEffect để lấy code snippet khi selectedBug thay đổi
+  useEffect(() => {
+    if (selectedBug) {
+      fetchCodeSnippetsForBug(selectedBug)
+
+      // Mở file trong editor
+      if (selectedBug.sourceFile && selectedBug.startLine && selectedBug.startLine > 0) {
+        logger.info(`Requesting to open file: ${selectedBug.sourceFile} at line ${selectedBug.startLine}`)
+        window.api.electron.send('open-file-in-editor', { filePath: selectedBug.sourceFile, lineNumber: selectedBug.startLine })
+      } else {
+        logger.info('Cannot open file: sourceFile or startLine is missing or invalid.', selectedBug)
+      }
+    } else {
+      // Reset khi không có bug nào được chọn
+      setCodeSnippets({})
+      setFileContent('')
+    }
+  }, [selectedBug, filePaths]) // Thêm filePaths vào dependency array
+
+  // Hàm mới để lấy code snippets
+  const fetchCodeSnippetsForBug = async (bug: BugInstance) => {
+    if (bug.sourceLines && bug.sourceLines.length > 0) {
+      const snippets: Record<string, string> = {}
+      let mainFileContent = '' // Lưu nội dung file chính
+      for (const sourceLine of bug.sourceLines) {
+        if (!sourceLine.sourcefile || sourceLine.start === null || sourceLine.end === null) continue
+        try {
+          const matchingFilePath = filePaths.find(filePath => filePath.endsWith(sourceLine.sourcefile) || sourceLine.sourcefile.endsWith(filePath))
+          if (matchingFilePath) {
+            const content = await window.api.system.read_file(matchingFilePath)
+            if (content && typeof content === 'string') {
+              const lines = content.split('\n')
+              const startIdx = Math.max(0, sourceLine.start - 6)
+              const endIdx = Math.min(lines.length - 1, sourceLine.end + 4)
+              const codeSnippet = lines.slice(startIdx, endIdx + 1).join('\n')
+              const key = `${sourceLine.classname}:${sourceLine.start}-${sourceLine.end}`
+              snippets[key] = codeSnippet
+              if (sourceLine.primary || !mainFileContent) {
+                // Ưu tiên file primary hoặc file đầu tiên
+                mainFileContent = content
+              }
+            }
+          }
+        } catch (error) {
+          logger.error('Error reading source file:', error)
+        }
+      }
+      setCodeSnippets(snippets)
+      setFileContent(mainFileContent) // Cập nhật nội dung file chính
+    }
+  }
 
   const handleRefresh = () => {
     setIsLoading(true)
@@ -378,53 +430,11 @@ export function SpotBugs() {
     return getBarRadius(packageStatsData, ['priority3', 'priority2', 'priority1'])
   }, [packageStatsData])
 
-  const [codeSnippets, setCodeSnippets] = useState<Record<string, string>>({})
-  const [selectedSourceLineKey, setSelectedSourceLineKey] = useState<string>('')
-
-  const handleBugSelection = async (bug: BugInstance) => {
+  // Hàm xử lý khi chọn một bug trong bảng
+  const handleBugSelection = (bug: BugInstance) => {
     setSelectedBug(bug)
     setActiveDetailTab('summary')
-
-    // Lấy code snippet cho tất cả source lines
-    if (bug.sourceLines && bug.sourceLines.length > 0) {
-      const snippets: Record<string, string> = {}
-
-      for (const sourceLine of bug.sourceLines) {
-        if (!sourceLine.sourcefile || sourceLine.start === null || sourceLine.end === null) continue
-
-        try {
-          // Tìm đường dẫn file tương ứng trong filePaths
-          const matchingFilePath = filePaths.find(filePath => filePath.endsWith(sourceLine.sourcefile) || sourceLine.sourcefile.endsWith(filePath))
-
-          if (matchingFilePath) {
-            logger.info(`Reading file from filePaths: ${matchingFilePath}`)
-
-            const fileContent = await window.api.system.read_file(matchingFilePath)
-            if (fileContent && typeof fileContent === 'string') {
-              const lines = fileContent.split('\n')
-              // Trừ đi 5 dòng ở start line và thêm 5 dòng ở end line để có cái nhìn tổng quan hơn
-              const startIdx = Math.max(0, sourceLine.start - 6) // -1 (0-based) - 5 (context)
-              const endIdx = Math.min(lines.length - 1, sourceLine.end + 4) // -1 (0-based) + 5 (context)
-              const codeSnippet = lines.slice(startIdx, endIdx + 1).join('\n')
-
-              const key = `${sourceLine.classname}:${sourceLine.start}-${sourceLine.end}`
-              snippets[key] = codeSnippet
-            }
-          }
-        } catch (error) {
-          logger.error('Error reading source file:', error)
-        }
-      }
-
-      setCodeSnippets(snippets)
-    }
-
-    if (bug.sourceFile && bug.startLine && bug.startLine > 0) {
-      logger.info(`Requesting to open file: ${bug.sourceFile} at line ${bug.startLine}`)
-      window.api.electron.send('open-file-in-editor', { filePath: bug.sourceFile, lineNumber: bug.startLine })
-    } else {
-      logger.info('Cannot open file: sourceFile or startLine is missing or invalid.', bug)
-    }
+    // Việc lấy code snippet và mở file sẽ được xử lý bởi useEffect theo dõi selectedBug
   }
 
   const handleExplainInAI = (sourceLine: any) => {
@@ -485,7 +495,7 @@ export function SpotBugs() {
               <div className="space-y-4 flex-1 h-full flex flex-col overflow-hidden">
                 {(activeTab === 'all' || activeTab === 'high' || activeTab === 'medium' || activeTab === 'low') && (
                   <ResizablePanelGroup direction="horizontal">
-                    <ResizablePanel defaultSize={70} minSize={50} className="h-full pr-2">
+                    <ResizablePanel defaultSize={50} minSize={50} className="h-full pr-2">
                       <div className="flex flex-col border rounded-md overflow-hidden h-full">
                         <div className="bg-muted p-2 font-medium">{t('dialog.spotbugs.issues')}</div>
                         <ScrollArea className="h-full w-full">
@@ -572,7 +582,7 @@ export function SpotBugs() {
                     </ResizablePanel>
                     <ResizableHandle className="bg-transparent" />
 
-                    <ResizablePanel defaultSize={30} minSize={30} className="h-full">
+                    <ResizablePanel defaultSize={50} minSize={50} className="h-full">
                       <div className="flex flex-col gap-4 h-full">
                         {selectedBug ? (
                           <div className="border rounded-md overflow-hidden h-full flex flex-col">
@@ -597,10 +607,6 @@ export function SpotBugs() {
                                   <AlertCircle strokeWidth={1.5} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugSummary')}</span>
                                 </TabsTrigger>
-                                {/* <TabsTrigger value="location" className="flex items-center gap-1">
-                                  <FileCode strokeWidth={1.5} className="h-4 w-4" />
-                                  <span>{t('dialog.spotbugs.location')}</span>
-                                </TabsTrigger> */}
                                 <TabsTrigger value="details" className="flex items-center gap-1">
                                   <Bug strokeWidth={1.5} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugDetails')}</span>
@@ -761,34 +767,21 @@ export function SpotBugs() {
                                                     )}
                                                     {codeSnippet && (
                                                       <tr>
-                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px]">Code Snippet</th>
+                                                        <th className="text-xs p-2 text-left border-b-[1px] border-r-[1px] align-top">Code Snippet</th>
                                                         <td className="text-xs p-2 border-b-[1px]">
-                                                          <Accordion type="single" collapsible className="w-full">
-                                                            <AccordionItem value="code-snippet">
-                                                              <AccordionTrigger className="text-xs py-1">
-                                                                <div className="flex items-center">
-                                                                  <FileCode className="h-4 w-4 mr-2" />
-                                                                  Xem Code Snippet
-                                                                </div>
-                                                              </AccordionTrigger>
-                                                              <AccordionContent>
-                                                                <div className="border rounded-md bg-slate-950 dark:bg-slate-900 overflow-hidden">
-                                                                  <div className="p-3 overflow-x-auto">
-                                                                    <div className="font-mono text-xs">
-                                                                      {codeSnippet.split('\n').map((line, i) => (
-                                                                        <div key={i} className="flex">
-                                                                          <div className="text-slate-500 w-10 text-right pr-2 select-none border-r border-slate-700 mr-3">
-                                                                            {sourceLine.start !== null ? Math.max(1, sourceLine.start - 5) + i : i + 1}
-                                                                          </div>
-                                                                          <div className="text-slate-200 dark:text-slate-300 whitespace-pre">{line || ' '}</div>
-                                                                        </div>
-                                                                      ))}
-                                                                    </div>
-                                                                  </div>
-                                                                </div>
-                                                              </AccordionContent>
-                                                            </AccordionItem>
-                                                          </Accordion>
+                                                          <CodeSnippetDialog
+                                                            trigger={
+                                                              <Button variant="outline" size="sm" className="w-full justify-start text-xs">
+                                                                <FileCode className="h-4 w-4 mr-2" />
+                                                                Xem Code Snippet
+                                                              </Button>
+                                                            }
+                                                            title={`${sourceLine.sourcefile} (${sourceLine.start}-${sourceLine.end})`}
+                                                            fileContent={fileContent}
+                                                            codeSnippet={null}
+                                                            startLine={sourceLine.start}
+                                                            endLine={sourceLine.end}
+                                                          />
                                                         </td>
                                                       </tr>
                                                     )}

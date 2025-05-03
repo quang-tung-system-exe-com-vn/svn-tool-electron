@@ -25,13 +25,13 @@ export function CodeDiffViewer() {
   const editorRef = useRef<any>(null)
   const { t } = useTranslation()
 
-  const filePathRef = useRef(filePath) // Khởi tạo useRef với giá trị ban đầu
-  const modifiedCodeRef = useRef(modifiedCode) // Khởi tạo useRef với giá trị ban đầu
+  const filePathRef = useRef(filePath)
+  const modifiedCodeRef = useRef(modifiedCode)
   useEffect(() => {
-    modifiedCodeRef.current = modifiedCode // Cập nhật giá trị mỗi khi modifiedCode thay đổi
+    modifiedCodeRef.current = modifiedCode
   }, [modifiedCode])
   useEffect(() => {
-    filePathRef.current = filePath // Cập nhật giá trị mỗi khi modifiedCode thay đổi
+    filePathRef.current = filePath
   }, [filePath])
 
   window.addEventListener('storage', event => {
