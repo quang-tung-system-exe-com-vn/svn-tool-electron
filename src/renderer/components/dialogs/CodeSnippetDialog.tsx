@@ -93,8 +93,6 @@ export const CodeSnippetDialog = ({ trigger, title, fileContent, codeSnippet, st
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-hidden px-6 pb-6">
-          {' '}
-          {/* Thêm padding */}
           {displayContent ? (
             <Editor
               height="100%"
