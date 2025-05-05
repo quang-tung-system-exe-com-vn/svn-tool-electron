@@ -5,7 +5,6 @@ import i18n from '@/lib/i18n'
 import logger from '@/services/logger'
 import { useAppearanceStore } from '@/stores/useAppearanceStore'
 import { DiffEditor, type DiffOnMount, useMonaco } from '@monaco-editor/react'
-import { useTheme } from 'next-themes'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DiffFooterBar } from './DiffFooterBar'
@@ -13,7 +12,6 @@ import { DiffToolbar } from './DiffToolbar'
 
 export function CodeDiffViewer() {
   const monaco = useMonaco()
-  const { resolvedTheme } = useTheme()
   const { themeMode, setThemeMode } = useAppearanceStore()
   const [originalCode, setOriginalCode] = useState('')
   const [modifiedCode, setModifiedCode] = useState('')
@@ -51,7 +49,8 @@ export function CodeDiffViewer() {
       }
       html.classList.add(storage.state.theme)
       html.classList.add(storage.state.themeMode)
-      setThemeMode(storage.state.themeMode)
+      const selectedTheme = storage.state.themeMode === 'dark' ? 'custom-dark' : 'custom-light'
+      monaco?.editor.setTheme(selectedTheme)
     }
   })
 
@@ -246,7 +245,7 @@ export function CodeDiffViewer() {
 
     const selectedTheme = themeMode === 'dark' ? 'custom-dark' : 'custom-light'
     monaco.editor.setTheme(selectedTheme)
-  }, [monaco, themeMode, resolvedTheme])
+  }, [monaco, themeMode])
 
   const handleEditorMount: DiffOnMount = (editor, monaco) => {
     editorRef.current = editor

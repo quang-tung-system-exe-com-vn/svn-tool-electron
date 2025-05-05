@@ -74,7 +74,8 @@ export const CodeSnippetDialog = ({ trigger, title, fileContent, codeSnippet, st
       }
       html.classList.add(storage.state.theme)
       html.classList.add(storage.state.themeMode)
-      setThemeMode(storage.state.themeMode)
+      const selectedTheme = storage.state.themeMode === 'dark' ? 'custom-dark' : 'custom-light'
+      monaco?.editor.setTheme(selectedTheme)
     }
   })
   const firstSnippetLineNumber = startLine !== null && startLine !== undefined ? Math.max(1, startLine - 5) : 1

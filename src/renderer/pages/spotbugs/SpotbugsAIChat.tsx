@@ -1,15 +1,15 @@
 'use client'
 import { CodeSnippetDialog } from '@/components/dialogs/CodeSnippetDialog' // Import mới
 import { LANGUAGES } from '@/components/shared/constants'
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import logger from '@/services/logger'
-import { useAppearanceStore } from '@/stores/useAppearanceStore'
-import { FileCode, Loader2 } from 'lucide-react'
+import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
+import { Bot, FileCode, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BugInstance } from './constants'
@@ -37,6 +37,7 @@ export const SpotbugsAIChat = ({
   filePaths: string[]
   selectedSourceLineKey?: string
 }) => {
+  const variant = useButtonVariant()
   const { t } = useTranslation()
   const { language } = useAppearanceStore()
   const [aiResponse, setAiResponse] = useState('')
@@ -194,13 +195,13 @@ export const SpotbugsAIChat = ({
   const selectedOption = sourceLineOptions.find(option => option.value === selectedSourceLine)
 
   return (
-    <ScrollArea className="h-full p-4">
-      <div className="space-y-4">
-        {sourceLineOptions.length > 0 && (
-          <div className="space-y-2">
-            <Label htmlFor="source-line-select">Chọn Source Line</Label>
+    <div className="absolute inset-0 overflow-y-auto p-2 space-y-2">
+      {sourceLineOptions.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="source-line-select">Chọn Source Line</Label>
+          <div className="flex items-center space-x-2">
             <Select value={selectedSourceLine} onValueChange={handleSourceLineChange}>
-              <SelectTrigger id="source-line-select">
+              <SelectTrigger id="source-line-select" className="flex-grow">
                 <SelectValue placeholder="Chọn source line" />
               </SelectTrigger>
               <SelectContent>
@@ -211,58 +212,75 @@ export const SpotbugsAIChat = ({
                 ))}
               </SelectContent>
             </Select>
+            {selectedOption && (
+              <CodeSnippetDialog
+                trigger={
+                  <Button variant="outline" size="icon" title="Xem Code Snippet">
+                    <FileCode className="h-4 w-4" />
+                  </Button>
+                }
+                title={`${selectedOption.sourceLine.sourcefile} (${selectedOption.sourceLine.start}-${selectedOption.sourceLine.end})`}
+                fileContent={null}
+                codeSnippet={codeSnippets[selectedSourceLine]}
+                startLine={selectedOption.sourceLine.start}
+                endLine={selectedOption.sourceLine.end}
+              />
+            )}
+            <Button
+              id="explain-button"
+              className={`relative ${isAiLoading ? 'border-effect cursor-progress' : ''}`}
+              variant={variant}
+              size="icon"
+              title={t('dialog.spotbugs.ai.explainButton')}
+              onClick={() => {
+                if (!isAiLoading) {
+                  handleExplainError()
+                }
+              }}
+              disabled={!selectedOption || isAiLoading}
+            >
+              {isAiLoading ? <GlowLoader /> : <Bot className="h-4 w-4" />}
+            </Button>
           </div>
-        )}
-
-        {selectedOption && (
-          <div className="space-y-2">
-            <Label>Class</Label>
-            <div className="text-sm p-2 bg-muted rounded-md">{selectedOption.sourceLine.classname}</div>
-
-            <Label>Code Snippet</Label>
-            <CodeSnippetDialog
-              trigger={
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <FileCode className="h-4 w-4 mr-2" />
-                  Xem Code Snippet
-                </Button>
-              }
-              title={`${selectedOption.sourceLine.sourcefile} (${selectedOption.sourceLine.start}-${selectedOption.sourceLine.end})`}
-              fileContent={null}
-              codeSnippet={codeSnippets[selectedSourceLine]}
-              startLine={selectedOption.sourceLine.start}
-              endLine={selectedOption.sourceLine.end}
-            />
-          </div>
-        )}
-
-        <Button onClick={handleExplainError} disabled={isAiLoading} size="sm">
-          {isAiLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {t('dialog.spotbugs.ai.explainButton')}
-        </Button>
-
-        <div className="mt-4 space-y-2">
-          <Label htmlFor="custom-query">{t('dialog.spotbugs.ai.customQueryLabel')}</Label>
-          <Textarea id="custom-query" value={userQuery} onChange={e => setUserQuery(e.target.value)} placeholder={t('dialog.spotbugs.ai.customQueryPlaceholder')} rows={3} />
-          <Button onClick={handleCustomQuery} disabled={isAiLoading || !userQuery.trim()} size="sm">
-            {isAiLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t('dialog.spotbugs.ai.sendQueryButton')}
-          </Button>
         </div>
-
-        {isAiLoading && !aiResponse && (
-          <div className="flex items-center justify-center p-4">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        )}
-
-        {aiResponse && (
-          <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-4">
-            <h5 className="font-semibold">{t('dialog.spotbugs.ai.responseTitle')}</h5>
-            <p className="text-sm whitespace-pre-wrap">{aiResponse}</p>
-          </div>
-        )}
+      )}
+      <div className="mt-4 space-y-2">
+        <Label htmlFor="custom-query">{t('dialog.spotbugs.ai.customQueryLabel')}</Label>
+        <Textarea
+          id="custom-query"
+          value={userQuery}
+          onChange={e => setUserQuery(e.target.value)}
+          spellCheck={false}
+          className=""
+          placeholder={t('dialog.spotbugs.ai.customQueryPlaceholder')}
+          rows={3}
+        />
+        <Button
+          id="generate-button"
+          className={`relative ${isAiLoading ? 'border-effect' : ''} ${isAiLoading ? 'cursor-progress' : ''}`}
+          variant={variant}
+          onClick={() => {
+            if (!isAiLoading) {
+              handleCustomQuery()
+            }
+          }}
+        >
+          {isAiLoading ? <GlowLoader /> : <Bot className="h-4 w-4" />} {t('dialog.spotbugs.ai.sendQueryButton')}
+        </Button>
       </div>
-    </ScrollArea>
+
+      {isAiLoading && !aiResponse && (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {aiResponse && (
+        <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-4">
+          <h5 className="font-semibold">{t('dialog.spotbugs.ai.responseTitle')}</h5>
+          <p className="text-sm whitespace-pre-wrap break-all">{aiResponse}</p>
+        </div>
+      )}
+    </div>
   )
 }

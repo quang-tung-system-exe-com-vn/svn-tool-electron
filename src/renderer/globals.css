@@ -1471,6 +1471,7 @@
   }
   [data-radix-scroll-area-viewport] > div {
     height: 100%;
+    position: relative;
   }
 
   .my-line-highlight {

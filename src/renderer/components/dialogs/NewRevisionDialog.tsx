@@ -143,7 +143,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
           <label htmlFor="commitMessage" className="text-sm font-medium">
             {t('dialog.updateSvn.commitMessage')}
           </label>
-          <Textarea value={svnInfo?.commitMessage} readOnly={true} className="min-h-[80px] cursor-not-allowed resize-none break-all" />
+          <Textarea value={svnInfo?.commitMessage} readOnly={true} className="min-h-[80px] cursor-not-allowed  break-all focus:border-0" />
         </div>
 
         {hasSvnUpdate && (

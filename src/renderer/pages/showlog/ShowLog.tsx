@@ -146,7 +146,7 @@ export function ShowLog() {
           </Button>
         )
       },
-      cell: ({ row }) => <div>{row.getValue('message')}</div>,
+      cell: ({ row }) => <div className="whitespace-break-spaces max-h-[100px] overflow-auto">{row.getValue('message')}</div>,
     },
   ]
 
@@ -555,7 +555,7 @@ export function ShowLog() {
                   <div className="p-2 font-medium pb-[11px]">{t('dialog.showLogs.commitMessage')}</div>
                   <div className="h-full pb-[2.8rem]">
                     <ScrollArea className="h-full border-1 rounded-md">
-                      <Textarea className="w-full h-full resize-none border-none cursor-default break-all" readOnly={true} value={commitMessage} spellCheck={false} />
+                      <Textarea className="w-full h-full resize-none border-none cursor-default break-all absolute" readOnly={true} value={commitMessage} spellCheck={false} />
                       <ScrollBar orientation="vertical" />
                       <ScrollBar orientation="horizontal" />
                     </ScrollArea>
