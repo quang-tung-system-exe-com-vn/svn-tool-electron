@@ -146,7 +146,11 @@ export function ShowLog() {
           </Button>
         )
       },
-      cell: ({ row }) => <div className="whitespace-break-spaces max-h-[100px] overflow-auto">{row.getValue('message')}</div>,
+      cell: ({ row }) => (
+        <div className="overflow-hidden text-ellipsis whitespace-nowrap w-[200px]" title={row.getValue('message')}>
+          {row.getValue('message')}
+        </div>
+      ),
     },
   ]
 
@@ -453,7 +457,7 @@ export function ShowLog() {
         />
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col overflow-hidden">
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={50} minSize={30} className="h-full">
+            <ResizablePanel defaultSize={50} minSize={50} className="h-full">
               <div className="h-full pr-2">
                 <div className="flex flex-col h-full">
                   <div className="mb-2 flex items-center gap-2">
@@ -462,63 +466,65 @@ export function ShowLog() {
                       <Input placeholder={t('dialog.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
                     </div>
                   </div>
-                  <ScrollArea className="flex-1 border-1 rounded-md">
-                    {/* <OverlayLoader isLoading={isLoading} /> */}
-                    <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
-                      <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                        {table.getHeaderGroups().map(headerGroup => (
-                          <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header, index) => (
-                              <TableHead
-                                key={header.id}
-                                style={{ width: header.getSize() }}
-                                className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
-                              >
-                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                              </TableHead>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableHeader>
-                      <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
-                        {table.getRowModel().rows?.length ? (
-                          table.getRowModel().rows.map(row => (
-                            <TableRow
-                              key={row.id}
-                              data-state={row.getIsSelected() && 'selected'}
-                              onClick={() => {
-                                if (!row.getIsSelected()) {
-                                  table.resetRowSelection()
-                                  row.toggleSelected(true)
-                                  selectRevision(row.original.revision)
-                                }
-                              }}
-                              className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900"
-                            >
-                              {row.getVisibleCells().map((cell, index) => (
-                                <TableCell key={cell.id} className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}>
-                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </TableCell>
+                  <div className="flex flex-col border rounded-md overflow-hidden h-full">
+                    <div className="bg-muted p-2 font-medium">{t('dialog.showLogs.title')}</div>
+                    <ScrollArea className="h-full w-full">
+                      <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
+                        <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                          {table.getHeaderGroups().map(headerGroup => (
+                            <TableRow key={headerGroup.id}>
+                              {headerGroup.headers.map((header, index) => (
+                                <TableHead
+                                  key={header.id}
+                                  style={{ width: header.getSize() }}
+                                  className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
+                                >
+                                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                </TableHead>
                               ))}
                             </TableRow>
-                          ))
-                        ) : (
-                          <TableRow className="h-full">
-                            <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
-                              <div className="flex flex-col items-center justify-center gap-4 h-full">
-                                <p className="text-muted-foreground">No log entries found.</p>
-                                <Button variant={variant} onClick={handleRefresh}>
-                                  Reload
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                    <ScrollBar orientation="vertical" />
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
+                          ))}
+                        </TableHeader>
+                        <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
+                          {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map(row => (
+                              <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && 'selected'}
+                                onClick={() => {
+                                  if (!row.getIsSelected()) {
+                                    table.resetRowSelection()
+                                    row.toggleSelected(true)
+                                    selectRevision(row.original.revision)
+                                  }
+                                }}
+                                className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900"
+                              >
+                                {row.getVisibleCells().map((cell, index) => (
+                                  <TableCell key={cell.id} className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow className="h-full">
+                              <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
+                                <div className="flex flex-col items-center justify-center gap-4 h-full">
+                                  <p className="text-muted-foreground">No log entries found.</p>
+                                  <Button variant={variant} onClick={handleRefresh}>
+                                    Reload
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                      <ScrollBar orientation="vertical" />
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                  </div>
 
                   {(isLoading || filteredLogData.length > 0) && (
                     <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground h-12">

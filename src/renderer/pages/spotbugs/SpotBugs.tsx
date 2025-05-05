@@ -499,7 +499,7 @@ export function SpotBugs() {
               <div className="space-y-4 flex-1 h-full flex flex-col overflow-hidden">
                 {(activeTab === 'all' || activeTab === 'high' || activeTab === 'medium' || activeTab === 'low') && (
                   <ResizablePanelGroup direction="horizontal">
-                    <ResizablePanel defaultSize={50} minSize={50} className="h-full pr-2">
+                    <ResizablePanel defaultSize={50} minSize={0} className="h-full pr-1">
                       <div className="flex flex-col border rounded-md overflow-hidden h-full">
                         <div className="bg-muted p-2 font-medium">{t('dialog.spotbugs.issues')}</div>
                         <ScrollArea className="h-full w-full">
@@ -585,7 +585,7 @@ export function SpotBugs() {
                       </div>
                     </ResizablePanel>
                     <ResizableHandle className="bg-transparent" />
-                    <ResizablePanel defaultSize={50} minSize={50} className="h-full">
+                    <ResizablePanel defaultSize={50} minSize={0} className="h-full pl-1">
                       <div className="flex flex-col gap-4 h-full">
                         {selectedBug ? (
                           <div className="border rounded-md overflow-hidden h-full flex flex-col">
