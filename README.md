@@ -100,22 +100,15 @@ pnpm dev
 
 ## Build ứng dụng (Dành cho nhà phát triển)
 
-1.  Biên dịch mã nguồn:
-    ```bash
-    pnpm compile:app
-    ```
-2.  Chuẩn bị `package.json` cho bản build:
-    ```bash
-    pnpm compile:packageJSON
-    ```
-3.  Tạo bộ cài đặt (ví dụ: file .exe cho Windows):
+1. Tạo bộ cài đặt (ví dụ: file .exe cho Windows):
     ```bash
     pnpm build
     ```
     _(Kết quả sẽ nằm trong thư mục \`dist\` hoặc tương tự, tùy cấu hình \`electron-builder\`)_
-4.  Release source lên github
+2.  Release source lên github
     ```bash
     pnpm make:release
+    pnpm build
     pnpm release
     ```
 
@@ -189,6 +182,6 @@ pnpm dev
 Dự án này được cấp phép theo giấy phép [MIT](LICENSE).
 
 ## Tác giả
-- **Tên:** Nguyễn Quang Tùng
+- **Nguyễn Quang Tùng**
 - **Email:** quang-tung@system-exe.com.vn
 
