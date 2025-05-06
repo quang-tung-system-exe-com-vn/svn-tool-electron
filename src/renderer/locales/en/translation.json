@@ -6,7 +6,7 @@
     "add": "Add",
     "delete": "Delete",
     "install": "Install",
-    "update": "Update Now",
+    "update": "Update",
     "refresh": "Refresh",
     "reload": "Reload",
     "choose": "Choose Folder",
@@ -23,7 +23,8 @@
     "skip": "Skip",
     "finish": "Finish",
     "startTour": "Start",
-    "dontShowAgain": "Don't show again"
+    "dontShowAgain": "Don't show again",
+    "revert": "Revert"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -441,6 +442,14 @@
       "noResults": "No results yet.",
       "date": "Date",
       "commitMessage": "Commit Message"
+    },
+    "revert": {
+      "title": "Revert Changes",
+      "description": "Are you sure you want to revert the selected files? This action cannot be undone."
+    },
+    "update": {
+      "title": "Update Files",
+      "description": "Are you sure you want to update the selected files to the latest revision? This will overwrite any local changes."
     }
   },
   "welcome": {

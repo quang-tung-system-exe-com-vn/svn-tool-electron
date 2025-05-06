@@ -1,6 +1,16 @@
 'use client'
 import { StatusIcon } from '@/components/ui-elements/StatusIcon'
 import toast from '@/components/ui-elements/Toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -152,6 +162,14 @@ export const DataTable = forwardRef((props, ref) => {
   const hasLoaded = useRef(false)
   const variant = useButtonVariant()
   const [selectedFiles, setSelectedFiles] = useState<SvnFile[]>([])
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [confirmDialogProps, setConfirmDialogProps] = useState<{
+    title: string
+    description: string
+    onConfirm: () => void
+    actionText?: string
+    cancelText?: string
+  } | null>(null)
 
   useImperativeHandle(ref, () => ({
     reloadData,
@@ -257,15 +275,13 @@ export const DataTable = forwardRef((props, ref) => {
   }
 
   const handleRowClick = (event: React.MouseEvent, row: any) => {
-    if (event.ctrlKey || event.shiftKey) {
-      return
+    if (event.shiftKey) {
+      if ((event.target as HTMLElement).tagName === 'INPUT') {
+        return
+      }
+      row.toggleSelected(!row.getIsSelected())
+      updateSelectedFiles()
     }
-
-    if ((event.target as HTMLElement).tagName === 'INPUT') {
-      return
-    }
-    row.toggleSelected(!row.getIsSelected())
-    updateSelectedFiles()
   }
 
   const updateSelectedFiles = () => {
@@ -291,58 +307,74 @@ export const DataTable = forwardRef((props, ref) => {
     window.api.electron.send(IPC.WINDOW.SHOW_LOG, filePath)
   }
 
+  const showConfirmationDialog = (
+    title: string,
+    description: string,
+    onConfirm: () => void,
+    actionText?: string, // Allow custom action text
+    cancelText?: string // Allow custom cancel text
+  ) => {
+    setConfirmDialogProps({
+      title,
+      description,
+      onConfirm,
+      actionText: actionText || t('common.confirm'),
+      cancelText: cancelText || t('common.cancel'),
+    })
+    setIsConfirmDialogOpen(true)
+  }
+
   const revertFile = async (filePath: string | string[]) => {
-    try {
-      if (Array.isArray(filePath)) {
-        for (const path of filePath) {
-          const result = await window.api.svn.revert(path)
+    const numFiles = Array.isArray(filePath) ? filePath.length : 1
+    const fileText = numFiles > 1 ? `${numFiles} ${t('common.files', { count: numFiles }).toLowerCase()}` : `"${typeof filePath === 'string' ? filePath : filePath.join(', ')}"`
+
+    showConfirmationDialog(
+      t('dialog.revert.title'),
+      t('dialog.revert.description', { files: fileText }),
+      async () => {
+        try {
+          const result = await window.api.svn.revert(filePath)
           if (result.status === 'success') {
-            toast.success(`Reverted: ${path}`)
+            toast.success(result.message || (Array.isArray(filePath) ? t('toast.revertedMultiple', { count: filePath.length }) : t('toast.revertedSingle', { file: filePath })))
+            reloadData()
           } else {
-            toast.error(`Error reverting ${path}: ${result.message}`)
+            toast.error(result.message)
           }
+        } catch (error) {
+          toast.error(t('toast.revertError', { error: error instanceof Error ? error.message : String(error) }))
         }
-        reloadData()
-      } else {
-        const result = await window.api.svn.revert(filePath)
-        if (result.status === 'success') {
-          toast.success(`Reverted: ${filePath}`)
-          reloadData()
-        } else {
-          toast.error(result.message)
-        }
-      }
-    } catch (error) {
-      toast.error(`Error reverting file: ${error}`)
-    }
+      },
+      t('common.revert')
+    )
   }
 
   const updateFile = async (filePath: string | string[]) => {
-    try {
-      if (Array.isArray(filePath)) {
-        for (const path of filePath) {
-          toast.info(`Updating: ${path}`)
-          const result = await window.api.svn.update(path)
-          if (result.status === 'success') {
-            toast.success(`Updated: ${path}`)
+    const numFiles = Array.isArray(filePath) ? filePath.length : 1
+    const fileText = numFiles > 1 ? `${numFiles} ${t('common.files', { count: numFiles }).toLowerCase()}` : `"${typeof filePath === 'string' ? filePath : filePath.join(', ')}"`
+
+    showConfirmationDialog(
+      t('dialog.update.title'),
+      t('dialog.update.description', { files: fileText }),
+      async () => {
+        try {
+          if (Array.isArray(filePath)) {
+            toast.info(t('toast.updatingMultiple', { count: filePath.length }))
           } else {
-            toast.error(`Error updating ${path}: ${result.message}`)
+            toast.info(t('toast.updatingSingle', { file: filePath }))
           }
+          const result = await window.api.svn.update(filePath)
+          if (result.status === 'success') {
+            toast.success(result.message || (Array.isArray(filePath) ? t('toast.updatedMultiple', { count: filePath.length }) : t('toast.updatedSingle', { file: filePath })))
+            reloadData()
+          } else {
+            toast.error(result.message)
+          }
+        } catch (error) {
+          toast.error(t('toast.updateError', { error: error instanceof Error ? error.message : String(error) }))
         }
-        reloadData()
-      } else {
-        toast.info(`Updating: ${filePath}`)
-        const result = await window.api.svn.update(filePath)
-        if (result.status === 'success') {
-          toast.success(`Updated: ${filePath}`)
-          reloadData()
-        } else {
-          toast.error(result.message)
-        }
-      }
-    } catch (error) {
-      toast.error(`Error updating file: ${error}`)
-    }
+      },
+      t('common.update')
+    )
   }
 
   const columns = useMemo(() => buildColumns({ handleCheckboxChange }), [data])
@@ -500,6 +532,27 @@ export const DataTable = forwardRef((props, ref) => {
           })}
         </div>
       </div>
+      {confirmDialogProps && (
+        <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{confirmDialogProps.title}</AlertDialogTitle>
+              <AlertDialogDescription>{confirmDialogProps.description}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsConfirmDialogOpen(false)}>{confirmDialogProps.cancelText}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  confirmDialogProps.onConfirm()
+                  setIsConfirmDialogOpen(false)
+                }}
+              >
+                {confirmDialogProps.actionText}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 })

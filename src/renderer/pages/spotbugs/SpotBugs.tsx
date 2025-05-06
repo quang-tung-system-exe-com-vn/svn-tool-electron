@@ -327,7 +327,7 @@ export function SpotBugs() {
 
   const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => {
     return (
-      <div className={cn('relative w-full overflow-auto', wrapperClassName)}>
+      <div className={cn('absolute w-full', wrapperClassName)}>
         <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
       </div>
     )
@@ -497,89 +497,91 @@ export function SpotBugs() {
             <TabsContent value={activeTab} className="flex-1 flex flex-col h-full mt-4">
               <div className="space-y-4 flex-1 h-full flex flex-col overflow-hidden">
                 {(activeTab === 'all' || activeTab === 'high' || activeTab === 'medium' || activeTab === 'low') && (
-                  <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanelGroup direction="horizontal" className="flex gap-1">
                     <ResizablePanel defaultSize={50} minSize={0} className="h-full">
-                      <div className="h-full pr-2">
-                        <div className="flex flex-col h-full w-full table">
+                      <div className="h-full">
+                        <div className="flex flex-col h-full w-full">
                           <div className="flex flex-col border rounded-md overflow-auto h-full">
-                            <Table wrapperClassName={cn('overflow-clip', sortedBugs.length === 0 && 'h-full')}>
-                              <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                                <TableRow>
-                                  <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('priority')}>
-                                    <div className="flex items-center gap-1">
-                                      {t('table.severity')}
-                                      {sortKey !== 'priority' && <ArrowUpDown className="w-4 h-4" />}
-                                      {sortKey === 'priority' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                      {sortKey === 'priority' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
-                                    </div>
-                                  </TableHead>
-                                  <TableHead className="cursor-pointer" onClick={() => handleSort('sourceFile')}>
-                                    <div className="flex items-center gap-1">
-                                      {t('table.file')}
-                                      {sortKey !== 'sourceFile' && <ArrowUpDown className="w-4 h-4" />}
-                                      {sortKey === 'sourceFile' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                      {sortKey === 'sourceFile' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
-                                    </div>
-                                  </TableHead>
-                                  <TableHead className="w-15 cursor-pointer" onClick={() => handleSort('category')}>
-                                    <div className="flex items-center gap-1">
-                                      {t('table.category')}
-                                      {sortKey !== 'category' && <ArrowUpDown className="w-4 h-4" />}
-                                      {sortKey === 'category' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                      {sortKey === 'category' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
-                                    </div>
-                                  </TableHead>
-                                  <TableHead className="cursor-pointer" onClick={() => handleSort('type')}>
-                                    <div className="flex items-center gap-1">
-                                      {t('table.issue')}
-                                      {sortKey !== 'type' && <ArrowUpDown className="w-4 h-4" />}
-                                      {sortKey === 'type' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                      {sortKey === 'type' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
-                                    </div>
-                                  </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {sortedBugs.length > 0 ? (
-                                  sortedBugs.map(bug => (
-                                    <TableRow
-                                      key={bug.id}
-                                      className={cn(
-                                        selectedBug?.id === bug.id ? 'bg-blue-100 hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-900' : '',
-                                        'transition-colors duration-150'
-                                      )}
-                                      onClick={() => handleBugSelection(bug)}
-                                      style={{ cursor: 'pointer' }}
-                                    >
-                                      <TableCell>
-                                        <div className="flex items-center gap-1">
-                                          {bug.priority !== null ? getPrioriyIcon(bug.priority) : null}
-                                          <span>{t(getPriorityName(bug.priority))}</span>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell title={bug.sourceFile}>{bug.sourceFile}</TableCell>
-                                      <TableCell>{bug.category}</TableCell>
-                                      <TableCell>
-                                        <div className="flex flex-col">
-                                          <span className="font-medium text-xs break-all" title={bug.type}>
-                                            {bug.type}
-                                          </span>
-                                          <span className="text-xs text-muted-foreground break-all" title={bug.message}>
-                                            {bug.message}
-                                          </span>
-                                        </div>
+                            <ScrollArea className="h-full w-full">
+                              <Table wrapperClassName={cn('overflow-unset', sortedBugs.length === 0 && 'h-full')}>
+                                <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                                  <TableRow>
+                                    <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('priority')}>
+                                      <div className="flex items-center gap-1">
+                                        {t('table.severity')}
+                                        {sortKey !== 'priority' && <ArrowUpDown className="w-4 h-4" />}
+                                        {sortKey === 'priority' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
+                                        {sortKey === 'priority' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead className="cursor-pointer" onClick={() => handleSort('sourceFile')}>
+                                      <div className="flex items-center gap-1">
+                                        {t('table.file')}
+                                        {sortKey !== 'sourceFile' && <ArrowUpDown className="w-4 h-4" />}
+                                        {sortKey === 'sourceFile' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
+                                        {sortKey === 'sourceFile' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead className="w-15 cursor-pointer" onClick={() => handleSort('category')}>
+                                      <div className="flex items-center gap-1">
+                                        {t('table.category')}
+                                        {sortKey !== 'category' && <ArrowUpDown className="w-4 h-4" />}
+                                        {sortKey === 'category' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
+                                        {sortKey === 'category' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                      </div>
+                                    </TableHead>
+                                    <TableHead className="cursor-pointer" onClick={() => handleSort('type')}>
+                                      <div className="flex items-center gap-1">
+                                        {t('table.issue')}
+                                        {sortKey !== 'type' && <ArrowUpDown className="w-4 h-4" />}
+                                        {sortKey === 'type' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
+                                        {sortKey === 'type' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                      </div>
+                                    </TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {sortedBugs.length > 0 ? (
+                                    sortedBugs.map(bug => (
+                                      <TableRow
+                                        key={bug.id}
+                                        className={cn(
+                                          selectedBug?.id === bug.id ? 'bg-blue-100 hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-900' : '',
+                                          'transition-colors duration-150'
+                                        )}
+                                        onClick={() => handleBugSelection(bug)}
+                                        style={{ cursor: 'pointer' }}
+                                      >
+                                        <TableCell>
+                                          <div className="flex items-center gap-1">
+                                            {bug.priority !== null ? getPrioriyIcon(bug.priority) : null}
+                                            <span>{t(getPriorityName(bug.priority))}</span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell title={bug.sourceFile}>{bug.sourceFile}</TableCell>
+                                        <TableCell>{bug.category}</TableCell>
+                                        <TableCell>
+                                          <div className="flex flex-col">
+                                            <span className="font-medium text-xs break-all" title={bug.type}>
+                                              {bug.type}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground break-all" title={bug.message}>
+                                              {bug.message}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))
+                                  ) : (
+                                    <TableRow>
+                                      <TableCell colSpan={4} className="text-center py-4">
+                                        {isLoading ? t('message.loading') : t('message.noIssues')}
                                       </TableCell>
                                     </TableRow>
-                                  ))
-                                ) : (
-                                  <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-4">
-                                      {isLoading ? t('message.loading') : t('message.noIssues')}
-                                    </TableCell>
-                                  </TableRow>
-                                )}
-                              </TableBody>
-                            </Table>
+                                  )}
+                                </TableBody>
+                              </Table>
+                            </ScrollArea>
                           </div>
                         </div>
                       </div>
@@ -874,8 +876,8 @@ export function SpotBugs() {
                     <div className="bg-muted p-2 font-medium">
                       {t('dialog.spotbugs.fileList')} ({filePaths.length})
                     </div>
-                    <ScrollArea className="h-full w-full">
-                      <Table wrapperClassName={cn('overflow-clip', filePaths.length === 0 && 'h-full')}>
+                    <ScrollArea className="h-full w-full overflow-auto">
+                      <Table wrapperClassName={cn('overflow-unset', filePaths.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                           <TableRow>
                             <TableHead>{t('table.filePath')}</TableHead>

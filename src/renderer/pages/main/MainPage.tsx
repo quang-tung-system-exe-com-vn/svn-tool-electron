@@ -299,11 +299,11 @@ export function MainPage() {
             <ResizablePanel className="p-2 mb-[20px]" minSize={25} defaultSize={50}>
               <div className="relative overflow-hidden h-full flex flex-col">
                 <OverlayLoader isLoading={isLoadingGenerate} />
-                <div className="mb-2 pt-8">
+                <div className="mb-2">
                   <Input
                     id="reference-id-input"
                     placeholder={t('placeholder.referenceId')}
-                    className="w-full"
+                    className="w-100"
                     onChange={handleReferenceId}
                     ref={referenceIdRef}
                     spellCheck={false}

@@ -23,7 +23,8 @@
     "skip": "Bỏ qua",
     "finish": "Hoàn thành",
     "startTour": "Bắt đầu",
-    "dontShowAgain": "Không hiển thị lại"
+    "dontShowAgain": "Không hiển thị lại",
+    "revert": "Hoàn tác"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -439,6 +440,14 @@
       "noResults": "Chưa có kết quả nào.",
       "date": "Thời gian",
       "commitMessage": "Thông điệp Commit"
+    },
+    "revert": {
+      "title": "Hoàn tác thay đổi",
+      "description": "Bạn có chắc chắn muốn hoàn tác các tệp đã chọn không? Hành động này không thể được hoàn tác."
+    },
+    "update": {
+      "title": "Cập nhật tệp",
+      "description": "Bạn có chắc chắn muốn cập nhật các tệp đã chọn lên phiên bản mới nhất không? Điều này sẽ ghi đè mọi thay đổi cục bộ."
     }
   },
   "welcome": {

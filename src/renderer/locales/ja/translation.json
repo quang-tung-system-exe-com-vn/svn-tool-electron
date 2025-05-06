@@ -23,7 +23,8 @@
     "skip": "スキップ",
     "finish": "完了",
     "startTour": "開始",
-    "dontShowAgain": "今後表示しない"
+    "dontShowAgain": "今後表示しない",
+    "revert": "元に戻す"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -439,6 +440,14 @@
       "noResults": "まだ結果がありません。",
       "date": "日時",
       "commitMessage": "コミットメッセージ"
+    },
+    "revert": {
+      "title": "変更を元に戻す",
+      "description": "選択したファイルを元に戻しますか？この操作は元に戻せません。"
+    },
+    "update": {
+      "title": "ファイルを更新",
+      "description": "選択したファイルを最新リビジョンに更新しますか？これにより、ローカルの変更は上書きされます。"
     }
   },
   "welcome": {

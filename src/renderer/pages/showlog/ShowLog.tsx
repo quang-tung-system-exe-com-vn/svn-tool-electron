@@ -260,7 +260,6 @@ export function ShowLog() {
       } else {
       }
 
-      // Nếu path là một mảng, sử dụng toàn bộ mảng
       const result = await window.api.svn.log(path, options)
       if (result.status === 'success') {
         const rawLog = result.data as string
@@ -300,10 +299,8 @@ export function ShowLog() {
           const messageLines = lines.slice(i)
           const fullMessage = messageLines.join('\n').trim()
 
-          // Xử lý để lấy reference ID từ commit message
           let referenceId = ''
           const messageFirstLine = fullMessage.split('\n')[0] || ''
-          // Kiểm tra xem dòng đầu tiên có phải là reference ID không (ví dụ: No.344)
           const refIdMatch = messageFirstLine.match(/^(No\.\d+|[A-Z]+-\d+)$/)
           if (refIdMatch) {
             referenceId = refIdMatch[0]
