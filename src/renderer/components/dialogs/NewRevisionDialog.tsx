@@ -6,13 +6,15 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { Clock, Hash, User } from 'lucide-react'
-import { forwardRef, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useButtonVariant } from '../../stores/useAppearanceStore'
 import type { SvnStatusCode } from '../shared/constants'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { StatusIcon } from '../ui-elements/StatusIcon'
 import toast from '../ui-elements/Toast'
+import { Checkbox } from '../ui/checkbox'
+import { Label } from '../ui/label'
 import { ScrollArea } from '../ui/scroll-area'
 
 interface NewRevisionDialogProps {
@@ -28,12 +30,28 @@ interface NewRevisionDialogProps {
   }
   onCurRevisionUpdate: (revision: string) => void
   hasSvnUpdate: boolean
+  isManuallyOpened?: boolean
 }
 
-export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUpdate, hasSvnUpdate }: NewRevisionDialogProps) {
+export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUpdate, hasSvnUpdate, isManuallyOpened = false }: NewRevisionDialogProps) {
   const { t, i18n } = useTranslation()
   const variant = useButtonVariant()
   const [isLoading, setLoading] = useState(false)
+  const [dontShowAgain, setDontShowAgain] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      const dontShowRevisionDialog = localStorage.getItem('dont-show-revision-dialog') === 'true'
+      if (dontShowRevisionDialog && !isManuallyOpened) {
+        onOpenChange(false)
+      }
+    }
+  }, [open, onOpenChange, isManuallyOpened])
+
+  useEffect(() => {
+    const savedState = localStorage.getItem('dont-show-revision-dialog') === 'true'
+    setDontShowAgain(savedState)
+  }, [])
 
   const handleSvnUpdate = () => {
     toast.info(t('Updating SVN...'))
@@ -74,7 +92,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
         </DialogHeader>
 
         {svnInfo && (
-          <Card className="max-w-md">
+          <Card className="max-w-md ring-0 !shadow-none">
             <CardContent className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground" />
@@ -114,8 +132,8 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
           <label htmlFor="commitMessage" className="text-sm font-medium">
             {t('dialog.updateSvn.changedFiles')}
           </label>
-          <div className="max-h-60 overflow-auto">
-            <ScrollArea className="h-[200px] border-1 rounded-md">
+          <div className="max-h-60 border rounded-md overflow-auto">
+            <ScrollArea className="h-full">
               <Table wrapperClassName={cn('overflow-clip', (svnInfo?.changedFiles ?? []).length === 0 && 'h-full')}>
                 <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                   <TableRow>
@@ -143,27 +161,48 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
           <label htmlFor="commitMessage" className="text-sm font-medium">
             {t('dialog.updateSvn.commitMessage')}
           </label>
-          <Textarea value={svnInfo?.commitMessage} readOnly={true} className="min-h-[80px] cursor-not-allowed  break-all focus:border-0" />
+          <Textarea
+            value={svnInfo?.commitMessage}
+            readOnly={true}
+            className="min-h-[80px] w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
+          />
         </div>
 
         {hasSvnUpdate && (
-          <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button disabled={isLoading} variant={variant}>
-                {t('common.cancel')}
+          <DialogFooter className="mt-4 flex-col items-start sm:flex-row sm:items-center">
+            <div className="flex items-center space-x-2 mb-4 sm:mb-0 w-full">
+              <Checkbox
+                id="dontShowRevisionDialog"
+                checked={dontShowAgain}
+                onCheckedChange={checked => {
+                  setDontShowAgain(checked === true)
+                  if (checked === true) {
+                    localStorage.setItem('dont-show-revision-dialog', 'true')
+                  } else {
+                    localStorage.removeItem('dont-show-revision-dialog')
+                  }
+                }}
+              />
+              <Label htmlFor="dontShowRevisionDialog">{t('common.dontShowAgain')}</Label>
+            </div>
+            <div className="flex w-full justify-end space-x-2">
+              <DialogClose asChild>
+                <Button disabled={isLoading} variant={variant}>
+                  {t('common.cancel')}
+                </Button>
+              </DialogClose>
+              <Button
+                className={`relative ${isLoading ? 'border-effect cursor-progress' : ''}`}
+                variant={variant}
+                onClick={() => {
+                  if (!isLoading) {
+                    handleSvnUpdate()
+                  }
+                }}
+              >
+                {isLoading ? <GlowLoader /> : null} {t('common.update')}
               </Button>
-            </DialogClose>
-            <Button
-              className={`relative ${isLoading ? 'border-effect cursor-progress' : ''}`}
-              variant={variant}
-              onClick={() => {
-                if (!isLoading) {
-                  handleSvnUpdate()
-                }
-              }}
-            >
-              {isLoading ? <GlowLoader /> : null} {t('common.update')}
-            </Button>
+            </div>
           </DialogFooter>
         )}
       </DialogContent>

@@ -1,19 +1,17 @@
 'use client'
-import { Button } from '@/components/ui/button'
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
-import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-
 import { StatusIcon } from '@/components/ui-elements/StatusIcon'
 import toast from '@/components/ui-elements/Toast'
+import { Button } from '@/components/ui/button'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
+import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
 import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
+import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../components/shared/constants'
 
 export type SvnFile = {
@@ -153,6 +151,7 @@ export const DataTable = forwardRef((props, ref) => {
   const [data, setData] = useState<SvnFile[]>([])
   const hasLoaded = useRef(false)
   const variant = useButtonVariant()
+  const [selectedFiles, setSelectedFiles] = useState<SvnFile[]>([])
 
   useImperativeHandle(ref, () => ({
     reloadData,
@@ -257,6 +256,24 @@ export const DataTable = forwardRef((props, ref) => {
     }
   }
 
+  const handleRowClick = (event: React.MouseEvent, row: any) => {
+    if (event.ctrlKey || event.shiftKey) {
+      return
+    }
+
+    if ((event.target as HTMLElement).tagName === 'INPUT') {
+      return
+    }
+    row.toggleSelected(!row.getIsSelected())
+    updateSelectedFiles()
+  }
+
+  const updateSelectedFiles = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    const files = selectedRows.map(row => row.original)
+    setSelectedFiles(files)
+  }
+
   const revealInFileExplorer = (filePath: string) => {
     window.api.system.reveal_in_file_explorer(filePath)
   }
@@ -270,33 +287,58 @@ export const DataTable = forwardRef((props, ref) => {
     toast.error(message)
   }
 
-  const showLog = (filePath: string) => {
+  const showLog = (filePath: string | string[]) => {
     window.api.electron.send(IPC.WINDOW.SHOW_LOG, filePath)
   }
 
-  const revertFile = async (filePath: string) => {
+  const revertFile = async (filePath: string | string[]) => {
     try {
-      const result = await window.api.svn.revert(filePath)
-      if (result.status === 'success') {
-        toast.success(`Reverted: ${filePath}`)
+      if (Array.isArray(filePath)) {
+        for (const path of filePath) {
+          const result = await window.api.svn.revert(path)
+          if (result.status === 'success') {
+            toast.success(`Reverted: ${path}`)
+          } else {
+            toast.error(`Error reverting ${path}: ${result.message}`)
+          }
+        }
         reloadData()
       } else {
-        toast.error(result.message)
+        const result = await window.api.svn.revert(filePath)
+        if (result.status === 'success') {
+          toast.success(`Reverted: ${filePath}`)
+          reloadData()
+        } else {
+          toast.error(result.message)
+        }
       }
     } catch (error) {
       toast.error(`Error reverting file: ${error}`)
     }
   }
 
-  const updateFile = async (filePath: string) => {
+  const updateFile = async (filePath: string | string[]) => {
     try {
-      toast.info(`Updating: ${filePath}`)
-      const result = await window.api.svn.update(filePath)
-      if (result.status === 'success') {
-        toast.success(`Updated: ${filePath}`)
+      if (Array.isArray(filePath)) {
+        for (const path of filePath) {
+          toast.info(`Updating: ${path}`)
+          const result = await window.api.svn.update(path)
+          if (result.status === 'success') {
+            toast.success(`Updated: ${path}`)
+          } else {
+            toast.error(`Error updating ${path}: ${result.message}`)
+          }
+        }
         reloadData()
       } else {
-        toast.error(result.message)
+        toast.info(`Updating: ${filePath}`)
+        const result = await window.api.svn.update(filePath)
+        if (result.status === 'success') {
+          toast.success(`Updated: ${filePath}`)
+          reloadData()
+        } else {
+          toast.error(result.message)
+        }
       }
     } catch (error) {
       toast.error(`Error updating file: ${error}`)
@@ -308,7 +350,10 @@ export const DataTable = forwardRef((props, ref) => {
     data,
     columns,
     onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: updatedRowSelection => {
+      setRowSelection(updatedRowSelection)
+      setTimeout(updateSelectedFiles, 0)
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -330,7 +375,7 @@ export const DataTable = forwardRef((props, ref) => {
 
   return (
     <div className="h-full p-2">
-      <ScrollArea className="h-full border-1 rounded-md">
+      <div className="flex flex-col border rounded-md overflow-auto h-full">
         <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
           <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
             {table.getHeaderGroups().map(headerGroup => (
@@ -349,57 +394,89 @@ export const DataTable = forwardRef((props, ref) => {
           </TableHeader>
           <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map(row => (
-                <ContextMenu key={row.id}>
-                  <ContextMenuTrigger asChild>
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                      {row.getVisibleCells().map((cell, index) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}
-                          onDoubleClick={cell.column.id === 'filePath' ? () => handleFilePathDoubleClick(row) : undefined}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
-                      Reveal in File Explorer
-                      <ContextMenuShortcut>
-                        <FolderOpen strokeWidth={1} className="ml-3 h-4 w-4" />
-                      </ContextMenuShortcut>
-                    </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem onClick={() => info(row.original.filePath)}>
-                      File Info
-                      <ContextMenuShortcut>
-                        <Info strokeWidth={1} className="ml-3 h-4 w-4" />
-                      </ContextMenuShortcut>
-                    </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem onClick={() => showLog(row.original.filePath)}>
-                      Show Log
-                      <ContextMenuShortcut>
-                        <History strokeWidth={1} className="ml-3 h-4 w-4" />
-                      </ContextMenuShortcut>
-                    </ContextMenuItem>
-                    <ContextMenuItem disabled={row.original.status === '?'} onClick={() => revertFile(row.original.filePath)}>
-                      Revert
-                      <ContextMenuShortcut>
-                        <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />
-                      </ContextMenuShortcut>
-                    </ContextMenuItem>
-                    <ContextMenuItem onClick={() => updateFile(row.original.filePath)}>
-                      Update
-                      <ContextMenuShortcut>
-                        <RefreshCw strokeWidth={1} className="ml-3 h-4 w-4" />
-                      </ContextMenuShortcut>
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
-              ))
+              table.getRowModel().rows.map(row => {
+                const isMultipleSelected = selectedFiles.length > 1 && row.getIsSelected()
+                const filePaths = selectedFiles.map(file => file.filePath)
+                const hasUnversionedFiles = selectedFiles.some(file => file.status === '?')
+
+                return (
+                  <ContextMenu key={row.id}>
+                    <ContextMenuTrigger asChild>
+                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} onClick={e => handleRowClick(e, row)}>
+                        {row.getVisibleCells().map((cell, index) => (
+                          <TableCell
+                            key={cell.id}
+                            className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}
+                            onDoubleClick={cell.column.id === 'filePath' ? () => handleFilePathDoubleClick(row) : undefined}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      {isMultipleSelected ? (
+                        <>
+                          <ContextMenuItem onClick={() => showLog(filePaths)}>
+                            Show Log
+                            <ContextMenuShortcut>
+                              <History strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                          <ContextMenuItem disabled={hasUnversionedFiles} onClick={() => revertFile(filePaths)}>
+                            Revert Selected Files
+                            <ContextMenuShortcut>
+                              <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={() => updateFile(filePaths)}>
+                            Update Selected Files
+                            <ContextMenuShortcut>
+                              <RefreshCw strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                        </>
+                      ) : (
+                        // Menu cho một file được chọn
+                        <>
+                          <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
+                            Reveal in File Explorer
+                            <ContextMenuShortcut>
+                              <FolderOpen strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem onClick={() => info(row.original.filePath)}>
+                            File Info
+                            <ContextMenuShortcut>
+                              <Info strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem onClick={() => showLog(row.original.filePath)}>
+                            Show Log
+                            <ContextMenuShortcut>
+                              <History strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                          <ContextMenuItem disabled={row.original.status === '?'} onClick={() => revertFile(row.original.filePath)}>
+                            Revert
+                            <ContextMenuShortcut>
+                              <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={() => updateFile(row.original.filePath)}>
+                            Update
+                            <ContextMenuShortcut>
+                              <RefreshCw strokeWidth={1} className="ml-3 h-4 w-4" />
+                            </ContextMenuShortcut>
+                          </ContextMenuItem>
+                        </>
+                      )}
+                    </ContextMenuContent>
+                  </ContextMenu>
+                )
+              })
             ) : (
               <TableRow className="h-full">
                 <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
@@ -414,10 +491,8 @@ export const DataTable = forwardRef((props, ref) => {
             )}
           </TableBody>
         </Table>
-        <ScrollBar orientation="vertical" />
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-      <div className="absolute flex items-center justify-end space-x-2 pt-4 px-4 right-4">
+      </div>
+      <div className="absolute flex items-center justify-end space-x-2 pt-[22px] px-4 right-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {t('message.rowSelected', {
             0: table.getFilteredSelectedRowModel().rows.length,

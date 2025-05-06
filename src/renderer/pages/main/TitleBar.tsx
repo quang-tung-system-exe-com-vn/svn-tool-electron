@@ -37,6 +37,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
   const [showInfo, setShowInfo] = useState(false)
   const [showClean, setShowClean] = useState(false)
   const [showSvnUpdateDialog, setShowSvnUpdateDialog] = useState(false)
+  const [isSvnDialogManuallyOpened, setIsSvnDialogManuallyOpened] = useState(false)
   const [showSupportFeedback, setShowSupportFeedback] = useState(false)
 
   const [status, setStatus] = useState('')
@@ -44,6 +45,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
   const [newAppVersion, setNewAppVersion] = useState<string>('')
   const [releaseNotes, setReleaseNotes] = useState<string>('')
   const [showUpdateDialog, setShowUpdateDialog] = useState(false)
+  const [isUpdateDialogManuallyOpened, setIsUpdateDialogManuallyOpened] = useState(false)
   const [showIconUpdateApp, setShowIconUpdateApp] = useState(false)
 
   const [svnInfo, setSvnInfo] = useState<SvnInfo>({ author: '', revision: '', date: '', curRevision: '', commitMessage: '', changedFiles: [] })
@@ -98,6 +100,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
           logger.info(data)
           setHasSvnUpdate(true)
           setSvnInfo(data)
+          setIsSvnDialogManuallyOpened(false) // Đây là mở tự động
           setShowSvnUpdateDialog(true)
         } else if (status === 'no-change') {
           logger.info('Không có thay đổi')
@@ -135,6 +138,8 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
 
   const checkForUpdates = async () => {
     if (status === 'downloaded') {
+      // Đánh dấu dialog được mở thủ công
+      setIsUpdateDialogManuallyOpened(true)
       setShowUpdateDialog(true)
     } else {
       toast.info(t('toast.isLatestVersion'))
@@ -170,6 +175,8 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
   }
 
   const openSvnUpdateDialog = () => {
+    // Đánh dấu dialog được mở thủ công
+    setIsSvnDialogManuallyOpened(true)
     setShowSvnUpdateDialog(true)
   }
 
@@ -189,13 +196,21 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
       <InfoDialog open={showInfo} onOpenChange={setShowInfo} />
       <CleanDialog open={showClean} onOpenChange={setShowClean} />
       <SupportFeedbackDialog open={showSupportFeedback} onOpenChange={setShowSupportFeedback} />
-      <UpdateDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog} currentVersion={appVersion} newVersion={newAppVersion} releaseNotes={releaseNotes} />
+      <UpdateDialog
+        open={showUpdateDialog}
+        onOpenChange={setShowUpdateDialog}
+        currentVersion={appVersion}
+        newVersion={newAppVersion}
+        releaseNotes={releaseNotes}
+        isManuallyOpened={isUpdateDialogManuallyOpened}
+      />
       <NewRevisionDialog
         open={showSvnUpdateDialog}
         onOpenChange={setShowSvnUpdateDialog}
         svnInfo={svnInfo}
         hasSvnUpdate={hasSvnUpdate}
         onCurRevisionUpdate={handleCurRevisionUpdate}
+        isManuallyOpened={isSvnDialogManuallyOpened}
       />
       <div
         className="flex items-center justify-between h-8 text-sm select-none"

@@ -22,7 +22,8 @@
     "noData": "No data available",
     "skip": "Skip",
     "finish": "Finish",
-    "startTour": "Start"
+    "startTour": "Start",
+    "dontShowAgain": "Don't show again"
   },
   "message": {
     "commitMessageWarning": "Please enter a commit message",
@@ -71,6 +72,7 @@
   },
   "placeholder": {
     "commitMessage": "Enter commit message...",
+    "referenceId": "Reference ID (e.g. No.344)",
     "search": "Search",
     "selectLanguage": "Select language...",
     "noLanguage": "No language found."
@@ -119,6 +121,7 @@
     },
     "main": {
       "step1": "This table displays files that have been changed, added, or deleted in your SVN working copy. Select the files you want to include in your commit.",
+      "referenceId": "Enter a reference ID for your commit. This will be included at the beginning of your commit message (e.g., No.344).",
       "step2": "This area is for your commit message. You can write it manually or generate one using AI.",
       "step3": "Click this button to generate a commit message based on the selected file changes using AI.",
       "step4": "Click this button to check the selected files against predefined coding rules.",
@@ -277,14 +280,7 @@
     },
     "statisticSvn": {
       "title": "Statistics",
-      "selectPeriodPlaceholder": "Select period",
-      "period": {
-        "day": "Day",
-        "week": "Week",
-        "month": "Month",
-        "year": "Year",
-        "all": "All"
-      },
+      "description": "Track statistics and charts of SVN commit activities by date, author, and contribution rate, making it easier to manage and evaluate project progress.",
       "tabs": {
         "commitByDate": "Commits by Date",
         "commitByAuthor": "Commits by Author",
@@ -313,7 +309,7 @@
       },
       "authorship": {
         "title": "Author Contribution Rate",
-        "cardTitle": "Commits by Author",
+        "cardTitle": "Contribution Rate by Author",
         "cardDescription": "Author contribution rate"
       },
       "summary": {

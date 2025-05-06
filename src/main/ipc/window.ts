@@ -1,8 +1,8 @@
-import { join, resolve } from 'node:path'
-import { format } from 'node:url'
 import { BrowserWindow, ipcMain } from 'electron'
 import log from 'electron-log'
 import { IPC } from 'main/constants'
+import { join, resolve } from 'node:path'
+import { format } from 'node:url'
 import { ENVIRONMENT } from 'shared/constants'
 import { parseSpotBugsResult, runSpotBugs } from '../utils/spotbugs'
 
@@ -80,11 +80,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/code-diff-viewer'
       : format({
-          pathname: resolve(__dirname, '../renderer/index.html'),
-          protocol: 'file:',
-          slashes: true,
-          hash: '/code-diff-viewer',
-        })
+        pathname: resolve(__dirname, '../renderer/index.html'),
+        protocol: 'file:',
+        slashes: true,
+        hash: '/code-diff-viewer',
+      })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
@@ -117,14 +117,15 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/show-log'
       : format({
-          pathname: resolve(__dirname, '../renderer/index.html'),
-          protocol: 'file:',
-          slashes: true,
-          hash: '/show-log',
-        })
+        pathname: resolve(__dirname, '../renderer/index.html'),
+        protocol: 'file:',
+        slashes: true,
+        hash: '/show-log',
+      })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
+      // Gửi filePath (có thể là một chuỗi hoặc một mảng các chuỗi) đến renderer process
       window.webContents.send('load-diff-data', { filePath })
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })
@@ -154,11 +155,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/check-coding-rules'
       : format({
-          pathname: resolve(__dirname, '../renderer/index.html'),
-          protocol: 'file:',
-          slashes: true,
-          hash: '/check-coding-rules',
-        })
+        pathname: resolve(__dirname, '../renderer/index.html'),
+        protocol: 'file:',
+        slashes: true,
+        hash: '/check-coding-rules',
+      })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
@@ -197,11 +198,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/spotbugs'
       : format({
-          pathname: resolve(__dirname, '../renderer/index.html'),
-          protocol: 'file:',
-          slashes: true,
-          hash: '/spotbugs',
-        })
+        pathname: resolve(__dirname, '../renderer/index.html'),
+        protocol: 'file:',
+        slashes: true,
+        hash: '/spotbugs',
+      })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', async () => {
@@ -254,11 +255,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/commit-message-history'
       : format({
-          pathname: resolve(__dirname, '../renderer/index.html'),
-          protocol: 'file:',
-          slashes: true,
-          hash: '/commit-message-history',
-        })
+        pathname: resolve(__dirname, '../renderer/index.html'),
+        protocol: 'file:',
+        slashes: true,
+        hash: '/commit-message-history',
+      })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {

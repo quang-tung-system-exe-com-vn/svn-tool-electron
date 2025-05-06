@@ -47,6 +47,7 @@ interface LogEntry {
   date: string
   isoDate: string
   message: string
+  referenceId: string
   action: string[]
   changedFiles: LogFile[]
 }
@@ -135,6 +136,20 @@ export function ShowLog() {
       },
     },
     {
+      accessorKey: 'referenceId',
+      size: 30,
+      maxSize: 30,
+      header: ({ column }) => (
+        <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
+          Reference ID
+          {!column.getIsSorted() && <ArrowUpDown />}
+          {column.getIsSorted() === 'asc' && <ArrowUp />}
+          {column.getIsSorted() === 'desc' && <ArrowDown />}
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue('referenceId')}</div>,
+    },
+    {
       accessorKey: 'message',
       header: ({ column }) => {
         return (
@@ -146,16 +161,32 @@ export function ShowLog() {
           </Button>
         )
       },
-      cell: ({ row }) => (
-        <div className="overflow-hidden text-ellipsis whitespace-nowrap w-[200px]" title={row.getValue('message')}>
-          {row.getValue('message')}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const message = row.getValue('message') as string
+        const referenceId = row.getValue('referenceId') as string
+
+        // Nếu có reference ID, loại bỏ nó khỏi message hiển thị
+        const displayMessage = referenceId && message.startsWith(referenceId) ? message.substring(referenceId.length).trim() : message
+
+        return (
+          <div className="overflow-hidden text-ellipsis whitespace-nowrap w-[200px]" title={displayMessage}>
+            {displayMessage}
+          </div>
+        )
+      },
     },
   ]
 
   const [isLoading, setIsLoading] = useState(false)
-  const [filePath, setFilePath] = useState('')
+  const [filePath, setFilePath] = useState<string | string[]>('')
+
+  // Chuyển đổi filePath thành chuỗi để truyền vào các component
+  const displayFilePath = useMemo(() => {
+    if (Array.isArray(filePath)) {
+      return filePath.length > 1 ? `${filePath[0]} (+${filePath.length - 1} files)` : filePath[0]
+    }
+    return filePath
+  }, [filePath])
   const [selectedRevision, setSelectedRevision] = useState<string | null>(null)
   const [commitMessage, setCommitMessage] = useState('')
   const [changedFiles, setChangedFiles] = useState<LogFile[]>([])
@@ -207,7 +238,7 @@ export function ShowLog() {
     }
   }, [dateRange])
 
-  const loadLogData = async (path: string) => {
+  const loadLogData = async (path: string | string[]) => {
     try {
       setCommitMessage('')
       setChangedFiles([])
@@ -229,6 +260,7 @@ export function ShowLog() {
       } else {
       }
 
+      // Nếu path là một mảng, sử dụng toàn bộ mảng
       const result = await window.api.svn.log(path, options)
       if (result.status === 'success') {
         const rawLog = result.data as string
@@ -266,6 +298,17 @@ export function ShowLog() {
             i++
           }
           const messageLines = lines.slice(i)
+          const fullMessage = messageLines.join('\n').trim()
+
+          // Xử lý để lấy reference ID từ commit message
+          let referenceId = ''
+          const messageFirstLine = fullMessage.split('\n')[0] || ''
+          // Kiểm tra xem dòng đầu tiên có phải là reference ID không (ví dụ: No.344)
+          const refIdMatch = messageFirstLine.match(/^(No\.\d+|[A-Z]+-\d+)$/)
+          if (refIdMatch) {
+            referenceId = refIdMatch[0]
+          }
+
           if (!addedRevisions.has(revisionStr)) {
             const originalDate = new Date(date)
             parsedEntries.push({
@@ -273,7 +316,8 @@ export function ShowLog() {
               author,
               date: originalDate.toLocaleString(),
               isoDate: originalDate.toISOString(),
-              message: messageLines.join('\n').trim(),
+              message: fullMessage,
+              referenceId: referenceId,
               action: Array.from(new Set(changedFiles.map(f => f.action))),
               changedFiles,
             })
@@ -368,6 +412,9 @@ export function ShowLog() {
     enableSortingRemoval: true,
     state: {
       sorting,
+      columnVisibility: {
+        message: false,
+      },
     },
   })
 
@@ -444,12 +491,12 @@ export function ShowLog() {
   return (
     <div className="flex h-screen w-full">
       {/* Dialogs */}
-      <StatisticDialog data={allLogData} isOpen={isStatisticOpen} onOpenChange={setIsStatisticOpen} filePath={filePath} dateRange={dateRange} />
+      <StatisticDialog data={allLogData} isOpen={isStatisticOpen} onOpenChange={setIsStatisticOpen} filePath={displayFilePath as string} dateRange={dateRange} />
 
       <div className="flex flex-col flex-1 w-full">
         <ShowlogToolbar
           onRefresh={handleRefresh}
-          filePath={filePath}
+          filePath={displayFilePath}
           isLoading={isLoading}
           dateRange={dateRange}
           setDateRange={setDateRange}
@@ -466,8 +513,7 @@ export function ShowLog() {
                       <Input placeholder={t('dialog.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
                     </div>
                   </div>
-                  <div className="flex flex-col border rounded-md overflow-hidden h-full">
-                    <div className="bg-muted p-2 font-medium">{t('dialog.showLogs.title')}</div>
+                  <div className="flex flex-col border rounded-md overflow-auto h-full">
                     <ScrollArea className="h-full w-full">
                       <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
@@ -511,10 +557,7 @@ export function ShowLog() {
                             <TableRow className="h-full">
                               <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
                                 <div className="flex flex-col items-center justify-center gap-4 h-full">
-                                  <p className="text-muted-foreground">No log entries found.</p>
-                                  <Button variant={variant} onClick={handleRefresh}>
-                                    Reload
-                                  </Button>
+                                  <p className="text-muted-foreground">{t('common.noData')}</p>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -559,12 +602,13 @@ export function ShowLog() {
               <ResizablePanelGroup direction="vertical" className="h-full">
                 <ResizablePanel defaultSize={40} minSize={20}>
                   <div className="p-2 font-medium pb-[11px]">{t('dialog.showLogs.commitMessage')}</div>
-                  <div className="h-full pb-[2.8rem]">
-                    <ScrollArea className="h-full border-1 rounded-md">
-                      <Textarea className="w-full h-full resize-none border-none cursor-default break-all absolute" readOnly={true} value={commitMessage} spellCheck={false} />
-                      <ScrollBar orientation="vertical" />
-                      <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                  <div className="h-full overflow-auto pb-[2.8rem]">
+                    <Textarea
+                      className="w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
+                      readOnly={true}
+                      value={commitMessage}
+                      spellCheck={false}
+                    />
                   </div>
                 </ResizablePanel>
 
@@ -584,8 +628,8 @@ export function ShowLog() {
                       )}
                     </div>
                   </div>
-                  <div className="h-full">
-                    <ScrollArea className="h-full border-1 rounded-md">
+                  <div className="h-full overflow-auto border-1 rounded-md">
+                    <ScrollArea className="h-full">
                       <Table wrapperClassName={cn('overflow-clip', changedFiles.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                           <TableRow>

@@ -1,6 +1,6 @@
+import { Notification } from 'electron'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { Notification } from 'electron'
 import configurationStore from '../store/ConfigurationStore'
 import { getResourcePath } from '../utils/utils'
 import { updateRevisionStatus } from '../windows/overlayStateManager'

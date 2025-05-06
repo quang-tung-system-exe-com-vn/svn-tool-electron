@@ -6,6 +6,7 @@ import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -20,7 +21,7 @@ import { IPC } from 'main/constants'
 import type { Language } from 'main/store/AppearanceStore'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Joyride, { type Step, type CallBackProps, STATUS } from 'react-joyride'
+import Joyride, { type CallBackProps, STATUS, type Step } from 'react-joyride'
 
 export function MainPage() {
   const { language, setLanguage } = useAppearanceStore()
@@ -31,7 +32,9 @@ export function MainPage() {
   const [isLoadingCommit, setLoadingCommit] = useState(false)
   const tableRef = useRef<any>(null)
   const commitMessageRef = useRef<HTMLTextAreaElement>(null)
+  const referenceIdRef = useRef<HTMLInputElement>(null)
   const commitMessage = useRef('')
+  const referenceId = useRef('')
   const isAnyLoading = isLoadingGenerate || isLoadingCommit
   const [runTour, setRunTour] = useState(false)
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false)
@@ -94,6 +97,10 @@ export function MainPage() {
       disableBeacon: true,
     },
     {
+      target: '#reference-id-input',
+      content: t('joyride.main.referenceId'),
+    },
+    {
       target: '#commit-message-area',
       content: t('joyride.main.step2'),
     },
@@ -130,7 +137,7 @@ export function MainPage() {
     }
     if (finishedStatuses.includes(status)) {
       setRunTour(false)
-      localStorage.setItem('hasCompletedTour', 'true')
+      localStorage.setItem('has-completed-tour', 'true')
       setHasCompletedTour(true)
       setShowWelcomeDialog(false)
       setShowTourIconForLastStep(false)
@@ -139,6 +146,10 @@ export function MainPage() {
 
   const handleCommitMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     commitMessage.current = e.target.value
+  }
+
+  const handleReferenceId = (e: React.ChangeEvent<HTMLInputElement>) => {
+    referenceId.current = e.target.value
   }
 
   const generateCommitMessage = async () => {
@@ -206,8 +217,13 @@ export function MainPage() {
       toast.warning(t('message.noFilesWarning'))
       return
     }
+
+    // Tạo commit message với reference id
+    const refId = referenceIdRef.current?.value || ''
+    const finalCommitMessage = refId ? `${refId}\n${commitMessageRef.current?.value}` : commitMessageRef.current?.value
+
     setLoadingCommit(true)
-    const result = await window.api.svn.commit(commitMessageRef.current?.value, '', selectedFiles)
+    const result = await window.api.svn.commit(finalCommitMessage, '', selectedFiles)
     const { status, message } = result
 
     if (status === 'success') {
@@ -222,6 +238,10 @@ export function MainPage() {
       if (commitMessageRef.current) {
         commitMessageRef.current.value = ''
       }
+      if (referenceIdRef.current) {
+        referenceIdRef.current.value = ''
+        referenceId.current = ''
+      }
     } else {
       toast.error(message)
       setLoadingCommit(false)
@@ -229,13 +249,13 @@ export function MainPage() {
   }
 
   const openWelcomeDialogAgain = () => {
-    localStorage.setItem('hasCompletedTour', 'false')
+    localStorage.setItem('has-completed-tour', 'false')
     setHasCompletedTour(false)
     setShowWelcomeDialog(true)
   }
 
   useEffect(() => {
-    const completed = localStorage.getItem('hasCompletedTour') === 'true'
+    const completed = localStorage.getItem('has-completed-tour') === 'true'
     setHasCompletedTour(completed)
     if (!completed) {
       const timer = setTimeout(() => {
@@ -276,12 +296,23 @@ export function MainPage() {
               <DataTable ref={tableRef} />
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="p-2 pt-8 mb-[20px]" minSize={25} defaultSize={50}>
-              <div id="commit-message-area" className="relative overflow-hidden h-full">
+            <ResizablePanel className="p-2 mb-[20px]" minSize={25} defaultSize={50}>
+              <div className="relative overflow-hidden h-full flex flex-col">
                 <OverlayLoader isLoading={isLoadingGenerate} />
+                <div className="mb-2 pt-8">
+                  <Input
+                    id="reference-id-input"
+                    placeholder={t('placeholder.referenceId')}
+                    className="w-full"
+                    onChange={handleReferenceId}
+                    ref={referenceIdRef}
+                    spellCheck={false}
+                  />
+                </div>
                 <Textarea
+                  id="commit-message-area"
                   placeholder={t('placeholder.commitMessage')}
-                  className="w-full h-full resize-none"
+                  className="w-full flex-1 resize-none"
                   onChange={handleCommitMessage}
                   ref={commitMessageRef}
                   spellCheck={false}
@@ -486,7 +517,7 @@ export function MainPage() {
             <AlertDialogFooter>
               <AlertDialogCancel
                 onClick={() => {
-                  localStorage.setItem('hasCompletedTour', 'true')
+                  localStorage.setItem('has-completed-tour', 'true')
                   setHasCompletedTour(true)
                   setShowWelcomeDialog(false)
                 }}

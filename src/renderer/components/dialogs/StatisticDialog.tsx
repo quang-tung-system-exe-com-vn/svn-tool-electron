@@ -508,13 +508,14 @@ export function StatisticDialog({ data, isOpen, onOpenChange, filePath, dateRang
 
           <TabsContent value="authorship" className="h-[550px]">
             <div className="flex flex-col h-full">
-              <h3 className="text-lg font-medium mb-2">{t('dialog.statisticSvn.authorship.cardTitle')}</h3>
               {(chartData2.length ?? 0) > 0 ? (
-                <Card className="flex flex-col max-w-full sticky h-[518px]">
+                <Card className="flex flex-col max-w-full sticky h-[550px]">
                   <OverlayLoader isLoading={isLoadingStatistics} />
-                  <CardHeader className="items-center pb-0">
-                    <CardTitle>{t('dialog.statisticSvn.authorship.cardTitle')}</CardTitle>
-                    <CardDescription>{t('dialog.statisticSvn.authorship.cardDescription')}</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between pb-0">
+                    <div className="flex flex-col">
+                      <CardTitle>{t('dialog.statisticSvn.authorship.cardTitle')}</CardTitle>
+                      <CardDescription>{t('dialog.statisticSvn.authorship.cardDescription')}</CardDescription>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0 overflow-hidden">
                     <ChartContainer config={chartConfig1} className="w-full mx-auto h-full">

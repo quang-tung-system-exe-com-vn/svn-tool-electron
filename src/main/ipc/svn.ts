@@ -24,10 +24,10 @@ export function registerSvnIpcHandlers() {
   ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string) => await info(filePath))
   ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string) => await cat(filePath))
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
-  ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string) => await revert(filePath))
+  ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string | string[]) => await revert(filePath))
   ipcMain.handle(IPC.SVN.CLEANUP, async (_event, options?: string[]) => await cleanup(options))
-  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string, options?: LogOptions) => await logSvn(filePath, options))
-  ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string) => await update(filePath))
+  ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string | string[], options?: LogOptions) => await logSvn(filePath, options))
+  ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string | string[]) => await update(filePath))
   ipcMain.handle(IPC.SVN.STATISTICS, async (_event, filePath: string, options?: StatisticsOptions) => await getStatistics(filePath, options))
 
   log.info('✅ SVN IPC Handlers Registered')

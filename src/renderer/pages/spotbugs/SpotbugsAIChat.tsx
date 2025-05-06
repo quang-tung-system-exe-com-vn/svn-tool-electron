@@ -10,9 +10,21 @@ import { Textarea } from '@/components/ui/textarea'
 import logger from '@/services/logger'
 import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
 import { Bot, FileCode, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import ReactMarkdown from 'react-markdown'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import remarkGfm from 'remark-gfm'
 import type { BugInstance } from './constants'
+
+interface CustomCodeProps {
+  node?: any
+  inline?: boolean
+  className?: string
+  children?: ReactNode
+  [key: string]: any
+}
 
 interface SourceLineOption {
   label: string
@@ -139,7 +151,8 @@ export const SpotbugsAIChat = ({
       const { classname, sourcefile, start, end } = selectedOption.sourceLine
       const codeSnippet = codeSnippets[selectedSourceLine] || ''
 
-      const prompt = `Explain the following SpotBugs issue. Bug type: "${bug.type}", Category: "${bug.category}", Priority: ${bug.priority}, Message: "${bug.longMessage}\n\n".
+      const prompt = `Formatting re-enabled.
+      Explain the following SpotBugs issue. Bug type: "${bug.type}", Category: "${bug.category}", Priority: ${bug.priority}, Message: "${bug.longMessage}\n\n".
       ${codeSnippet ? `Code from file ${sourcefile} (lines ${start}-${end}):\n\`\`\`\n${codeSnippet}\n\`\`\`` : `Unable to retrieve code from file "${sourcefile}".`}\n\n
       Provide a concise explanation and suggest possible solutions in ${languageName}.`
 
@@ -276,9 +289,28 @@ export const SpotbugsAIChat = ({
       )}
 
       {aiResponse && (
-        <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-4">
-          <h5 className="font-semibold">{t('dialog.spotbugs.ai.responseTitle')}</h5>
-          <p className="text-sm whitespace-pre-wrap break-all">{aiResponse}</p>
+        <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-2">
+          <div className="p-4 prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code({ node, inline, className, children, ...props }: CustomCodeProps) {
+                  const match = /language-(\w+)/.exec(className || '')
+                  return !inline && match ? (
+                    <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" className={className}>
+                      {String(children).replace(/\n$/, '')}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  )
+                },
+              }}
+            >
+              {aiResponse}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
     </div>

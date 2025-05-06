@@ -22,7 +22,8 @@
     "noData": "Không có dữ liệu",
     "skip": "Bỏ qua",
     "finish": "Hoàn thành",
-    "startTour": "Bắt đầu"
+    "startTour": "Bắt đầu",
+    "dontShowAgain": "Không hiển thị lại"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -71,6 +72,7 @@
   },
   "placeholder": {
     "commitMessage": "Nhập thông điệp commit...",
+    "referenceId": "Mã tham chiếu (ví dụ: No.344)",
     "search": "Tìm kiếm",
     "selectLanguage": "Chọn ngôn ngữ...",
     "noLanguage": "Không tìm thấy ngôn ngữ."
@@ -119,6 +121,7 @@
     },
     "main": {
       "step1": "Bảng này hiển thị các tệp đã bị thay đổi, thêm mới hoặc xóa trong bản sao làm việc SVN của bạn. Chọn các tệp bạn muốn đưa vào commit.",
+      "referenceId": "Nhập mã tham chiếu cho commit của bạn. Mã này sẽ được thêm vào đầu thông điệp commit (ví dụ: No.344).",
       "step2": "Khu vực này dành cho thông điệp commit của bạn. Bạn có thể viết thủ công hoặc tạo tự động bằng AI.",
       "step3": "Nhấp vào nút này để tạo thông điệp commit dựa trên các thay đổi của tệp đã chọn bằng AI.",
       "step4": "Nhấp vào nút này để kiểm tra các tệp đã chọn theo các quy tắc mã hóa được định sẵn.",
@@ -277,14 +280,7 @@
     },
     "statisticSvn": {
       "title": "Thống kê",
-      "selectPeriodPlaceholder": "Chọn khoảng thời gian",
-      "period": {
-        "day": "Ngày",
-        "week": "Tuần",
-        "month": "Tháng",
-        "year": "Năm",
-        "all": "Tất cả"
-      },
+      "description": "Theo dõi các số liệu và biểu đồ thống kê hoạt động commit SVN theo thời gian, tác giả và tỷ lệ đóng góp, hỗ trợ quản lý và đánh giá tiến độ dự án dễ dàng hơn.",
       "tabs": {
         "commitByDate": "Commit theo ngày",
         "commitByAuthor": "Commit theo tác giả",
@@ -312,8 +308,8 @@
         }
       },
       "authorship": {
-        "title": "Tỷ lệ đóng góp của tác giả",
-        "cardTitle": "Commits theo tác giả",
+        "title": "Tỷ lệ đóng góp theo tác giả",
+        "cardTitle": "Tỷ lệ đóng góp theo tác giả",
         "cardDescription": "Tỷ lệ đóng góp của tác giả"
       },
       "summary": {

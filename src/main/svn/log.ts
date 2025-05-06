@@ -98,13 +98,55 @@ async function fetchAllLogData(
   return { status: 'success', totalEntries: totalEntries, data: allData }
 }
 
-export async function log(filePath = '.', options?: LogOptions): Promise<SVNResponse> {
+export async function log(filePath: string | string[] = '.', options?: LogOptions): Promise<SVNResponse> {
   try {
     logger.info('Initial Log options (fetching all data):', options)
     const { dateFrom, dateTo } = options || {} // Bỏ limit, offset
     const { sourceFolder } = configurationStore.store
     let suggestedStartDate: string | null = null
 
+    // SVN log không cho phép nhiều file path trong một lệnh
+    // Nếu filePath là một mảng, thực hiện lệnh log cho từng file và kết hợp kết quả
+    if (Array.isArray(filePath)) {
+      logger.info(`Multiple files provided (${filePath.length}), fetching logs for each file separately`);
+
+      let combinedData = '';
+      let totalEntries = 0;
+      let hasError = false;
+      let errorMessage = '';
+
+      for (const path of filePath) {
+        logger.info(`Fetching log for file: ${path}`);
+        const singleResult = await fetchAllLogData(path, dateFrom, dateTo);
+
+        if (singleResult.status === 'error') {
+          hasError = true;
+          errorMessage += `Error fetching log for ${path}: ${singleResult.message}\n`;
+          continue;
+        }
+
+        if (singleResult.data) {
+          if (combinedData) {
+            combinedData += '\n------------------------------------------------------------------------\n';
+          }
+          combinedData += singleResult.data;
+          totalEntries += singleResult.totalEntries || 0;
+        }
+      }
+
+      if (hasError && !combinedData) {
+        return { status: 'error', message: errorMessage.trim() };
+      }
+
+      return {
+        status: 'success',
+        data: combinedData,
+        totalEntries,
+        message: hasError ? errorMessage.trim() : undefined
+      };
+    }
+
+    // Xử lý trường hợp một file
     logger.info(`--- Attempt 1: Fetching ALL logs for [${dateFrom || 'Beginning'}, ${dateTo || 'HEAD'}] ---`)
     let result = await fetchAllLogData(filePath, dateFrom, dateTo)
 
@@ -137,6 +179,47 @@ export async function log(filePath = '.', options?: LogOptions): Promise<SVNResp
 
             // --- Second Attempt (Retry): Fetch all data with suggested start date ---
             logger.info(`--- Attempt 2: Retrying fetch ALL logs for [${suggestedStartDate}, ${dateTo || 'HEAD'}] ---`)
+
+            // Nếu filePath là một mảng, xử lý tương tự như trên
+            if (Array.isArray(filePath)) {
+              let combinedData = '';
+              let totalEntries = 0;
+              let hasError = false;
+              let errorMessage = '';
+
+              for (const path of filePath) {
+                logger.info(`Retrying fetch log for file: ${path}`);
+                const singleResult = await fetchAllLogData(path, suggestedStartDate, dateTo);
+
+                if (singleResult.status === 'error') {
+                  hasError = true;
+                  errorMessage += `Error fetching log for ${path}: ${singleResult.message}\n`;
+                  continue;
+                }
+
+                if (singleResult.data) {
+                  if (combinedData) {
+                    combinedData += '\n------------------------------------------------------------------------\n';
+                  }
+                  combinedData += singleResult.data;
+                  totalEntries += singleResult.totalEntries || 0;
+                }
+              }
+
+              if (hasError && !combinedData) {
+                return { status: 'error', message: errorMessage.trim(), suggestedStartDate };
+              }
+
+              return {
+                status: 'success',
+                data: combinedData,
+                totalEntries,
+                suggestedStartDate,
+                message: hasError ? errorMessage.trim() : undefined
+              };
+            }
+
+            // Xử lý trường hợp một file
             result = await fetchAllLogData(filePath, suggestedStartDate, dateTo) // Gọi lại fetchAllLogData
 
             if (result.status === 'error') {

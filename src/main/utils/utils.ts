@@ -1,7 +1,7 @@
-import fs from 'node:fs'
-import path from 'node:path'
 import { app } from 'electron'
 import log from 'electron-log'
+import fs from 'node:fs'
+import path from 'node:path'
 import { isText } from './istextorbinary'
 
 /**

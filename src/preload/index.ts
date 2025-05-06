@@ -29,10 +29,10 @@ declare global {
         info: (filePath: string, revision?: string) => Promise<any>
         cat: (filePath: string) => Promise<any>
         blame: (filePath: string) => Promise<any>
-        revert: (filePath: string) => Promise<any>
+        revert: (filePath: string | string[]) => Promise<any>
         cleanup: (options?: string[]) => Promise<any>
-        log: (filePath: string, options?: { limit?: number; offset?: number }) => Promise<any>
-        update: (filePath?: string) => Promise<any>
+        log: (filePath: string | string[], options?: { limit?: number; offset?: number }) => Promise<any>
+        update: (filePath?: string | string[]) => Promise<any>
         open_diff: (filePath: string) => void
         statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) => Promise<any>
       }
@@ -145,10 +145,10 @@ contextBridge.exposeInMainWorld('api', {
     info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
     cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
     blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
-    revert: (filePath: string) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
+    revert: (filePath: string | string[]) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
     cleanup: (options?: string[]) => ipcRenderer.invoke(IPC.SVN.CLEANUP, options),
-    log: (filePath: string, options?: { limit?: number; offset?: number }) => ipcRenderer.invoke(IPC.SVN.LOG, filePath, options),
-    update: (filePath?: string) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
+    log: (filePath: string | string[], options?: { limit?: number; offset?: number }) => ipcRenderer.invoke(IPC.SVN.LOG, filePath, options),
+    update: (filePath?: string | string[]) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
     open_diff: (filePath: string) => ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, filePath),
     statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) =>
       ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),

@@ -1,9 +1,12 @@
 'use client'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { CircleAlert, MoveRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -14,11 +17,27 @@ interface UpdateDialogProps {
   currentVersion: string
   newVersion: string
   releaseNotes: string
+  isManuallyOpened?: boolean
 }
 
-export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, releaseNotes }: UpdateDialogProps) => {
+export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, releaseNotes, isManuallyOpened = false }: UpdateDialogProps) => {
   const { t } = useTranslation()
   const variant = useButtonVariant()
+  const [dontShowAgain, setDontShowAgain] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      const dontShowUpdateDialog = localStorage.getItem('dont-show-update-dialog') === 'true'
+      if (dontShowUpdateDialog && !isManuallyOpened) {
+        onOpenChange(false)
+      }
+    }
+  }, [open, onOpenChange, isManuallyOpened])
+
+  useEffect(() => {
+    const savedState = localStorage.getItem('dont-show-update-dialog') === 'true'
+    setDontShowAgain(savedState)
+  }, [])
   const handleInstall = async () => {
     try {
       onOpenChange(false)
@@ -49,13 +68,30 @@ export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, r
           <CircleAlert className="w-4 h-4 text-red-400" />
           {t('dialog.updateApp.message')}
         </div>
-        <DialogFooter>
-          <Button variant={variant} onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
-          </Button>
-          <Button variant={variant} onClick={handleInstall}>
-            {t('common.install')}
-          </Button>
+        <DialogFooter className="flex-col items-start sm:flex-row sm:items-center">
+          <div className="flex items-center space-x-2 mb-4 sm:mb-0 w-full">
+            <Checkbox
+              id="dontShowUpdateDialog"
+              checked={dontShowAgain}
+              onCheckedChange={checked => {
+                setDontShowAgain(checked === true)
+                if (checked === true) {
+                  localStorage.setItem('dont-show-update-dialog', 'true')
+                } else {
+                  localStorage.removeItem('dont-show-update-dialog')
+                }
+              }}
+            />
+            <Label htmlFor="dontShowUpdateDialog">{t('common.dontShowAgain')}</Label>
+          </div>
+          <div className="flex w-full justify-end space-x-2">
+            <Button variant={variant} onClick={() => onOpenChange(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant={variant} onClick={handleInstall}>
+              {t('common.install')}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

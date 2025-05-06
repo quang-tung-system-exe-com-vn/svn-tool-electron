@@ -22,7 +22,8 @@
     "noData": "データがありません",
     "skip": "スキップ",
     "finish": "完了",
-    "startTour": "開始"
+    "startTour": "開始",
+    "dontShowAgain": "今後表示しない"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -71,6 +72,7 @@
   },
   "placeholder": {
     "commitMessage": "コミットメッセージを入力してください...",
+    "referenceId": "参照ID（例：No.344）",
     "search": "検索",
     "selectLanguage": "言語を選択...",
     "noLanguage": "言語が見つかりません。"
@@ -119,6 +121,7 @@
     },
     "main": {
       "step1": "このテーブルには、SVN作業コピーで変更、追加、または削除されたファイルが表示されます。コミットに含めたいファイルを選択してください。",
+      "referenceId": "コミット用の参照IDを入力してください。これはコミットメッセージの先頭に含まれます（例：No.344）。",
       "step2": "このエリアはコミットメッセージ用です。手動で入力するか、AIを使用して生成できます。",
       "step3": "このボタンをクリックすると、選択したファイルの変更に基づいてAIを使用してコミットメッセージを生成します。",
       "step4": "このボタンをクリックすると、選択したファイルを定義済みのコーディングルールに対してチェックします。",
@@ -277,14 +280,7 @@
     },
     "statisticSvn": {
       "title": "統計",
-      "selectPeriodPlaceholder": "期間を選択",
-      "period": {
-        "day": "日",
-        "week": "週",
-        "month": "月",
-        "year": "年",
-        "all": "すべて"
-      },
+      "description": "コミットの日時、作者別、貢献率など、SVNの活動統計やグラフを確認でき、プロジェクトの進捗管理や評価がより簡単になります。",
       "tabs": {
         "commitByDate": "日付別コミット",
         "commitByAuthor": "作成者別コミット",
@@ -313,7 +309,7 @@
       },
       "authorship": {
         "title": "作成者貢献率",
-        "cardTitle": "作成者別コミット",
+        "cardTitle": "作者ごとの貢献率",
         "cardDescription": "作成者貢献率"
       },
       "summary": {
