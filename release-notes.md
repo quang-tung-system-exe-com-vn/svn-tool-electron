@@ -1,35 +1,47 @@
-## ✨ feat: improve SpotBugs UI and add chart type switcher
+## 📝 Changelog / 変更履歴 / Thay đổi
 
-### English (en)
-```
-- Refactored SpotBugs details panel for better readability and scrolling.
-- Added chart type switcher (priority, file, package) with icon buttons.
-- Improved chart layouts: charts now use absolute positioning for better sizing.
-- Enhanced AI chat panel with inline code snippet and explain buttons.
-- Updated code snippet dialogs and button variants for consistency.
-- Improved message and log display in ShowLog and revision dialogs.
-```
+### 🇬🇧 English (en)
 
----
-
-### 日本語 (ja)
-```
-- SpotBugs の詳細パネルをリファクタリングし、可読性とスクロール操作を改善しました。
-- 優先度・ファイル・パッケージ別に切り替え可能なチャートタイプスイッチャーをアイコンボタンで追加しました。
-- チャートのレイアウトを改善し、絶対位置指定によりサイズ調整が向上しました。
-- AI チャットパネルにインラインコードスニペットと説明ボタンを追加しました。
-- コードスニペットダイアログおよびボタンのバリアントを統一し、整合性を確保しました。
-- ShowLog およびリビジョンダイアログでのメッセージとログの表示を改善しました。
-```
+- **feat**: Enhance `OverlayLoader` color handling based on stored UI settings
+- **style**: Update line highlight colors in `globals.css` for better visibility
+- **fix**: Improve Vietnamese translation for AI content warning message
+- **refactor**: Load commit message history from IndexedDB in `CommitMessageHistory` component
+- **feat**: Add double-click functionality on file paths in `DataTable` for enhanced user experience
+- **fix**: Adjust `OverlayLoader` positioning in `MainPage` for better UX during loading
+- **feat**: Pass current revision to log window in `TitleBar` for better context
+- **fix**: Update `ShowLog` to handle current revision state and highlight it in the log table
+- **style**: Improve `SpotBugs` UI with better text sizes and spacing for readability
+- **feat**: Integrate AI chat functionality in `SpotBugs` with enhanced file content handling
+- **refactor**: Optimize `useHistoryStore` to utilize IndexedDB for commit message history management
 
 ---
 
-### Tiếng Việt (vi)
-```
-- Tái cấu trúc bảng chi tiết SpotBugs để cải thiện khả năng đọc và cuộn mượt mà hơn.
-- Thêm nút chuyển đổi loại biểu đồ (theo độ ưu tiên, theo file, theo package) bằng các nút icon.
-- Cải thiện bố cục biểu đồ: sử dụng định vị tuyệt đối để tối ưu hóa kích thước.
-- Tăng cường bảng AI chat với nút chèn đoạn mã và nút giải thích nội dung.
-- Cập nhật các hộp thoại đoạn mã và kiểu nút để đồng bộ và nhất quán hơn.
-- Cải thiện hiển thị thông điệp và log trong ShowLog và các hộp thoại revision.
-```
+### 🇯🇵 Japanese (ja)
+
+- **機能追加**: 保存された UI 設定に基づいて `OverlayLoader` の色処理を強化
+- **スタイル**: `globals.css` の行ハイライトの色を改善し視認性を向上
+- **修正**: AI コンテンツ警告メッセージのベトナム語翻訳を改善
+- **リファクタリング**: `CommitMessageHistory` コンポーネントで IndexedDB からコミットメッセージ履歴を読み込み
+- **機能追加**: `DataTable` のファイルパスにダブルクリック機能を追加し、ユーザー体験を向上
+- **修正**: ローディング中の UX を改善するため、`MainPage` の `OverlayLoader` の位置を調整
+- **機能追加**: 現在のリビジョンを `TitleBar` のログウィンドウに渡し、コンテキストを向上
+- **修正**: `ShowLog` を更新し、現在のリビジョン状態に対応してログテーブルで強調表示
+- **スタイル**: 読みやすさ向上のため、`SpotBugs` UI のテキストサイズと間隔を改善
+- **機能追加**: `SpotBugs` に AI チャット機能を統合し、ファイル内容の処理を強化
+- **リファクタリング**: `useHistoryStore` を最適化し、IndexedDB を活用してコミットメッセージ履歴を管理
+
+---
+
+### 🇻🇳 Vietnamese (vi)
+
+- **tính năng**: Cải thiện xử lý màu của `OverlayLoader` dựa trên cài đặt giao diện được lưu
+- **giao diện**: Cập nhật màu làm nổi dòng trong `globals.css` để tăng khả năng hiển thị
+- **sửa lỗi**: Cải thiện bản dịch tiếng Việt cho cảnh báo nội dung AI
+- **tái cấu trúc**: Tải lịch sử commit từ IndexedDB trong component `CommitMessageHistory`
+- **tính năng**: Thêm chức năng nhấp đúp vào đường dẫn file trong `DataTable` để nâng cao trải nghiệm người dùng
+- **sửa lỗi**: Điều chỉnh vị trí của `OverlayLoader` trong `MainPage` để cải thiện UX khi đang tải
+- **tính năng**: Truyền revision hiện tại vào cửa sổ log trong `TitleBar` để có thêm ngữ cảnh
+- **sửa lỗi**: Cập nhật `ShowLog` để xử lý trạng thái revision hiện tại và làm nổi bật trong bảng log
+- **giao diện**: Cải thiện giao diện `SpotBugs` với kích thước chữ và khoảng cách tốt hơn
+- **tính năng**: Tích hợp chức năng AI chat vào `SpotBugs`, cải thiện xử lý nội dung file
+- **tái cấu trúc**: Tối ưu `useHistoryStore` để sử dụng IndexedDB trong quản lý lịch sử commit
