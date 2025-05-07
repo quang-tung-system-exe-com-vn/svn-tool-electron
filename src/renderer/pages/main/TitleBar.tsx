@@ -11,7 +11,7 @@ import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import logger from '@/services/logger'
-import { CircleArrowDown, Eraser, FileText, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react' // Added PlayCircle
+import { CircleArrowDown, Eraser, FileText, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +20,7 @@ interface TitleBarProps {
   isLoading: boolean
   onTourIconClick: () => void
   hasCompletedTour: boolean
-  showTourIconForLastStep: boolean // Add new prop for tour state
+  showTourIconForLastStep: boolean
 }
 type SvnInfo = {
   author: string
@@ -100,7 +100,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
           logger.info(data)
           setHasSvnUpdate(true)
           setSvnInfo(data)
-          setIsSvnDialogManuallyOpened(false) // Đây là mở tự động
+          setIsSvnDialogManuallyOpened(false)
           setShowSvnUpdateDialog(true)
         } else if (status === 'no-change') {
           logger.info('Không có thay đổi')
@@ -138,7 +138,6 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
 
   const checkForUpdates = async () => {
     if (status === 'downloaded') {
-      // Đánh dấu dialog được mở thủ công
       setIsUpdateDialogManuallyOpened(true)
       setShowUpdateDialog(true)
     } else {
@@ -178,7 +177,6 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
   }
 
   const openSvnUpdateDialog = () => {
-    // Đánh dấu dialog được mở thủ công
     setIsSvnDialogManuallyOpened(true)
     setShowSvnUpdateDialog(true)
   }
@@ -323,7 +321,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
                       {status === 'downloaded' && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>{status === 'downloaded' ? t('title.checkForUpdate1', { 0: appVersion }) : t('title.checkForUpdate')}</TooltipContent>
+                  <TooltipContent>{status === 'downloaded' ? t('title.checkForUpdate1', { 0: newAppVersion }) : t('title.checkForUpdate')}</TooltipContent>
                 </Tooltip>
               )}
             </div>
