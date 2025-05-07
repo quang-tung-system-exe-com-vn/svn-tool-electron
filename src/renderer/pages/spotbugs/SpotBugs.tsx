@@ -261,13 +261,13 @@ export function SpotBugs() {
   const getPrioriyIcon = (priority: number) => {
     switch (priority) {
       case 1:
-        return <AlertCircle strokeWidth={1.5} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
+        return <AlertCircle strokeWidth={1.25} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
       case 2:
-        return <AlertTriangle strokeWidth={1.5} className="h-4 w-4 text-yellow-800 dark:text-yellow-400 border-yellow-500/20" />
+        return <AlertTriangle strokeWidth={1.25} className="h-4 w-4 text-yellow-800 dark:text-yellow-400 border-yellow-500/20" />
       case 3:
-        return <Info strokeWidth={1.5} className="h-4 w-4 text-blue-800 dark:text-blue-400 border-blue-500/20" />
+        return <Info strokeWidth={1.25} className="h-4 w-4 text-blue-800 dark:text-blue-400 border-blue-500/20" />
       default:
-        return <Info strokeWidth={1.5} className="h-4 w-4 text-gray-800 dark:text-gray-400 border-gray-500/20" />
+        return <Info strokeWidth={1.25} className="h-4 w-4 text-gray-800 dark:text-gray-400 border-gray-500/20" />
     }
   }
 
@@ -454,39 +454,39 @@ export function SpotBugs() {
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <TabsList>
               <TabsTrigger value="all">
-                <Bug strokeWidth={1.5} className="h-4 w-4  text-green-800 dark:text-green-400 border-green-500/20" />
+                <Bug strokeWidth={1.25} className="h-4 w-4  text-green-800 dark:text-green-400 border-green-500/20" />
                 {t('dialog.spotbugs.allIssues')}
                 <Badge variant="outline" className="rounded-md ml-2">
                   {spotbugsResult.bugCount.total}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="high">
-                <AlertCircle strokeWidth={1.5} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
+                <AlertCircle strokeWidth={1.25} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
                 {t('dialog.spotbugs.high')}
                 <Badge variant="outline" className="rounded-md ml-2 bg-red-200/10 text-red-800 dark:text-red-400 border-red-500/20 font-bold">
                   {spotbugsResult.bugCount.byPriority.high}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="medium">
-                <AlertTriangle strokeWidth={1.5} className="h-4 w-4 text-yellow-800 dark:text-yellow-400 border-yellow-500/20" />
+                <AlertTriangle strokeWidth={1.25} className="h-4 w-4 text-yellow-800 dark:text-yellow-400 border-yellow-500/20" />
                 {t('dialog.spotbugs.medium')}
                 <Badge variant="outline" className="rounded-md ml-2 bg-yellow-200/10 text-yellow-800 dark:text-yellow-400 border-yellow-500/20 font-bold">
                   {spotbugsResult.bugCount.byPriority.medium}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="low">
-                <Info strokeWidth={1.5} className="h-4 w-4 text-blue-800 dark:text-blue-400 border-blue-500/20" />
+                <Info strokeWidth={1.25} className="h-4 w-4 text-blue-800 dark:text-blue-400 border-blue-500/20" />
                 {t('dialog.spotbugs.low')}
                 <Badge variant="outline" className="rounded-md ml-2 bg-blue-200/10 text-blue-800 dark:text-blue-400 border-blue-500/20 font-bold">
                   {spotbugsResult.bugCount.byPriority.low}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="chart">
-                <BarChartIcon strokeWidth={1.5} className="h-4 w-4 text-pink-800 dark:text-pink-400 border-pink-500/20" />
+                <BarChartIcon strokeWidth={1.25} className="h-4 w-4 text-pink-800 dark:text-pink-400 border-pink-500/20" />
                 {t('dialog.spotbugs.chart')}
               </TabsTrigger>
               <TabsTrigger value="filelist">
-                <List strokeWidth={1.5} className="h-4 w-4" />
+                <List strokeWidth={1.25} className="h-4 w-4" />
                 {t('dialog.spotbugs.fileList')}
                 <Badge variant="outline" className="rounded-md ml-2">
                   {filePaths.length}
@@ -609,15 +609,15 @@ export function SpotBugs() {
                             <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab} className="w-full flex-1 flex flex-col overflow-hidden">
                               <TabsList className="w-full justify-start flex-shrink-0">
                                 <TabsTrigger value="summary" className="flex items-center gap-1">
-                                  <AlertCircle strokeWidth={1.5} className="h-4 w-4" />
+                                  <AlertCircle strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugSummary')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger value="details" className="flex items-center gap-1">
-                                  <Bug strokeWidth={1.5} className="h-4 w-4" />
+                                  <Bug strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugDetails')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger value="ai" className="flex items-center gap-1">
-                                  <Bot strokeWidth={1.5} className="h-4 w-4" />
+                                  <Bot strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.aiAssistant')}</span>
                                 </TabsTrigger>
                               </TabsList>

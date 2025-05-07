@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@azure/identity": "^4.9.1",
-    "@azure/msal-node": "^3.5.2",
+    "@azure/msal-node": "^3.5.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@monaco-editor/react": "4.7.0",
     "@radix-ui/react-accordion": "^1.2.10",

@@ -79,7 +79,7 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
             {row.getValue('isFile') ? (
               <StatusIcon code={statusCode as SvnStatusCode} />
             ) : (
-              <Folder fill="#F5A623" color="#F5A623" strokeWidth={1} className={cn('w-4 h-4', className)} />
+              <Folder fill="#F5A623" color="#F5A623" strokeWidth={1.25} className={cn('w-4 h-4', className)} />
             )}
             {row.getValue('filePath')}
           </div>
@@ -452,19 +452,19 @@ export const DataTable = forwardRef((props, ref) => {
                           <ContextMenuItem onClick={() => showLog(filePaths)}>
                             Show Log
                             <ContextMenuShortcut>
-                              <History strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <History strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                           <ContextMenuItem disabled={hasUnversionedFiles} onClick={() => revertFile(filePaths)}>
                             Revert Selected Files
                             <ContextMenuShortcut>
-                              <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <RotateCcw strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                           <ContextMenuItem onClick={() => updateFile(filePaths)}>
                             Update Selected Files
                             <ContextMenuShortcut>
-                              <RefreshCw strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <RefreshCw strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                         </>
@@ -474,33 +474,33 @@ export const DataTable = forwardRef((props, ref) => {
                           <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
                             Reveal in File Explorer
                             <ContextMenuShortcut>
-                              <FolderOpen strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <FolderOpen strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                           <ContextMenuSeparator />
                           <ContextMenuItem onClick={() => info(row.original.filePath)}>
                             File Info
                             <ContextMenuShortcut>
-                              <Info strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <Info strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                           <ContextMenuSeparator />
                           <ContextMenuItem onClick={() => showLog(row.original.filePath)}>
                             Show Log
                             <ContextMenuShortcut>
-                              <History strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <History strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                           <ContextMenuItem disabled={row.original.status === '?'} onClick={() => revertFile(row.original.filePath)}>
                             Revert
                             <ContextMenuShortcut>
-                              <RotateCcw strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <RotateCcw strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                           <ContextMenuItem onClick={() => updateFile(row.original.filePath)}>
                             Update
                             <ContextMenuShortcut>
-                              <RefreshCw strokeWidth={1} className="ml-3 h-4 w-4" />
+                              <RefreshCw strokeWidth={1.25} className="ml-3 h-4 w-4" />
                             </ContextMenuShortcut>
                           </ContextMenuItem>
                         </>
