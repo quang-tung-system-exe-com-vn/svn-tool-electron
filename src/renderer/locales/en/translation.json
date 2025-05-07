@@ -96,6 +96,8 @@
     "updatingMessage": "Updating SVN...",
     "updateSuccess": "SVN updated successfully",
     "updateError": "Error updating SVN",
+    "updatingMultiple": "Updating {{count}} files...",
+    "updatingSingle": "Updating file {{file}}...",
     "spotbugsError": "Error running SpotBugs: {{0}}",
     "spotbugsSuccess": "SpotBugs analysis completed: {{0}} issues found",
     "refreshingSpotbugs": "Refreshing SpotBugs analysis...",

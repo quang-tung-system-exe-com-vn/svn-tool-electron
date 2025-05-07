@@ -302,14 +302,8 @@ export function ShowLog() {
           }
           const messageLines = lines.slice(i)
           const fullMessage = messageLines.join('\n').trim()
-
-          let referenceId = ''
           const messageFirstLine = fullMessage.split('\n')[0] || ''
-          const refIdMatch = messageFirstLine.match(/^(No\.\d+|[A-Z]+-\d+)$/)
-          if (refIdMatch) {
-            referenceId = refIdMatch[0]
-          }
-
+          const referenceId = messageFirstLine.trim()
           if (!addedRevisions.has(revisionStr)) {
             const originalDate = new Date(date)
             parsedEntries.push({

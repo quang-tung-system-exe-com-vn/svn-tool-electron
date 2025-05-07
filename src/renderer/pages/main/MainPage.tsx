@@ -182,7 +182,10 @@ export function MainPage() {
         commitMessageRef.current.value = openai_result
         logger.info(commitMessageRef.current.value)
       }
-      addHistory({ message: openai_result, date: new Date().toISOString() })
+      // Thêm vào lịch sử nếu có thể, nhưng không báo lỗi nếu không thành công
+      // vì IndexedDB chỉ được khởi tạo khi mở cửa sổ CommitMessageHistory
+      addHistory({ message: openai_result, date: new Date().toISOString() }).catch(error => console.log('Không thể lưu vào lịch sử, có thể IndexedDB chưa được khởi tạo:', error))
+
       toast.success(t('toast.generateSuccess'))
       setLoadingGenerate(false)
     } else {

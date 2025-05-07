@@ -96,6 +96,8 @@
     "updatingMessage": "SVNを更新中...",
     "updateSuccess": "SVNの更新が成功しました。",
     "updateError": "SVNの更新中にエラーが発生しました。",
+    "updatingMultiple": "{{count}}個のファイルを更新中...",
+    "updatingSingle": "ファイル「{{file}}」を更新中...",
     "spotbugsError": "SpotBugsの実行中にエラーが発生しました： {{0}}",
     "spotbugsSuccess": "SpotBugs分析が完了しました：{{0}}件の問題が見つかりました。",
     "refreshingSpotbugs": "SpotBugs分析を更新中...",

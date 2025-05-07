@@ -14,10 +14,8 @@ type HistoryStore = {
   addHistory: (history: History) => Promise<boolean>
 }
 
-// Khởi tạo IndexedDB khi module được import
-indexedDBService.initDB().catch(error => {
-  console.error('Lỗi khi khởi tạo IndexedDB từ useHistoryStore:', error)
-})
+// Không tự động khởi tạo IndexedDB khi module được import
+// Việc khởi tạo sẽ được thực hiện trong CommitMessageHistory.tsx
 
 export const useHistoryStore = create<HistoryStore>((set, get) => {
   // Tải dữ liệu ban đầu khi store được tạo

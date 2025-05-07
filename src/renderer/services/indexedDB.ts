@@ -66,14 +66,11 @@ export class IndexedDBService {
 
   async getHistoryMessages(): Promise<HistoryCommitMessage[]> {
     console.log('Đang lấy dữ liệu lịch sử từ IndexedDB...')
-    if (!this.db) {
-      console.log('Database chưa được khởi tạo, đang khởi tạo...')
-      await this.initDB()
-    }
+    // Không tự động khởi tạo IndexedDB nữa
 
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        console.error('Database vẫn chưa được khởi tạo sau khi gọi initDB')
+        console.error('Database chưa được khởi tạo, không thể lấy dữ liệu')
         reject(new Error('Database chưa được khởi tạo'))
         return
       }
@@ -101,14 +98,11 @@ export class IndexedDBService {
 
   async addHistoryMessage(message: HistoryCommitMessage): Promise<void> {
     console.log('Đang thêm tin nhắn mới vào IndexedDB:', message)
-    if (!this.db) {
-      console.log('Database chưa được khởi tạo, đang khởi tạo...')
-      await this.initDB()
-    }
+    // Không tự động khởi tạo IndexedDB nữa
 
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        console.error('Database vẫn chưa được khởi tạo sau khi gọi initDB')
+        console.error('Database chưa được khởi tạo, không thể thêm tin nhắn')
         reject(new Error('Database chưa được khởi tạo'))
         return
       }
@@ -209,7 +203,8 @@ async function initializeIfNeeded() {
   }
 }
 
-// Khởi tạo database khi service được import
-initializeIfNeeded()
+// Không tự động khởi tạo database khi service được import
+// initializeIfNeeded() - Đã bỏ tự động khởi tạo
 
+export { initializeIfNeeded }
 export default indexedDBService

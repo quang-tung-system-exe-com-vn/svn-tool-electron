@@ -284,9 +284,7 @@ export const DataTable = forwardRef((props, ref) => {
     }
   }
 
-  // Biến để theo dõi thời gian click cuối cùng và phần tử được click
   const lastClickRef = useRef({ time: 0, rowId: '' })
-
   const handleRowClick = (event: React.MouseEvent, row: any) => {
     const allRows = table.getRowModel().rows
     const currentRowIndex = allRows.findIndex(r => r.id === row.id)
@@ -298,6 +296,7 @@ export const DataTable = forwardRef((props, ref) => {
       return
     }
     lastClickRef.current = { time: currentTime, rowId: row.id }
+
     if (event.shiftKey) {
       if (anchorRowIndex !== null) {
         const start = Math.min(anchorRowIndex, currentRowIndex)
@@ -311,6 +310,11 @@ export const DataTable = forwardRef((props, ref) => {
         table.setRowSelection({ [row.id]: true })
         setAnchorRowIndex(currentRowIndex)
       }
+    } else if (event.ctrlKey) {
+      const currentSelection = { ...table.getState().rowSelection }
+      currentSelection[row.id] = !currentSelection[row.id]
+      table.setRowSelection(currentSelection)
+      setAnchorRowIndex(currentRowIndex)
     } else {
       table.setRowSelection({ [row.id]: true })
       setAnchorRowIndex(currentRowIndex)
@@ -364,7 +368,8 @@ export const DataTable = forwardRef((props, ref) => {
           const result = await window.api.svn.revert(filePath)
           if (result.status === 'success') {
             toast.success(result.message || (Array.isArray(filePath) ? t('toast.revertedMultiple', { count: filePath.length }) : t('toast.revertedSingle', { file: filePath })))
-            reloadData()
+            await reloadData()
+            table.toggleAllPageRowsSelected(false)
           } else {
             toast.error(result.message)
           }
@@ -393,7 +398,8 @@ export const DataTable = forwardRef((props, ref) => {
           const result = await window.api.svn.update(filePath)
           if (result.status === 'success') {
             toast.success(result.message || (Array.isArray(filePath) ? t('toast.updatedMultiple', { count: filePath.length }) : t('toast.updatedSingle', { file: filePath })))
-            reloadData()
+            await reloadData()
+            table.toggleAllPageRowsSelected(false)
           } else {
             toast.error(result.message)
           }

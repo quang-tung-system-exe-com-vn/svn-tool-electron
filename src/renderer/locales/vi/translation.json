@@ -96,6 +96,8 @@
     "updatingMessage": "Đang cập nhật SVN...",
     "updateSuccess": "Cập nhật SVN thành công",
     "updateError": "Lỗi khi cập nhật SVN",
+    "updatingMultiple": "Đang cập nhật {{count}} tệp ...",
+    "updatingSingle": "Đang cập nhật tệp {{file}} ...",
     "spotbugsError": "Lỗi khi chạy SpotBugs: {{0}}",
     "spotbugsSuccess": "Phân tích SpotBugs hoàn tất: {{0}} vấn đề được tìm thấy",
     "refreshingSpotbugs": "Đang làm mới phân tích SpotBugs...",

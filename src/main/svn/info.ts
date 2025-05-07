@@ -87,6 +87,7 @@ async function getCommitInfo(): Promise<any> {
     const { sourceFolder } = configurationStore.store
     const command = 'svn log -r HEAD:1 -l 1 -v'
     const { stdout, stderr } = await execPromise(command, { cwd: sourceFolder })
+    console.log(stdout)
     if (stderr?.trim()) {
       return { status: 'error', message: `SVN stderr: ${stderr.trim()}` }
     }
@@ -103,29 +104,77 @@ async function getCommitInfo(): Promise<any> {
 function parseCommitInfo(info: string) {
   const lines = info.split('\n')
   const changedFiles: { status: string; path: string }[] = []
-  let commitMessage = ''
+  const commitMessageLines: string[] = []
 
-  for (const line of lines) {
-    if (line.startsWith('Changed paths:')) {
-      const fileLines = lines.slice(lines.indexOf(line) + 1)
-      for (const fileLine of fileLines) {
-        const fileMatch = fileLine.match(/([AMDR])\s+(.+)/)
-        if (fileMatch) {
-          changedFiles.push({
-            status: fileMatch[1],
-            path: fileMatch[2].trim(),
-          })
-        }
+  // Tìm vị trí của "Changed paths:" và dòng trống đầu tiên sau đó
+  let changedPathsIndex = -1
+  let emptyLineAfterChangedPathsIndex = -1
+
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith('Changed paths:')) {
+      changedPathsIndex = i
+    }
+
+    // Tìm dòng trống đầu tiên sau "Changed paths:"
+    if (changedPathsIndex !== -1 && i > changedPathsIndex && lines[i].trim() === '') {
+      emptyLineAfterChangedPathsIndex = i
+      break
+    }
+  }
+
+  // Thu thập danh sách các file đã thay đổi
+  if (changedPathsIndex !== -1) {
+    for (let i = changedPathsIndex + 1; i < lines.length; i++) {
+      if (lines[i].trim() === '') break
+
+      const fileMatch = lines[i].match(/([AMDR])\s+(.+)/)
+      if (fileMatch) {
+        changedFiles.push({
+          status: fileMatch[1],
+          path: fileMatch[2].trim(),
+        })
       }
     }
-    if (line && !line.startsWith('Changed paths:') && !line.startsWith('r') && !line.startsWith('---')) {
-      commitMessage = line.trim()
+  }
+
+  // Thu thập commit message sau dòng trống đầu tiên sau "Changed paths:"
+  if (emptyLineAfterChangedPathsIndex !== -1) {
+    for (let i = emptyLineAfterChangedPathsIndex + 1; i < lines.length; i++) {
+      // Dừng khi gặp dòng phân cách hoặc header của log entry tiếp theo
+      if (lines[i].startsWith('---') || lines[i].startsWith('r')) {
+        break
+      }
+
+      // Thêm dòng vào commit message
+      commitMessageLines.push(lines[i])
+    }
+  }
+
+  // Nếu không tìm thấy commit message theo cách trên, thử cách khác
+  if (commitMessageLines.length === 0) {
+    let messageStarted = false
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+
+      // Bỏ qua các dòng header và Changed paths
+      if (line.startsWith('r') || line.startsWith('---') ||
+        line.startsWith('Changed paths:') ||
+        (changedPathsIndex !== -1 && i > changedPathsIndex && i <= emptyLineAfterChangedPathsIndex)) {
+        continue
+      }
+
+      // Thêm các dòng không rỗng vào commit message
+      if (line.trim() !== '' || messageStarted) {
+        messageStarted = true
+        commitMessageLines.push(line)
+      }
     }
   }
 
   return {
     changedFiles,
-    commitMessage,
+    commitMessage: commitMessageLines.join('\n'),
   }
 }
 

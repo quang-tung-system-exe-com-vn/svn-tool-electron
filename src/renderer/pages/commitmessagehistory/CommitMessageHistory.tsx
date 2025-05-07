@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import indexedDBService from '@/services/indexedDB'
+import indexedDBService, { initializeIfNeeded } from '@/services/indexedDB'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { format } from 'date-fns'
 import { Copy } from 'lucide-react'
@@ -26,6 +26,10 @@ export function CommitMessageHistory() {
     const initData = async () => {
       setIsLoading(true)
       try {
+        // Khởi tạo IndexedDB khi component CommitMessageHistory được mount
+        console.log('Khởi tạo IndexedDB cho cửa sổ CommitMessageHistory')
+        await initializeIfNeeded()
+
         await loadHistoryConfig()
         await handleRefresh()
       } catch (error) {
