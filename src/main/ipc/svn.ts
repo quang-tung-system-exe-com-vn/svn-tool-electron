@@ -9,7 +9,6 @@ import { commit } from 'main/svn/commit'
 import { getDiff } from 'main/svn/get-diff'
 import { info } from 'main/svn/info'
 import { type LogOptions, log as logSvn } from 'main/svn/log'
-import { openDiff } from 'main/svn/open-diff'
 import { revert } from 'main/svn/revert'
 import { type StatisticsOptions, getStatistics } from 'main/svn/statistics'
 import { update } from 'main/svn/update'
@@ -19,7 +18,6 @@ export function registerSvnIpcHandlers() {
 
   ipcMain.handle(IPC.SVN.CHANGED_FILES, async _event => await changedFiles())
   ipcMain.handle(IPC.SVN.GET_DIFF, async (_event, selectedFiles: any[]) => await getDiff(selectedFiles))
-  ipcMain.handle(IPC.SVN.OPEN_DIFF, async (_event, file: string, status: string) => await openDiff(file, status))
   ipcMain.handle(IPC.SVN.COMMIT, async (_event, commitMessage: string, violations: string, selectedFiles: any[]) => await commit(commitMessage, violations, selectedFiles))
   ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string) => await info(filePath))
   ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string) => await cat(filePath))

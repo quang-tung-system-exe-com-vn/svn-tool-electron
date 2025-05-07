@@ -1,20 +1,22 @@
 'use client'
-import { CodeSnippetDialog } from '@/components/dialogs/CodeSnippetDialog' // Import mới
 import { LANGUAGES } from '@/components/shared/constants'
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logger from '@/services/logger'
 import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
-import { Bot, FileCode, Loader2 } from 'lucide-react'
-import { type ReactNode, useEffect, useState } from 'react'
+import { Editor, useMonaco } from '@monaco-editor/react'
+import { Bot, Check, Copy, FileCode, Target } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
 import type { BugInstance } from './constants'
 
@@ -34,7 +36,8 @@ interface SourceLineOption {
     start: number | null
     end: number | null
     sourcefile: string
-    codeSnippet?: string
+    fileContent?: string
+    filePath?: string
   }
 }
 
@@ -51,27 +54,111 @@ export const SpotbugsAIChat = ({
 }) => {
   const variant = useButtonVariant()
   const { t } = useTranslation()
-  const { language } = useAppearanceStore()
+  const appearanceStore = useAppearanceStore()
+  const { language, themeMode } = appearanceStore
+  const monaco = useMonaco()
+  const { resolvedTheme } = useTheme()
   const [aiResponse, setAiResponse] = useState('')
   const [isAiLoading, setIsAiLoading] = useState(false)
-  const [userQuery, setUserQuery] = useState('')
   const [sourceLineOptions, setSourceLineOptions] = useState<SourceLineOption[]>([])
   const [selectedSourceLine, setSelectedSourceLine] = useState<string>('')
-  const [codeSnippets, setCodeSnippets] = useState<Record<string, string>>({})
+  const [fileContents, setFileContents] = useState<Record<string, string>>({})
+  const [filePathsMap, setFilePathsMap] = useState<Record<string, string>>({})
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<string>('code')
+  const editorRef = useRef<any>(null)
+
+  // Định nghĩa theme cho Monaco Editor
+  useEffect(() => {
+    if (!monaco) return
+
+    monaco.editor.defineTheme('custom-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#202020',
+        'editorLineNumber.foreground': '#6c7086',
+        'editorCursor.foreground': '#f38ba8',
+        'diffEditor.insertedTextBackground': '#00fa5120',
+        'diffEditor.removedTextBackground': '#ff000220',
+        'diffEditor.insertedLineBackground': '#00aa5120',
+        'diffEditor.removedLineBackground': '#aa000220',
+      },
+    })
+
+    monaco.editor.defineTheme('custom-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#f9f9f9',
+        'editorLineNumber.foreground': '#9aa2b1',
+        'editorCursor.foreground': '#931845',
+        'diffEditor.insertedTextBackground': '#a2f3bdcc',
+        'diffEditor.removedTextBackground': '#f19999cc',
+        'diffEditor.insertedLineBackground': '#b7f5c6cc',
+        'diffEditor.removedLineBackground': '#f2a8a8cc',
+      },
+    })
+
+    const selectedTheme = themeMode === 'dark' ? 'custom-dark' : 'custom-light'
+    monaco.editor.setTheme(selectedTheme)
+  }, [monaco, themeMode, resolvedTheme])
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'ui-settings') {
+        try {
+          const storage = JSON.parse(event.newValue || '{}')
+          const currentThemeMode = storage.state?.themeMode
+          if (currentThemeMode && monaco) {
+            const selectedTheme = currentThemeMode === 'dark' ? 'custom-dark' : 'custom-light'
+            monaco.editor.setTheme(selectedTheme)
+          }
+        } catch (error) {
+          console.error('Error parsing storage event:', error)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [monaco])
+
+  useEffect(() => {
+    if (activeTab === 'code' && monaco) {
+      try {
+        const storedSettings = localStorage.getItem('ui-settings')
+        if (storedSettings) {
+          const settings = JSON.parse(storedSettings)
+          const currentThemeMode = settings.state?.themeMode || themeMode
+          const selectedTheme = currentThemeMode === 'dark' ? 'custom-dark' : 'custom-light'
+          monaco.editor.setTheme(selectedTheme)
+        } else {
+          const selectedTheme = themeMode === 'dark' ? 'custom-dark' : 'custom-light'
+          monaco.editor.setTheme(selectedTheme)
+        }
+      } catch (error) {
+        console.error('Error reading theme from localStorage:', error)
+        const selectedTheme = themeMode === 'dark' ? 'custom-dark' : 'custom-light'
+        monaco.editor.setTheme(selectedTheme)
+      }
+    }
+  }, [activeTab, monaco, themeMode])
 
   useEffect(() => {
     setAiResponse('')
-    setUserQuery('')
     setIsAiLoading(false)
     setSourceLineOptions([])
     setSelectedSourceLine('')
-    setCodeSnippets({})
-
+    setFileContents({})
+    setFilePathsMap({})
     if (bug?.sourceLines && bug.sourceLines.length > 0) {
       loadSourceLineOptions(bug)
     }
-
-    // Nếu có selectedSourceLineKey, cập nhật selectedSourceLine
     if (selectedSourceLineKey && sourceLineOptions.some(option => option.value === selectedSourceLineKey)) {
       setSelectedSourceLine(selectedSourceLineKey)
     }
@@ -80,53 +167,44 @@ export const SpotbugsAIChat = ({
   const loadSourceLineOptions = async (bug: BugInstance | null) => {
     if (!bug || !bug.sourceLines) return
     if (!bug.sourceLines || bug.sourceLines.length === 0) return
-
     const options: SourceLineOption[] = []
-    const snippets: Record<string, string> = {}
-
+    const contents: Record<string, string> = {}
+    const pathsMap: Record<string, string> = {}
     for (const sourceLine of bug.sourceLines) {
       if (!sourceLine.start || !sourceLine.end || !sourceLine.sourcefile) continue
-
       const start = sourceLine.start || 0
       const end = sourceLine.end || 0
       const optionValue = `${sourceLine.classname}:${start}-${end}`
       const optionLabel = `${sourceLine.sourcefile} (${start}-${end})`
-
-      // Đọc code snippet cho source line này
-      const codeSnippet = await getCodeSnippet(sourceLine.sourcefile, start, end)
-
+      const { fileContent, filePath } = await getFileContent(sourceLine.sourcefile)
       options.push({
         label: optionLabel,
         value: optionValue,
         sourceLine: {
           ...sourceLine,
-          codeSnippet,
+          fileContent,
+          filePath,
         },
       })
-
-      snippets[optionValue] = codeSnippet || ''
+      contents[optionValue] = fileContent || ''
+      if (filePath) pathsMap[optionValue] = filePath
     }
-
     setSourceLineOptions(options)
-    setCodeSnippets(snippets)
-
-    // Chọn source line đầu tiên nếu có
+    setFileContents(contents)
+    setFilePathsMap(pathsMap)
     if (options.length > 0) {
       setSelectedSourceLine(options[0].value)
     }
   }
 
-  const getCodeSnippet = async (sourceFile: string, startLine: number, endLine: number): Promise<string> => {
+  const getFileContent = async (sourceFile: string): Promise<{ fileContent: string; filePath?: string }> => {
     try {
       const matchingFilePath = filePaths.find(filePath => filePath.endsWith(sourceFile) || sourceFile.endsWith(filePath))
       if (matchingFilePath) {
         logger.info(`Reading file from filePaths: ${matchingFilePath}`)
         const fileContent = await window.api.system.read_file(matchingFilePath)
         if (fileContent && typeof fileContent === 'string') {
-          const lines = fileContent.split('\n')
-          const startIdx = Math.max(0, startLine - 6) // -1 (0-based) - 5 (context)
-          const endIdx = Math.min(lines.length - 1, endLine + 4) // -1 (0-based) + 5 (context)
-          return lines.slice(startIdx, endIdx + 1).join('\n')
+          return { fileContent, filePath: matchingFilePath }
         }
       } else {
         logger.error(`No matching file found in filePaths for ${sourceFile}`)
@@ -134,7 +212,7 @@ export const SpotbugsAIChat = ({
     } catch (fileError) {
       logger.error('Error reading source file:', fileError)
     }
-    return ''
+    return { fileContent: '' }
   }
 
   const handleExplainError = async () => {
@@ -147,15 +225,12 @@ export const SpotbugsAIChat = ({
       if (!selectedOption) {
         throw new Error('No source line selected')
       }
-
       const { classname, sourcefile, start, end } = selectedOption.sourceLine
-      const codeSnippet = codeSnippets[selectedSourceLine] || ''
-
+      const fileContent = fileContents[selectedSourceLine] || ''
       const prompt = `Formatting re-enabled.
       Explain the following SpotBugs issue. Bug type: "${bug.type}", Category: "${bug.category}", Priority: ${bug.priority}, Message: "${bug.longMessage}\n\n".
-      ${codeSnippet ? `Code from file ${sourcefile} (lines ${start}-${end}):\n\`\`\`\n${codeSnippet}\n\`\`\`` : `Unable to retrieve code from file "${sourcefile}".`}\n\n
+      ${fileContent ? `Code from file ${sourcefile} (lines ${start}-${end}):\n\`\`\`\n${fileContent}\n\`\`\`` : `Unable to retrieve code from file "${sourcefile}".`}\n\n
       Provide a concise explanation and suggest possible solutions in ${languageName}.`
-
       logger.debug('Prompt for AI:', prompt)
       const response = await window.api.openai.chat(prompt)
       setAiResponse(response || t('dialog.spotbugs.ai.noResponse'))
@@ -168,37 +243,59 @@ export const SpotbugsAIChat = ({
     }
   }
 
-  const handleCustomQuery = async () => {
-    if (!bug || !userQuery.trim()) return
-    setIsAiLoading(true)
-    setAiResponse('')
-    try {
-      const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
-      const selectedOption = sourceLineOptions.find(option => option.value === selectedSourceLine)
-      if (!selectedOption) {
-        throw new Error('No source line selected')
+  const handleSourceLineChange = (value: string) => {
+    setSelectedSourceLine(value)
+    setTimeout(() => {
+      if (editorRef.current && monaco) {
+        const selectedOption = sourceLineOptions.find(option => option.value === value)
+        if (selectedOption?.sourceLine?.start && selectedOption?.sourceLine?.end) {
+          const decorationsCollection = editorRef.current.createDecorationsCollection()
+          decorationsCollection.set([
+            {
+              range: new monaco.Range(selectedOption.sourceLine.start, 1, selectedOption.sourceLine.end, 1),
+              options: {
+                isWholeLine: true,
+                className: 'line-highlight',
+              },
+            },
+          ])
+          editorRef.current.revealLineInCenter(selectedOption.sourceLine.start)
+        }
       }
+    }, 200)
+  }
 
-      const { classname, sourcefile, start, end } = selectedOption.sourceLine
-      const codeSnippet = codeSnippets[selectedSourceLine] || ''
-
-      const prompt = `Regarding the SpotBugs issue (Type: "${bug.type}", File: "${sourcefile}", Line: ${start}, Message: "${bug.longMessage}"), the user asks: "${userQuery}\n\n".
-      ${codeSnippet ? `Code from file ${sourcefile} (lines ${start}-${end}):\n\`\`\`\n${codeSnippet}\n\`\`\`` : `Unable to retrieve code from file "${sourcefile}".`}\n\n
-      Please answer in ${languageName}.`
-
-      const response = await window.api.openai.chat(prompt)
-      setAiResponse(response || t('dialog.spotbugs.ai.noResponse'))
-    } catch (error) {
-      logger.error('AI custom query error:', error)
-      setAiResponse(t('dialog.spotbugs.ai.error'))
-      toast.error(t('toast.aiError'))
-    } finally {
-      setIsAiLoading(false)
+  const handleEditorDidMount = (editor: any, monacoInstance: any) => {
+    editorRef.current = editor
+    const selectedOption = sourceLineOptions.find(option => option.value === selectedSourceLine)
+    if (selectedOption?.sourceLine?.start && selectedOption?.sourceLine?.end) {
+      const decorationsCollection = editor.createDecorationsCollection()
+      decorationsCollection.set([
+        {
+          range: new monacoInstance.Range(selectedOption.sourceLine.start, 1, selectedOption.sourceLine.end, 1),
+          options: {
+            isWholeLine: true,
+            className: 'line-highlight',
+          },
+        },
+      ])
+      setTimeout(() => {
+        editor.revealLineInCenter(selectedOption.sourceLine.start)
+      }, 10)
     }
   }
 
-  const handleSourceLineChange = (value: string) => {
-    setSelectedSourceLine(value)
+  const scrollToErrorLine = () => {
+    if (editorRef.current && selectedSourceLine) {
+      const selectedOption = sourceLineOptions.find(option => option.value === selectedSourceLine)
+      if (selectedOption?.sourceLine?.start) {
+        editorRef.current.revealLineInCenter(selectedOption.sourceLine.start)
+      }
+    }
+  }
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
   }
 
   if (isParentLoading || !bug) {
@@ -208,7 +305,7 @@ export const SpotbugsAIChat = ({
   const selectedOption = sourceLineOptions.find(option => option.value === selectedSourceLine)
 
   return (
-    <div className="absolute inset-0 overflow-y-auto p-2 space-y-2">
+    <div className="flex flex-col h-full p-2 space-y-2">
       {sourceLineOptions.length > 0 && (
         <div className="space-y-2">
           <Label htmlFor="source-line-select">Chọn Source Line</Label>
@@ -225,28 +322,16 @@ export const SpotbugsAIChat = ({
                 ))}
               </SelectContent>
             </Select>
-            {selectedOption && (
-              <CodeSnippetDialog
-                trigger={
-                  <Button variant="outline" size="icon" title="Xem Code Snippet">
-                    <FileCode className="h-4 w-4" />
-                  </Button>
-                }
-                title={`${selectedOption.sourceLine.sourcefile} (${selectedOption.sourceLine.start}-${selectedOption.sourceLine.end})`}
-                fileContent={null}
-                codeSnippet={codeSnippets[selectedSourceLine]}
-                startLine={selectedOption.sourceLine.start}
-                endLine={selectedOption.sourceLine.end}
-              />
-            )}
+
             <Button
-              id="explain-button"
+              id="ai-assistant-button"
               className={`relative ${isAiLoading ? 'border-effect cursor-progress' : ''}`}
               variant={variant}
               size="icon"
               title={t('dialog.spotbugs.ai.explainButton')}
               onClick={() => {
-                if (!isAiLoading) {
+                setActiveTab('ai')
+                if (!isAiLoading && selectedOption) {
                   handleExplainError()
                 }
               }}
@@ -257,61 +342,116 @@ export const SpotbugsAIChat = ({
           </div>
         </div>
       )}
-      <div className="mt-4 space-y-2">
-        <Label htmlFor="custom-query">{t('dialog.spotbugs.ai.customQueryLabel')}</Label>
-        <Textarea
-          id="custom-query"
-          value={userQuery}
-          onChange={e => setUserQuery(e.target.value)}
-          spellCheck={false}
-          className=""
-          placeholder={t('dialog.spotbugs.ai.customQueryPlaceholder')}
-          rows={3}
-        />
-        <Button
-          id="generate-button"
-          className={`relative ${isAiLoading ? 'border-effect' : ''} ${isAiLoading ? 'cursor-progress' : ''}`}
-          variant={variant}
-          onClick={() => {
-            if (!isAiLoading) {
-              handleCustomQuery()
-            }
-          }}
-        >
-          {isAiLoading ? <GlowLoader /> : <Bot className="h-4 w-4" />} {t('dialog.spotbugs.ai.sendQueryButton')}
-        </Button>
-      </div>
 
-      {isAiLoading && !aiResponse && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {selectedOption && (
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full h-full">
+          <TabsList className="mb-2">
+            <TabsTrigger value="code" className="flex items-center gap-1">
+              <FileCode className="h-4 w-4" />
+              <span>File Content</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="flex items-center gap-1">
+              <Bot className="h-4 w-4" />
+              <span>AI Assistant</span>
+            </TabsTrigger>
+          </TabsList>
 
-      {aiResponse && (
-        <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-2">
-          <div className="p-4 prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                code({ node, inline, className, children, ...props }: CustomCodeProps) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  return !inline && match ? (
-                    <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" className={className}>
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  )
-                },
-              }}
-            >
-              {aiResponse}
-            </ReactMarkdown>
-          </div>
-        </div>
+          <TabsContent value="code">
+            <div className="rounded-md border bg-muted/50 p-2 h-full relative overflow-auto h-full" style={{ minHeight: '300px' }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 z-10 hover:bg-background/50"
+                onClick={scrollToErrorLine}
+                title={t('dialog.spotbugs.focusOnErrorLine', { defaultValue: 'Focus on error line' })}
+              >
+                <Target className="h-4 w-4" />
+              </Button>
+              <Editor
+                defaultLanguage="java"
+                value={fileContents[selectedSourceLine] || '// Không có nội dung file'}
+                theme={(() => {
+                  try {
+                    const storedSettings = localStorage.getItem('ui-settings')
+                    if (storedSettings) {
+                      const settings = JSON.parse(storedSettings)
+                      const currentThemeMode = settings.state?.themeMode || themeMode
+                      return currentThemeMode === 'dark' ? 'custom-dark' : 'custom-light'
+                    }
+                  } catch (error) {
+                    console.error('Error reading theme from localStorage:', error)
+                  }
+                  return themeMode === 'dark' ? 'custom-dark' : 'custom-light'
+                })()}
+                key={`monaco-editor-${selectedSourceLine}-${activeTab}`}
+                options={{
+                  fontSize: 13,
+                  readOnly: true,
+                  minimap: { enabled: true },
+                  scrollBeyondLastLine: false,
+                  lineNumbers: 'on',
+                  renderLineHighlight: 'all',
+                  scrollbar: {
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10,
+                  },
+                }}
+                onMount={handleEditorDidMount}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai">
+            <div className="rounded-md border bg-muted/50 p-2 h-full relative overflow-auto">
+              <div className="absolute inset-0 p-4 prose prose-sm dark:prose-invert max-w-none h-full">
+                <OverlayLoader isLoading={isAiLoading} />
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, inline, className, children, ...props }: CustomCodeProps) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      const codeString = String(children).replace(/\n$/, '')
+                      const copyToClipboard = (text: string) => {
+                        navigator.clipboard
+                          .writeText(text)
+                          .then(() => {
+                            setCopiedCode(text)
+                            setTimeout(() => setCopiedCode(null), 2000)
+                          })
+                          .catch(err => {
+                            console.error('Không thể copy vào clipboard:', err)
+                            toast.error('Không thể copy vào clipboard')
+                          })
+                      }
+                      return !inline && match ? (
+                        <div className="relative group">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => copyToClipboard(codeString)}
+                            title="Copy code"
+                          >
+                            {copiedCode === codeString ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                          </Button>
+                          <SyntaxHighlighter style={dracula as any} language={match[1]} PreTag="div" className={className}>
+                            {codeString}
+                          </SyntaxHighlighter>
+                        </div>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      )
+                    },
+                  }}
+                >
+                  {aiResponse}
+                </ReactMarkdown>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   )

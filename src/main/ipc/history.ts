@@ -1,13 +1,10 @@
-import { ipcMain } from 'electron'
 import log from 'electron-log'
-import { IPC } from 'main/constants'
-import historyStore from 'main/store/HistoryStore'
 
 export function registerHistoryIpcHandlers() {
   log.info('🔄 Registering History IPC Handlers...')
 
-  ipcMain.handle(IPC.HISTORY.GET, () => historyStore.store)
-  ipcMain.handle(IPC.HISTORY.SET, (_, data) => historyStore.set(data))
+  // Không cần IPC handlers nữa vì chúng ta đang sử dụng IndexedDB trực tiếp trong renderer process
+  // Giữ lại hàm này để đảm bảo tính tương thích ngược với mã hiện tại
 
-  log.info('✅ History IPC Handlers Registered')
+  log.info('✅ History IPC Handlers Registered (IndexedDB mode)')
 }

@@ -30,7 +30,13 @@ export type SvnFile = {
   isFile: boolean
 }
 
-export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (row: any) => void }): ColumnDef<SvnFile>[] {
+export function buildColumns({
+  handleCheckboxChange,
+  handleFilePathDoubleClick,
+}: {
+  handleCheckboxChange: (row: any) => void
+  handleFilePathDoubleClick?: (row: any) => void
+}): ColumnDef<SvnFile>[] {
   return [
     {
       id: 'select',
@@ -75,7 +81,10 @@ export function buildColumns({ handleCheckboxChange }: { handleCheckboxChange: (
         const statusCode = row.getValue('status') as SvnStatusCode
         const className = STATUS_COLOR_CLASS_MAP[statusCode]
         return (
-          <div className={cn('flex items-center gap-2', className)}>
+          <div
+            className={cn('flex items-center gap-2 w-full h-full cursor-pointer', className)}
+            onDoubleClick={handleFilePathDoubleClick ? () => handleFilePathDoubleClick(row) : undefined}
+          >
             {row.getValue('isFile') ? (
               <StatusIcon code={statusCode as SvnStatusCode} />
             ) : (
@@ -163,6 +172,7 @@ export const DataTable = forwardRef((props, ref) => {
   const variant = useButtonVariant()
   const [selectedFiles, setSelectedFiles] = useState<SvnFile[]>([])
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [anchorRowIndex, setAnchorRowIndex] = useState<number | null>(null)
   const [confirmDialogProps, setConfirmDialogProps] = useState<{
     title: string
     description: string
@@ -274,14 +284,38 @@ export const DataTable = forwardRef((props, ref) => {
     }
   }
 
+  // Biến để theo dõi thời gian click cuối cùng và phần tử được click
+  const lastClickRef = useRef({ time: 0, rowId: '' })
+
   const handleRowClick = (event: React.MouseEvent, row: any) => {
-    if (event.shiftKey) {
-      if ((event.target as HTMLElement).tagName === 'INPUT') {
-        return
-      }
-      row.toggleSelected(!row.getIsSelected())
-      updateSelectedFiles()
+    const allRows = table.getRowModel().rows
+    const currentRowIndex = allRows.findIndex(r => r.id === row.id)
+    const currentTime = new Date().getTime()
+    if ((event.target as HTMLElement).tagName === 'INPUT') {
+      return
     }
+    if (lastClickRef.current.rowId === row.id && currentTime - lastClickRef.current.time < 300) {
+      return
+    }
+    lastClickRef.current = { time: currentTime, rowId: row.id }
+    if (event.shiftKey) {
+      if (anchorRowIndex !== null) {
+        const start = Math.min(anchorRowIndex, currentRowIndex)
+        const end = Math.max(anchorRowIndex, currentRowIndex)
+        const selectedRowIds: Record<string, boolean> = {}
+        for (let i = start; i <= end; i++) {
+          selectedRowIds[allRows[i].id] = true
+        }
+        table.setRowSelection(selectedRowIds)
+      } else {
+        table.setRowSelection({ [row.id]: true })
+        setAnchorRowIndex(currentRowIndex)
+      }
+    } else {
+      table.setRowSelection({ [row.id]: true })
+      setAnchorRowIndex(currentRowIndex)
+    }
+    updateSelectedFiles()
   }
 
   const updateSelectedFiles = () => {
@@ -307,13 +341,7 @@ export const DataTable = forwardRef((props, ref) => {
     window.api.electron.send(IPC.WINDOW.SHOW_LOG, filePath)
   }
 
-  const showConfirmationDialog = (
-    title: string,
-    description: string,
-    onConfirm: () => void,
-    actionText?: string, // Allow custom action text
-    cancelText?: string // Allow custom cancel text
-  ) => {
+  const showConfirmationDialog = (title: string, description: string, onConfirm: () => void, actionText?: string, cancelText?: string) => {
     setConfirmDialogProps({
       title,
       description,
@@ -377,7 +405,7 @@ export const DataTable = forwardRef((props, ref) => {
     )
   }
 
-  const columns = useMemo(() => buildColumns({ handleCheckboxChange }), [data])
+  const columns = useMemo(() => buildColumns({ handleCheckboxChange, handleFilePathDoubleClick }), [data])
   const table = useReactTable({
     data,
     columns,
@@ -436,11 +464,7 @@ export const DataTable = forwardRef((props, ref) => {
                     <ContextMenuTrigger asChild>
                       <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} onClick={e => handleRowClick(e, row)}>
                         {row.getVisibleCells().map((cell, index) => (
-                          <TableCell
-                            key={cell.id}
-                            className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}
-                            onDoubleClick={cell.column.id === 'filePath' ? () => handleFilePathDoubleClick(row) : undefined}
-                          >
+                          <TableCell key={cell.id} className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}>
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </TableCell>
                         ))}
@@ -469,7 +493,6 @@ export const DataTable = forwardRef((props, ref) => {
                           </ContextMenuItem>
                         </>
                       ) : (
-                        // Menu cho một file được chọn
                         <>
                           <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
                             Reveal in File Explorer

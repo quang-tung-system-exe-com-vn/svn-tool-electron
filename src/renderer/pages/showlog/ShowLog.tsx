@@ -179,6 +179,7 @@ export function ShowLog() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [filePath, setFilePath] = useState<string | string[]>('')
+  const [currentRevision, setCurrentRevision] = useState<string>('')
 
   // Chuyển đổi filePath thành chuỗi để truyền vào các component
   const displayFilePath = useMemo(() => {
@@ -215,14 +216,17 @@ export function ShowLog() {
   const [totalEntriesFromBackend, setTotalEntriesFromBackend] = useState(0)
 
   useEffect(() => {
-    const handler = (_event: any, { filePath }: any) => {
-      setFilePath(filePath)
+    const handler = (_event: any, data: any) => {
+      const path = typeof data === 'string' ? data : data.path
+      const revision = typeof data === 'string' ? '' : data.currentRevision || ''
+      setFilePath(path)
+      setCurrentRevision(revision)
       setCurrentPage(1)
       setAllLogData([])
       setFilteredLogData([])
       setDataForCurrentPage([])
       setTotalEntriesFromBackend(0)
-      loadLogData(filePath)
+      loadLogData(path)
     }
     window.api.on('load-diff-data', handler)
   }, [])
@@ -543,11 +547,22 @@ export function ShowLog() {
                                 }}
                                 className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900"
                               >
-                                {row.getVisibleCells().map((cell, index) => (
-                                  <TableCell key={cell.id} className={cn('p-0 h-6 px-2', index === 0 && 'text-center', cell.column.id === 'filePath' && 'cursor-pointer')}>
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                  </TableCell>
-                                ))}
+                                {row.getVisibleCells().map((cell, index) => {
+                                  const isCurrentRevision = row.getValue('revision') === currentRevision
+                                  return (
+                                    <TableCell
+                                      key={cell.id}
+                                      className={cn(
+                                        'p-0 h-6 px-2',
+                                        index === 0 && 'text-center',
+                                        cell.column.id === 'filePath' && 'cursor-pointer',
+                                        isCurrentRevision && 'text-blue-700 dark:text-yellow-400'
+                                      )}
+                                    >
+                                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TableCell>
+                                  )
+                                })}
                               </TableRow>
                             ))
                           ) : (

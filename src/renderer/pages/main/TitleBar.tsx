@@ -160,7 +160,10 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
 
   const openShowLogWindow = () => {
     if (!isLoading) {
-      window.api.electron.send(IPC.WINDOW.SHOW_LOG, '.')
+      window.api.electron.send(IPC.WINDOW.SHOW_LOG, {
+        path: '.',
+        currentRevision: svnInfo.curRevision,
+      })
     }
   }
 

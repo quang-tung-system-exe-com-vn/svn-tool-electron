@@ -15,7 +15,13 @@ type OverlayLoaderProps = {
 
 export function OverlayLoader({ isLoading, size = 50, speed = 2.5, delayMs = 400 }: OverlayLoaderProps) {
   const { themeMode } = useAppearanceStore()
-  const loaderColor = themeMode === 'dark' ? '#fff' : '#000'
+  const storedSettings = localStorage.getItem('ui-settings')
+  let loaderColor = themeMode === 'dark' ? '#fff' : '#000'
+  if (storedSettings) {
+    const settings = JSON.parse(storedSettings)
+    const currentThemeMode = settings.state?.themeMode || themeMode
+    loaderColor = currentThemeMode === 'dark' ? '#fff' : '#000'
+  }
 
   const [shouldRender, setShouldRender] = useState(isLoading)
 

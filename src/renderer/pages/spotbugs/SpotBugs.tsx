@@ -26,7 +26,7 @@ import {
   Info,
   List,
   PieChart as PieChartIcon,
-} from 'lucide-react' // Added BarChart3, PieChartIcon
+} from 'lucide-react'
 import { forwardRef, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts'
@@ -607,7 +607,7 @@ export function SpotBugs() {
                               </div>
                             </div>
                             <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab} className="w-full flex-1 flex flex-col overflow-hidden">
-                              <TabsList className="w-full justify-start flex-shrink-0">
+                              <TabsList className="w-full justify-start flex-shrink-0 rounded-none">
                                 <TabsTrigger value="summary" className="flex items-center gap-1">
                                   <AlertCircle strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugSummary')}</span>
@@ -630,7 +630,7 @@ export function SpotBugs() {
                                       <h3 className="text-sm font-semibold">{t('table.category')}</h3>
                                       <Badge className="bg-black text-white dark:bg-white dark:text-black">{selectedBug.category}</Badge>
                                     </div>
-                                    <p className="text-xs break-all text-muted-foreground">{t(getCategoryDescriptions(selectedBug.category))}</p>
+                                    <p className="text-sm break-all">{t(getCategoryDescriptions(selectedBug.category))}</p>
                                   </div>
                                   {/* Type */}
                                   <div className="border rounded-md bg-muted/30 p-4 space-y-2">
@@ -638,12 +638,12 @@ export function SpotBugs() {
                                       <h3 className="text-sm font-semibold">{t('table.type')}</h3>
                                       <Badge className="bg-black text-white dark:bg-white dark:text-black">{selectedBug.type}</Badge>
                                     </div>
-                                    <p className="text-xs break-all text-muted-foreground">{t(getBugDescriptionDetails(selectedBug.type))}</p>
+                                    <p className="text-sm break-all">{t(getBugDescriptionDetails(selectedBug.type))}</p>
                                   </div>
                                   {/* Message */}
                                   <div className="border rounded-md bg-muted/30 p-4">
                                     <h3 className="text-sm font-semibold">{t('table.message')}</h3>
-                                    <p className="text-xs mt-2 break-all text-muted-foreground">{selectedBug.longMessage}</p>
+                                    <p className="text-sm mt-2 break-all">{selectedBug.longMessage}</p>
                                   </div>
                                   <div className="border rounded-md bg-muted/30 p-4">
                                     <h3 className="text-sm font-medium">{t('table.class')}</h3>
@@ -738,14 +738,13 @@ export function SpotBugs() {
                                                             {codeSnippet && (
                                                               <CodeSnippetDialog
                                                                 trigger={
-                                                                  <Button variant="outline" size="icon" title="Xem Code Snippet" className="h-6 w-6">
-                                                                    {/* Icon button */}
+                                                                  <Button variant="outline" size="icon" title="Code Snippet" className="h-6 w-6">
                                                                     <FileCode className="h-3 w-3" />
                                                                   </Button>
                                                                 }
                                                                 title={`${sourceLine.sourcefile} (${sourceLine.start}-${sourceLine.end})`}
                                                                 fileContent={fileContent}
-                                                                codeSnippet={null} // Sử dụng fileContent thay vì codeSnippet ở đây
+                                                                codeSnippet={null}
                                                                 startLine={sourceLine.start}
                                                                 endLine={sourceLine.end}
                                                               />

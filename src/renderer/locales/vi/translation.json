@@ -34,7 +34,7 @@
     "selectIssue": "Chọn một vấn đề để xem chi tiết",
     "noFilesChanged": "Chưa có file nào được thay đổi hoặc thêm mới kể từ lần commit cuối.",
     "rowSelected": "{{0}} của {{1}} hàng được chọn.",
-    "aiContentWarning": "Nội dung này được tạo bởi AI và có thể không hoàn toàn chính xác. Vui lòng kiểm tra kỹ lưỡng trước khi thực hiện commit."
+    "aiContentWarning": "Nội dung này được tạo bởi AI và có thể không hoàn toàn chính xác. Vui lòng kiểm tra lại trước khi thực hiện commit."
   },
   "title": {
     "settings": "Cài đặt",

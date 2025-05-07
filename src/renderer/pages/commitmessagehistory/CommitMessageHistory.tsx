@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import indexedDBService from '@/services/indexedDB'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { format } from 'date-fns'
 import { Copy } from 'lucide-react'
@@ -17,15 +18,24 @@ type CommitHistory = {
 }
 export function CommitMessageHistory() {
   const { t } = useTranslation()
-  const { loadHistoryConfig } = useHistoryStore()
+  const { loadHistoryConfig, commitMessages } = useHistoryStore()
   const [isLoading, setIsLoading] = useState(true)
   const [result, setResult] = useState<CommitHistory[]>([])
 
   useEffect(() => {
-    setIsLoading(true)
-    loadHistoryConfig()
-    handleRefresh()
-    setIsLoading(false)
+    const initData = async () => {
+      setIsLoading(true)
+      try {
+        await loadHistoryConfig()
+        await handleRefresh()
+      } catch (error) {
+        console.error('Lỗi khi khởi tạo dữ liệu:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    initData()
   }, [t])
 
   const copyToClipboard = (text: string) => {
@@ -34,12 +44,29 @@ export function CommitMessageHistory() {
   }
   const handleRefresh = async () => {
     setIsLoading(true)
-    const result = await window.api.history.get()
-    const sortedMessages = result.commitMessages.sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime()
-    })
-    setResult(sortedMessages)
-    setIsLoading(false)
+    try {
+      console.log('Đang tải dữ liệu từ IndexedDB...')
+      // Lấy dữ liệu trực tiếp từ IndexedDB thay vì qua API
+      const messages = await indexedDBService.getHistoryMessages()
+      console.log('Dữ liệu từ IndexedDB:', messages)
+
+      const sortedMessages = messages.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+      })
+      setResult(sortedMessages)
+      console.log('Đã cập nhật state với dữ liệu từ IndexedDB')
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu từ IndexedDB:', error)
+
+      // Fallback: Sử dụng dữ liệu từ store nếu không thể truy cập IndexedDB trực tiếp
+      console.log('Sử dụng dữ liệu từ store:', commitMessages)
+      const sortedMessages = [...commitMessages].sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+      })
+      setResult(sortedMessages)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => {
@@ -88,7 +115,7 @@ export function CommitMessageHistory() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                      {t('commitMessageHistroy.noResults')}
+                      {t('common.noData')}
                     </TableCell>
                   </TableRow>
                 )}

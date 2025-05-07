@@ -298,7 +298,6 @@ export function MainPage() {
             <ResizableHandle />
             <ResizablePanel className="p-2 mb-[20px]" minSize={25} defaultSize={50}>
               <div className="relative overflow-hidden h-full flex flex-col">
-                <OverlayLoader isLoading={isLoadingGenerate} />
                 <div className="mb-2">
                   <Input
                     id="reference-id-input"
@@ -309,14 +308,17 @@ export function MainPage() {
                     spellCheck={false}
                   />
                 </div>
-                <Textarea
-                  id="commit-message-area"
-                  placeholder={t('placeholder.commitMessage')}
-                  className="w-full flex-1 resize-none"
-                  onChange={handleCommitMessage}
-                  ref={commitMessageRef}
-                  spellCheck={false}
-                />
+                <div className="h-full relative">
+                  <OverlayLoader isLoading={isLoadingGenerate} />
+                  <Textarea
+                    id="commit-message-area"
+                    placeholder={t('placeholder.commitMessage')}
+                    className="w-full h-full flex-1 resize-none"
+                    onChange={handleCommitMessage}
+                    ref={commitMessageRef}
+                    spellCheck={false}
+                  />
+                </div>
               </div>
               <span className="absolute flex flex-row text-xs py-[5px] gap-2">
                 <CircleAlert className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />

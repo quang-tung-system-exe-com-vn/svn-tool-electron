@@ -96,7 +96,7 @@ export function registerWindowIpcHandlers() {
     })
   })
 
-  ipcMain.on(IPC.WINDOW.SHOW_LOG, (event, filePath) => {
+  ipcMain.on(IPC.WINDOW.SHOW_LOG, (event, data) => {
     const window = new BrowserWindow({
       width: 1365,
       height: 768,
@@ -125,8 +125,13 @@ export function registerWindowIpcHandlers() {
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
-      // Gửi filePath (có thể là một chuỗi hoặc một mảng các chuỗi) đến renderer process
-      window.webContents.send('load-diff-data', { filePath })
+      // Xử lý cả trường hợp data là object hoặc string
+      const dataToSend = typeof data === 'string'
+        ? { path: data }
+        : data
+
+      // Gửi dữ liệu (bao gồm path và currentRevision nếu có) đến renderer process
+      window.webContents.send('load-diff-data', dataToSend)
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })
       }

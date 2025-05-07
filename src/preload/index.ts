@@ -24,7 +24,6 @@ declare global {
       svn: {
         changed_files: () => Promise<SVNResponse>
         get_diff: (selectedFiles: any[]) => Promise<SVNResponse>
-        open_dif: (filePath: string, status: string) => Promise<SVNResponse>
         commit: (commitMessage: string, violations: string, selectedFiles: any[]) => Promise<SVNResponse>
         info: (filePath: string, revision?: string) => Promise<any>
         cat: (filePath: string) => Promise<any>
@@ -114,8 +113,10 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   history: {
-    get: () => ipcRenderer.invoke(IPC.HISTORY.GET),
-    set: (data: HistoryCommitMessage) => ipcRenderer.invoke(IPC.HISTORY.SET, data),
+    // Không sử dụng IPC handlers nữa vì chúng ta đang sử dụng IndexedDB trực tiếp trong renderer process
+    // Giữ lại API để đảm bảo tính tương thích ngược
+    get: () => Promise.resolve({ commitMessages: [] }),
+    set: (data: HistoryCommitMessage) => Promise.resolve(),
   },
 
   openai: {
@@ -140,7 +141,6 @@ contextBridge.exposeInMainWorld('api', {
   svn: {
     changed_files: () => ipcRenderer.invoke(IPC.SVN.CHANGED_FILES),
     get_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_DIFF, selectedFiles),
-    open_dif: (filePath: string, status: string) => ipcRenderer.invoke(IPC.SVN.OPEN_DIFF, filePath, status),
     commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
     info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
     cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
