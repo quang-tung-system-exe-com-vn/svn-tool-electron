@@ -147,7 +147,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
                       <TableCell className="p-0 h-6 px-2">
                         <StatusIcon code={file.status} />
                       </TableCell>
-                      <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.path}</TableCell>
+                      <TableCell className="p-0 h-6 px-2 cursor-pointer break-all whitespace-normal">{file.path}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -105,8 +105,6 @@ function parseCommitInfo(info: string) {
   const lines = info.split('\n')
   const changedFiles: { status: string; path: string }[] = []
   const commitMessageLines: string[] = []
-
-  // Tìm vị trí của "Changed paths:" và dòng trống đầu tiên sau đó
   let changedPathsIndex = -1
   let emptyLineAfterChangedPathsIndex = -1
 
@@ -114,20 +112,15 @@ function parseCommitInfo(info: string) {
     if (lines[i].startsWith('Changed paths:')) {
       changedPathsIndex = i
     }
-
-    // Tìm dòng trống đầu tiên sau "Changed paths:"
     if (changedPathsIndex !== -1 && i > changedPathsIndex && lines[i].trim() === '') {
       emptyLineAfterChangedPathsIndex = i
       break
     }
   }
-
-  // Thu thập danh sách các file đã thay đổi
   if (changedPathsIndex !== -1) {
     for (let i = changedPathsIndex + 1; i < lines.length; i++) {
       if (lines[i].trim() === '') break
-
-      const fileMatch = lines[i].match(/([AMDR])\s+(.+)/)
+      const fileMatch = lines[i].match(/([AMDRCI?!~X])\s+(.+)/)
       if (fileMatch) {
         changedFiles.push({
           status: fileMatch[1],
@@ -137,34 +130,24 @@ function parseCommitInfo(info: string) {
     }
   }
 
-  // Thu thập commit message sau dòng trống đầu tiên sau "Changed paths:"
   if (emptyLineAfterChangedPathsIndex !== -1) {
     for (let i = emptyLineAfterChangedPathsIndex + 1; i < lines.length; i++) {
-      // Dừng khi gặp dòng phân cách hoặc header của log entry tiếp theo
       if (lines[i].startsWith('---') || lines[i].startsWith('r')) {
         break
       }
-
-      // Thêm dòng vào commit message
       commitMessageLines.push(lines[i])
     }
   }
 
-  // Nếu không tìm thấy commit message theo cách trên, thử cách khác
   if (commitMessageLines.length === 0) {
     let messageStarted = false
-
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
-
-      // Bỏ qua các dòng header và Changed paths
       if (line.startsWith('r') || line.startsWith('---') ||
         line.startsWith('Changed paths:') ||
         (changedPathsIndex !== -1 && i > changedPathsIndex && i <= emptyLineAfterChangedPathsIndex)) {
         continue
       }
-
-      // Thêm các dòng không rỗng vào commit message
       if (line.trim() !== '' || messageStarted) {
         messageStarted = true
         commitMessageLines.push(line)
