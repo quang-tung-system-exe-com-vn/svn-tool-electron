@@ -23,6 +23,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Joyride, { type CallBackProps, STATUS, type Step } from 'react-joyride'
 
+// Khóa localStorage để lưu kích thước của ResizablePanel
+const MAIN_PANEL_SIZES_KEY = 'main-panel-sizes-config'
+
+// Interface cho kích thước của các ResizablePanel
+interface MainPanelSizes {
+  topPanelSize: number
+  bottomPanelSize: number
+}
+
 export function MainPage() {
   const { language, setLanguage } = useAppearanceStore()
   const { t } = useTranslation()
@@ -44,6 +53,16 @@ export function MainPage() {
   const { themeMode, setThemeMode } = useAppearanceStore()
   const [isDarkMode, setIsDarkMode] = useState(themeMode === 'dark')
 
+  // State cho kích thước các panel
+  const [panelSizes, setPanelSizes] = useState<MainPanelSizes>({
+    topPanelSize: 50,
+    bottomPanelSize: 50,
+  })
+
+  // Refs cho các panel
+  const topPanelRef = useRef<any>(null)
+  const bottomPanelRef = useRef<any>(null)
+
   useEffect(() => {
     setIsDarkMode(themeMode === 'dark')
   }, [themeMode])
@@ -55,6 +74,53 @@ export function MainPage() {
     const html = document.documentElement
     html.classList.remove('dark', 'light')
     html.classList.add(newMode)
+  }
+
+  // Đọc kích thước các panel từ localStorage khi component mount
+  useEffect(() => {
+    try {
+      const savedPanelSizes = localStorage.getItem(MAIN_PANEL_SIZES_KEY)
+      if (savedPanelSizes) {
+        const sizes: MainPanelSizes = JSON.parse(savedPanelSizes)
+        setPanelSizes(sizes)
+
+        // Cập nhật kích thước của các panel thông qua refs
+        setTimeout(() => {
+          if (topPanelRef.current?.resize) topPanelRef.current.resize(sizes.topPanelSize)
+          if (bottomPanelRef.current?.resize) bottomPanelRef.current.resize(sizes.bottomPanelSize)
+        }, 0)
+      }
+    } catch (error) {
+      console.error('Lỗi khi đọc kích thước panel từ localStorage:', error)
+    }
+  }, [])
+
+  // Lưu kích thước panel vào localStorage khi component unmount
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.setItem(MAIN_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
+      } catch (error) {
+        console.error('Lỗi khi lưu kích thước panel vào localStorage:', error)
+      }
+    }
+  }, [panelSizes])
+
+  // Lưu kích thước panel vào localStorage mỗi khi panelSizes thay đổi
+  useEffect(() => {
+    try {
+      localStorage.setItem(MAIN_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
+    } catch (error) {
+      console.error('Lỗi khi lưu kích thước panel vào localStorage:', error)
+    }
+  }, [panelSizes])
+
+  // Xử lý sự kiện thay đổi kích thước panel
+  const handlePanelResize = (panelName: keyof MainPanelSizes, size: number) => {
+    setPanelSizes(prev => ({
+      ...prev,
+      [panelName]: size,
+    }))
   }
 
   const steps: Step[] = [
@@ -290,16 +356,28 @@ export function MainPage() {
           isLoading={isLoadingGenerate || isLoadingCommit}
           onTourIconClick={openWelcomeDialogAgain}
           hasCompletedTour={hasCompletedTour}
-          showTourIconForLastStep={showTourIconForLastStep} // Pass new state
+          showTourIconForLastStep={showTourIconForLastStep}
         />
         {/* Content */}
         <div className="p-4 space-y-4 flex-1 flex flex-col">
           <ResizablePanelGroup direction="vertical" className="rounded-md border">
-            <ResizablePanel id="changed-files-table" minSize={25} defaultSize={50}>
+            <ResizablePanel
+              id="changed-files-table"
+              minSize={25}
+              defaultSize={panelSizes.topPanelSize}
+              onResize={size => handlePanelResize('topPanelSize', size)}
+              ref={topPanelRef}
+            >
               <DataTable ref={tableRef} />
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="p-2 mb-[20px]" minSize={25} defaultSize={50}>
+            <ResizablePanel
+              className="p-2 mb-[20px]"
+              minSize={25}
+              defaultSize={panelSizes.bottomPanelSize}
+              onResize={size => handlePanelResize('bottomPanelSize', size)}
+              ref={bottomPanelRef}
+            >
               <div className="relative overflow-hidden h-full flex flex-col">
                 <div className="mb-2">
                   <Input

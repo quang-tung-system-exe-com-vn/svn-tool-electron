@@ -58,6 +58,7 @@ export const SpotbugsAIChat = ({
   const { language, themeMode } = appearanceStore
   const monaco = useMonaco()
   const { resolvedTheme } = useTheme()
+  const [aiResponses, setAiResponses] = useState<Record<string, Record<string, string>>>({})
   const [aiResponse, setAiResponse] = useState('')
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [sourceLineOptions, setSourceLineOptions] = useState<SourceLineOption[]>([])
@@ -68,7 +69,6 @@ export const SpotbugsAIChat = ({
   const [activeTab, setActiveTab] = useState<string>('code')
   const editorRef = useRef<any>(null)
 
-  // Định nghĩa theme cho Monaco Editor
   useEffect(() => {
     if (!monaco) return
 
@@ -150,7 +150,6 @@ export const SpotbugsAIChat = ({
   }, [activeTab, monaco, themeMode])
 
   useEffect(() => {
-    setAiResponse('')
     setIsAiLoading(false)
     setSourceLineOptions([])
     setSelectedSourceLine('')
@@ -163,6 +162,15 @@ export const SpotbugsAIChat = ({
       setSelectedSourceLine(selectedSourceLineKey)
     }
   }, [bug])
+
+  useEffect(() => {
+    if (bug?.id && selectedSourceLine) {
+      const savedResponse = aiResponses[bug.id]?.[selectedSourceLine] || ''
+      setAiResponse(savedResponse)
+    } else {
+      setAiResponse('')
+    }
+  }, [bug?.id, selectedSourceLine, aiResponses])
 
   const loadSourceLineOptions = async (bug: BugInstance | null) => {
     if (!bug || !bug.sourceLines) return
@@ -227,13 +235,51 @@ export const SpotbugsAIChat = ({
       }
       const { classname, sourcefile, start, end } = selectedOption.sourceLine
       const fileContent = fileContents[selectedSourceLine] || ''
+
+      let selectedCodeContent = ''
+      if (fileContent && start && end) {
+        const lines = fileContent.split('\n')
+        const selectedLines = lines.slice(start - 3, end + 3)
+        selectedCodeContent = selectedLines.join('\n')
+      }
+
+      let methodMessage = ''
+      if (bug.methods && Array.isArray(bug.methods)) {
+        if (selectedOption?.sourceLine) {
+          const matchingMethod = bug.methods.find(
+            method => method?.sourceLine?.start === selectedOption.sourceLine?.start && method?.sourceLine?.end === selectedOption.sourceLine?.end
+          )
+
+          if (matchingMethod?.message) {
+            methodMessage = matchingMethod.message
+          } else if (bug.methods.length > 0 && bug.methods[0]?.message) {
+            methodMessage = bug.methods[0].message
+          }
+        } else if (bug.methods.length > 0 && bug.methods[0]?.message) {
+          methodMessage = bug.methods[0].message
+        }
+      } else if (bug.message) {
+        methodMessage = bug.message
+      }
+
       const prompt = `Formatting re-enabled.
-      Explain the following SpotBugs issue. Bug type: "${bug.type}", Category: "${bug.category}", Priority: ${bug.priority}, Message: "${bug.longMessage}\n\n".
-      ${fileContent ? `Code from file ${sourcefile} (lines ${start}-${end}):\n\`\`\`\n${fileContent}\n\`\`\`` : `Unable to retrieve code from file "${sourcefile}".`}\n\n
+      Explain the following SpotBugs issue. Bug type: "${bug.type}", Category: "${bug.category}", Priority: ${bug.priority}, Message: "${methodMessage}\n\n".
+      ${selectedCodeContent ? `Code from file ${sourcefile} (lines ${start}-${end}):\n\`\`\`\n${selectedCodeContent}\n\`\`\`` : `Unable to retrieve code from file "${sourcefile}".`}\n\n
       Provide a concise explanation and suggest possible solutions in ${languageName}.`
       logger.debug('Prompt for AI:', prompt)
       const response = await window.api.openai.chat(prompt)
-      setAiResponse(response || t('dialog.spotbugs.ai.noResponse'))
+      const responseText = response || t('dialog.spotbugs.ai.noResponse')
+      setAiResponse(responseText)
+
+      if (bug.id) {
+        setAiResponses(prev => ({
+          ...prev,
+          [bug.id]: {
+            ...(prev[bug.id] || {}),
+            [selectedSourceLine]: responseText,
+          },
+        }))
+      }
     } catch (error) {
       logger.error('AI explanation error:', error)
       setAiResponse(t('dialog.spotbugs.ai.error'))

@@ -1,6 +1,7 @@
 'use client'
 import { CodeSnippetDialog } from '@/components/dialogs/CodeSnippetDialog'
 import { BUG_DESCRIPTIONS, CATEGORY_DESCRIPTIONS } from '@/components/shared/constants'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,12 +28,21 @@ import {
   List,
   PieChart as PieChartIcon,
 } from 'lucide-react'
-import { forwardRef, useEffect, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { SpotbugsAIChat } from './SpotbugsAIChat'
 import { SpotbugsToolbar } from './SpotbugsToolbar'
 import type { BugInstance, SpotBugsResult } from './constants'
+
+// Khóa localStorage để lưu kích thước của ResizablePanel
+const SPOTBUGS_PANEL_SIZES_KEY = 'spotbugs-panel-sizes-config'
+
+// Interface cho kích thước của các ResizablePanel
+interface SpotbugsPanelSizes {
+  leftPanelSize: number
+  rightPanelSize: number
+}
 
 export function SpotBugs() {
   const { t } = useTranslation()
@@ -53,12 +63,22 @@ export function SpotBugs() {
   })
   const [selectedBug, setSelectedBug] = useState<BugInstance | null>(null)
   const [activeTab, setActiveTab] = useState('all')
-  const [activeDetailTab, setActiveDetailTab] = useState('summary')
+  const [activeDetailTab, setActiveDetailTab] = useState('ai')
 
   const [fileContent, setFileContent] = useState('')
   const [codeSnippets, setCodeSnippets] = useState<Record<string, string>>({})
   const [selectedSourceLineKey, setSelectedSourceLineKey] = useState<string>('')
   const [activeChartType, setActiveChartType] = useState<'priority' | 'file' | 'package'>('priority') // State for active chart
+
+  // State cho kích thước các panel
+  const [panelSizes, setPanelSizes] = useState<SpotbugsPanelSizes>({
+    leftPanelSize: 50,
+    rightPanelSize: 50,
+  })
+
+  // Refs cho các panel
+  const leftPanelRef = useRef<any>(null)
+  const rightPanelRef = useRef<any>(null)
 
   useEffect(() => {
     const handler = (_event: any, data: { filePaths: string[]; spotbugsResult?: any; error?: string }) => {
@@ -77,7 +97,7 @@ export function SpotBugs() {
         if (processedResult.bugInstances.length > 0) {
           const firstBug = processedResult.bugInstances[0]
           setSelectedBug(firstBug)
-          setActiveDetailTab('summary')
+          setActiveDetailTab('ai')
         } else {
           setSelectedBug(null)
         }
@@ -93,6 +113,53 @@ export function SpotBugs() {
       window.api.removeAllListeners('load-diff-data')
     }
   }, [t])
+
+  // Đọc kích thước các panel từ localStorage khi component mount
+  useEffect(() => {
+    try {
+      const savedPanelSizes = localStorage.getItem(SPOTBUGS_PANEL_SIZES_KEY)
+      if (savedPanelSizes) {
+        const sizes: SpotbugsPanelSizes = JSON.parse(savedPanelSizes)
+        setPanelSizes(sizes)
+
+        // Cập nhật kích thước của các panel thông qua refs
+        setTimeout(() => {
+          if (leftPanelRef.current?.resize) leftPanelRef.current.resize(sizes.leftPanelSize)
+          if (rightPanelRef.current?.resize) rightPanelRef.current.resize(sizes.rightPanelSize)
+        }, 0)
+      }
+    } catch (error) {
+      console.error('Lỗi khi đọc kích thước panel từ localStorage:', error)
+    }
+  }, [])
+
+  // Lưu kích thước panel vào localStorage khi component unmount
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.setItem(SPOTBUGS_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
+      } catch (error) {
+        console.error('Lỗi khi lưu kích thước panel vào localStorage:', error)
+      }
+    }
+  }, [panelSizes])
+
+  // Lưu kích thước panel vào localStorage mỗi khi panelSizes thay đổi
+  useEffect(() => {
+    try {
+      localStorage.setItem(SPOTBUGS_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
+    } catch (error) {
+      console.error('Lỗi khi lưu kích thước panel vào localStorage:', error)
+    }
+  }, [panelSizes])
+
+  // Xử lý sự kiện thay đổi kích thước panel
+  const handlePanelResize = (panelName: keyof SpotbugsPanelSizes, size: number) => {
+    setPanelSizes(prev => ({
+      ...prev,
+      [panelName]: size,
+    }))
+  }
 
   useEffect(() => {
     if (selectedBug) {
@@ -143,7 +210,7 @@ export function SpotBugs() {
   const handleRefresh = () => {
     setIsLoading(true)
     setSelectedBug(null)
-    setActiveDetailTab('summary')
+    setActiveDetailTab('ai')
 
     setSpotbugsResult({
       version: { version: '', sequence: null, timestamp: null, analysisTimestamp: null, release: '' },
@@ -437,7 +504,7 @@ export function SpotBugs() {
 
   const handleBugSelection = (bug: BugInstance) => {
     setSelectedBug(bug)
-    setActiveDetailTab('summary')
+    setActiveDetailTab('ai')
   }
 
   const handleExplainInAI = (sourceLine: any) => {
@@ -452,7 +519,7 @@ export function SpotBugs() {
         <SpotbugsToolbar isLoading={isLoading} onRefresh={handleRefresh} />
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList>
+            <TabsList aria-disabled={isLoading}>
               <TabsTrigger value="all">
                 <Bug strokeWidth={1.25} className="h-4 w-4  text-green-800 dark:text-green-400 border-green-500/20" />
                 {t('dialog.spotbugs.allIssues')}
@@ -498,11 +565,18 @@ export function SpotBugs() {
               <div className="space-y-4 flex-1 h-full flex flex-col overflow-hidden">
                 {(activeTab === 'all' || activeTab === 'high' || activeTab === 'medium' || activeTab === 'low') && (
                   <ResizablePanelGroup direction="horizontal" className="flex gap-1">
-                    <ResizablePanel defaultSize={50} minSize={0} className="h-full">
+                    <ResizablePanel
+                      defaultSize={panelSizes.leftPanelSize}
+                      minSize={0}
+                      className="h-full"
+                      onResize={size => handlePanelResize('leftPanelSize', size)}
+                      ref={leftPanelRef}
+                    >
                       <div className="h-full">
                         <div className="flex flex-col h-full w-full">
                           <div className="flex flex-col border rounded-md overflow-auto h-full">
                             <ScrollArea className="h-full w-full">
+                              <OverlayLoader isLoading={isLoading} />
                               <Table wrapperClassName={cn('overflow-unset', sortedBugs.length === 0 && 'h-full')}>
                                 <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                                   <TableRow>
@@ -587,14 +661,19 @@ export function SpotBugs() {
                       </div>
                     </ResizablePanel>
                     <ResizableHandle className="bg-transparent" />
-                    <ResizablePanel defaultSize={50} minSize={0} className="h-full">
-                      <div className="flex flex-col gap-4 h-full">
-                        {selectedBug ? (
+                    {selectedBug && (
+                      <ResizablePanel
+                        defaultSize={panelSizes.rightPanelSize}
+                        minSize={0}
+                        className="h-full"
+                        onResize={size => handlePanelResize('rightPanelSize', size)}
+                        ref={rightPanelRef}
+                      >
+                        <div className="flex flex-col gap-4 h-full">
                           <div className="border rounded-md overflow-hidden h-full flex flex-col">
                             <div className="bg-muted p-2 font-medium flex items-center justify-between">
                               <div className="flex items-center justify-between gap-2 w-full">
-                                <span>{t('dialog.spotbugs.bugDetails')}</span>
-                                <div className="flex flex-row items-center gap-2">
+                                <div className="flex flex-row items-end gap-2">
                                   <h3 className="text-sm font-semibold">{t('table.severity')}</h3>
                                   <Badge variant="outline" className={`${getPriorityColor(selectedBug.priority)} w-fit`}>
                                     {t(getPriorityName(selectedBug.priority))} ({selectedBug.priority})
@@ -608,6 +687,10 @@ export function SpotBugs() {
                             </div>
                             <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab} className="w-full flex-1 flex flex-col overflow-hidden">
                               <TabsList className="w-full justify-start flex-shrink-0 rounded-none">
+                                <TabsTrigger value="ai" className="flex items-center gap-1">
+                                  <Bot strokeWidth={1.25} className="h-4 w-4" />
+                                  <span>{t('dialog.spotbugs.aiAssistant')}</span>
+                                </TabsTrigger>
                                 <TabsTrigger value="summary" className="flex items-center gap-1">
                                   <AlertCircle strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugSummary')}</span>
@@ -615,10 +698,6 @@ export function SpotBugs() {
                                 <TabsTrigger value="details" className="flex items-center gap-1">
                                   <Bug strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugDetails')}</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="ai" className="flex items-center gap-1">
-                                  <Bot strokeWidth={1.25} className="h-4 w-4" />
-                                  <span>{t('dialog.spotbugs.aiAssistant')}</span>
                                 </TabsTrigger>
                               </TabsList>
                               {/* Bug Summary Tab */}
@@ -861,13 +940,9 @@ export function SpotBugs() {
                               </TabsContent>
                             </Tabs>
                           </div>
-                        ) : (
-                          <div className="border rounded-md p-4 flex items-center justify-center h-full w-full">
-                            <p className="text-muted-foreground">{t('message.selectIssue')}</p>
-                          </div>
-                        )}
-                      </div>
-                    </ResizablePanel>
+                        </div>
+                      </ResizablePanel>
+                    )}
                   </ResizablePanelGroup>
                 )}
                 {activeTab === 'filelist' && (
@@ -876,6 +951,7 @@ export function SpotBugs() {
                       {t('dialog.spotbugs.fileList')} ({filePaths.length})
                     </div>
                     <ScrollArea className="h-full w-full overflow-auto">
+                      <OverlayLoader isLoading={isLoading} />
                       <Table wrapperClassName={cn('overflow-unset', filePaths.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                           <TableRow>
@@ -932,6 +1008,7 @@ export function SpotBugs() {
                     <div className="flex-1 overflow-hidden">
                       {activeChartType === 'priority' && (
                         <Card className="flex flex-col w-full h-full relative">
+                          <OverlayLoader isLoading={isLoading} />
                           <CardHeader className="items-center pb-0">
                             <CardTitle>{t('dialog.spotbugs.priorityChart')}</CardTitle>
                             <CardDescription>{t('dialog.spotbugs.priorityChartDescription')}</CardDescription>
@@ -975,6 +1052,7 @@ export function SpotBugs() {
                       )}
                       {activeChartType === 'file' && (
                         <Card className="flex flex-col w-full h-full relative">
+                          <OverlayLoader isLoading={isLoading} />
                           <CardHeader className="items-center pb-0">
                             <CardTitle>{t('dialog.spotbugs.fileStatsChart')}</CardTitle>
                             <CardDescription>{t('dialog.spotbugs.fileStatsChartDescription')}</CardDescription>
@@ -1030,6 +1108,7 @@ export function SpotBugs() {
                       )}
                       {activeChartType === 'package' && (
                         <Card className="flex flex-col w-full h-full relative">
+                          <OverlayLoader isLoading={isLoading} />
                           <CardHeader className="items-center pb-0">
                             <CardTitle>{t('dialog.spotbugs.packageStatsChart')}</CardTitle>
                             <CardDescription>{t('dialog.spotbugs.packageStatsChartDescription')}</CardDescription>

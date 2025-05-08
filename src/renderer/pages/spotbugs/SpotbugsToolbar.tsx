@@ -37,6 +37,7 @@ export const SpotbugsToolbar: React.FC<ShowlogProps> = ({ isLoading, onRefresh }
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  disabled={isLoading}
                   variant="link"
                   size="sm"
                   onClick={onRefresh}

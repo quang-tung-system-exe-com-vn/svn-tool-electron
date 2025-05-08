@@ -37,6 +37,7 @@ export const CheckCodingRulesToolbar: React.FC<CheckCodingRulesProps> = ({ onRef
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  disabled={isLoading}
                   variant="link"
                   size="sm"
                   onClick={onRefresh}

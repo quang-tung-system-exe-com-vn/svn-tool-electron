@@ -1,5 +1,5 @@
 'use client'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import logger from '@/services/logger'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -27,11 +27,11 @@ export function InfoDialog({ open, onOpenChange }: InfoDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} aria-label={t('dialog.aboutDialog.title')}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[550px]">
+        {/* <DialogHeader>
           <DialogTitle>{t('dialog.aboutDialog.title')}</DialogTitle>
           <DialogDescription>{t('dialog.aboutDialog.description')}</DialogDescription>
-        </DialogHeader>
+        </DialogHeader> */}
         <div className="flex flex-col items-center space-y-4 text-sm w-full">
           <div className="w-25 h-25">
             <img src="logo.png" alt="App Logo" className="w-full h-full object-contain dark:brightness-130" />

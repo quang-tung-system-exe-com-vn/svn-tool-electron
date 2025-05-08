@@ -1,3 +1,4 @@
+import logger from '@/services/logger'
 import { create } from 'zustand'
 import indexedDBService from '../services/indexedDB'
 
@@ -14,44 +15,35 @@ type HistoryStore = {
   addHistory: (history: History) => Promise<boolean>
 }
 
-// Không tự động khởi tạo IndexedDB khi module được import
-// Việc khởi tạo sẽ được thực hiện trong CommitMessageHistory.tsx
-
 export const useHistoryStore = create<HistoryStore>((set, get) => {
-  // Tải dữ liệu ban đầu khi store được tạo
-  console.log('Khởi tạo useHistoryStore...')
-
+  logger.info('Initializing useHistoryStore...')
   return {
     message: '',
     date: '',
     commitMessages: [],
-
     loadHistoryConfig: async () => {
-      console.log('loadHistoryConfig được gọi')
+      logger.info('loadHistoryConfig is called')
       try {
         const messages = await indexedDBService.getHistoryMessages()
-        console.log('Đã tải dữ liệu từ IndexedDB:', messages)
+        logger.info('Data retrieved from IndexedDB:', messages)
         set({ commitMessages: messages || [] })
       } catch (error) {
-        console.error('Lỗi khi tải lịch sử commit:', error)
+        logger.error('Error when loading commit:', error)
         set({ commitMessages: [] })
       }
     },
 
     addHistory: async (history: History): Promise<boolean> => {
-      console.log('addHistory được gọi với:', history)
+      logger.info('addHistory is called with:', history)
       try {
         await indexedDBService.addHistoryMessage(history)
-        console.log('Đã thêm lịch sử thành công')
-
-        // Cập nhật state sau khi thêm thành công
+        logger.info('Successfully added history')
         const messages = await indexedDBService.getHistoryMessages()
-        console.log('Cập nhật state với dữ liệu mới:', messages)
+        logger.info('Data retrieved from IndexedDB:', messages)
         set({ commitMessages: messages || [] })
-
         return true
       } catch (error) {
-        console.error('Lỗi khi thêm lịch sử commit:', error)
+        logger.error('EError when adding history:', error)
         return false
       }
     },

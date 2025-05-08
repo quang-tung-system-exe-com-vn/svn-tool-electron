@@ -16,7 +16,7 @@ import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import chalk from 'chalk'
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
-import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
 import { ShowlogToolbar } from './ShowlogToolbar'
@@ -57,9 +57,70 @@ interface LogFile {
   filePath: string
 }
 
+// Khóa localStorage để lưu cấu hình layout
+const SHOWLOG_LAYOUT_KEY = 'showlog-layout-config'
+// Khóa localStorage để lưu kích thước của ResizablePanel
+const SHOWLOG_PANEL_SIZES_KEY = 'showlog-panel-sizes-config'
+
+// Interface cho cấu hình layout được lưu trong localStorage
+interface ShowlogLayoutConfig {
+  direction: 'horizontal' | 'vertical'
+}
+
+// Interface cho kích thước của các ResizablePanel
+interface ShowlogPanelSizes {
+  mainPanelSize: number
+  secondPanelSize: number
+  commitPanelSize: number
+  filesPanelSize: number
+}
+
 export function ShowLog() {
   const { t } = useTranslation()
   const variant = useButtonVariant()
+
+  // State cho layout và kích thước panel
+  const [layoutDirection, setLayoutDirection] = useState<'horizontal' | 'vertical'>('horizontal')
+
+  // Đọc cấu hình từ localStorage khi component mount
+  useEffect(() => {
+    try {
+      const savedConfig = localStorage.getItem(SHOWLOG_LAYOUT_KEY)
+      if (savedConfig) {
+        const config: ShowlogLayoutConfig = JSON.parse(savedConfig)
+        setLayoutDirection(config.direction)
+      }
+    } catch (error) {
+      console.error('Lỗi khi đọc cấu hình layout từ localStorage:', error)
+    }
+  }, [])
+
+  // Lưu cấu hình vào localStorage khi component unmount
+  useEffect(() => {
+    // Lưu cấu hình khi component unmount
+    return () => {
+      try {
+        const config: ShowlogLayoutConfig = {
+          direction: layoutDirection,
+        }
+        localStorage.setItem(SHOWLOG_LAYOUT_KEY, JSON.stringify(config))
+      } catch (error) {
+        console.error('Lỗi khi lưu cấu hình layout vào localStorage:', error)
+      }
+    }
+  }, [layoutDirection])
+
+  // Lưu cấu hình khi thay đổi layout
+  useEffect(() => {
+    try {
+      const config: ShowlogLayoutConfig = {
+        direction: layoutDirection,
+      }
+      localStorage.setItem(SHOWLOG_LAYOUT_KEY, JSON.stringify(config))
+    } catch (error) {
+      console.error('Lỗi khi lưu cấu hình layout vào localStorage:', error)
+    }
+  }, [layoutDirection])
 
   const columns: ColumnDef<LogEntry>[] = [
     {
@@ -206,6 +267,20 @@ export function ShowLog() {
 
   const [isStatisticOpen, setIsStatisticOpen] = useState(false)
 
+  // State cho kích thước các panel
+  const [panelSizes, setPanelSizes] = useState<ShowlogPanelSizes>({
+    mainPanelSize: 50,
+    secondPanelSize: 50,
+    commitPanelSize: 50,
+    filesPanelSize: 50,
+  })
+
+  // Refs cho các panel
+  const mainPanelRef = useRef<any>(null)
+  const secondPanelRef = useRef<any>(null)
+  const commitPanelRef = useRef<any>(null)
+  const filesPanelRef = useRef<any>(null)
+
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 50
   const [sorting, setSorting] = useState<SortingState>([])
@@ -241,6 +316,55 @@ export function ShowLog() {
       loadLogData(filePath)
     }
   }, [dateRange])
+
+  // Đọc kích thước các panel từ localStorage khi component mount
+  useEffect(() => {
+    try {
+      const savedPanelSizes = localStorage.getItem(SHOWLOG_PANEL_SIZES_KEY)
+      if (savedPanelSizes) {
+        const sizes: ShowlogPanelSizes = JSON.parse(savedPanelSizes)
+        setPanelSizes(sizes)
+
+        // Cập nhật kích thước của các panel thông qua refs
+        setTimeout(() => {
+          if (mainPanelRef.current?.resize) mainPanelRef.current.resize(sizes.mainPanelSize)
+          if (secondPanelRef.current?.resize) secondPanelRef.current.resize(sizes.secondPanelSize)
+          if (commitPanelRef.current?.resize) commitPanelRef.current.resize(sizes.commitPanelSize)
+          if (filesPanelRef.current?.resize) filesPanelRef.current.resize(sizes.filesPanelSize)
+        }, 0)
+      }
+    } catch (error) {
+      console.error('Lỗi khi đọc kích thước panel từ localStorage:', error)
+    }
+  }, [])
+
+  // Lưu kích thước panel vào localStorage khi component unmount
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.setItem(SHOWLOG_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
+      } catch (error) {
+        console.error('Lỗi khi lưu kích thước panel vào localStorage:', error)
+      }
+    }
+  }, [panelSizes])
+
+  // Lưu kích thước panel vào localStorage mỗi khi panelSizes thay đổi
+  useEffect(() => {
+    try {
+      localStorage.setItem(SHOWLOG_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
+    } catch (error) {
+      console.error('Lỗi khi lưu kích thước panel vào localStorage:', error)
+    }
+  }, [panelSizes])
+
+  // Xử lý sự kiện thay đổi kích thước panel
+  const handlePanelResize = (panelName: keyof ShowlogPanelSizes, size: number) => {
+    setPanelSizes(prev => ({
+      ...prev,
+      [panelName]: size,
+    }))
+  }
 
   const loadLogData = async (path: string | string[]) => {
     try {
@@ -496,180 +620,413 @@ export function ShowLog() {
           dateRange={dateRange}
           setDateRange={setDateRange}
           onOpenStatistic={() => setIsStatisticOpen(true)}
+          layoutDirection={layoutDirection}
+          onToggleLayout={() => setLayoutDirection(prev => (prev === 'horizontal' ? 'vertical' : 'horizontal'))}
         />
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col overflow-hidden">
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={50} minSize={50} className="h-full">
-              <div className="h-full pr-2">
-                <div className="flex flex-col h-full">
-                  <div className="mb-2 flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input placeholder={t('dialog.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
+          {layoutDirection === 'horizontal' ? (
+            // Layout ngang: 1 panel trái, 2 panel phải (trên/dưới)
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel
+                key={`main-panel-${layoutDirection}`}
+                defaultSize={panelSizes.mainPanelSize}
+                minSize={30}
+                className="h-full"
+                onResize={size => handlePanelResize('mainPanelSize', size)}
+                ref={mainPanelRef}
+              >
+                <div className="h-full pr-2">
+                  <div className="flex flex-col h-full">
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input placeholder={t('dialog.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col border rounded-md overflow-auto h-full">
-                    <ScrollArea className="h-full w-full">
-                      <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
-                        <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                          {table.getHeaderGroups().map(headerGroup => (
-                            <TableRow key={headerGroup.id}>
-                              {headerGroup.headers.map((header, index) => (
-                                <TableHead
-                                  key={header.id}
-                                  style={{ width: header.getSize() }}
-                                  className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
+                    <div className="flex flex-col border rounded-md overflow-auto h-full">
+                      <ScrollArea className="h-full w-full">
+                        <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
+                          <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                            {table.getHeaderGroups().map(headerGroup => (
+                              <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header, index) => (
+                                  <TableHead
+                                    key={header.id}
+                                    style={{ width: header.getSize() }}
+                                    className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
+                                  >
+                                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                  </TableHead>
+                                ))}
+                              </TableRow>
+                            ))}
+                          </TableHeader>
+                          <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
+                            {table.getRowModel().rows?.length ? (
+                              table.getRowModel().rows.map(row => (
+                                <TableRow
+                                  key={row.id}
+                                  data-state={row.getIsSelected() && 'selected'}
+                                  onClick={() => {
+                                    if (!row.getIsSelected()) {
+                                      table.resetRowSelection()
+                                      row.toggleSelected(true)
+                                      selectRevision(row.original.revision)
+                                    }
+                                  }}
+                                  className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900"
                                 >
-                                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                </TableHead>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableHeader>
-                        <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
-                          {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map(row => (
-                              <TableRow
-                                key={row.id}
-                                data-state={row.getIsSelected() && 'selected'}
-                                onClick={() => {
-                                  if (!row.getIsSelected()) {
-                                    table.resetRowSelection()
-                                    row.toggleSelected(true)
-                                    selectRevision(row.original.revision)
-                                  }
-                                }}
-                                className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900"
-                              >
-                                {row.getVisibleCells().map((cell, index) => {
-                                  const isCurrentRevision = row.getValue('revision') === currentRevision
-                                  return (
-                                    <TableCell
-                                      key={cell.id}
-                                      className={cn(
-                                        'p-0 h-6 px-2',
-                                        index === 0 && 'text-center',
-                                        cell.column.id === 'filePath' && 'cursor-pointer',
-                                        isCurrentRevision && 'text-blue-700 dark:text-yellow-400'
-                                      )}
-                                    >
-                                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TableCell>
-                                  )
-                                })}
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow className="h-full">
-                              <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
-                                <div className="flex flex-col items-center justify-center gap-4 h-full">
-                                  <p className="text-muted-foreground">{t('common.noData')}</p>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                      <ScrollBar orientation="vertical" />
-                      <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
-                  </div>
-
-                  {(isLoading || filteredLogData.length > 0) && (
-                    <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground h-12">
-                      <span className="flex-1 text-xs pl-1">
-                        {isLoading
-                          ? 'Loading...'
-                          : `${t('dialog.showLogs.totalEntries', { 0: totalEntriesFromBackend })} ${
-                              searchTerm.trim() ? `(${t('dialog.showLogs.filtered', { 0: filteredLogData.length })})` : ''
-                            }`}
-                      </span>
-                      {!isLoading && (
-                        <div className="flex items-center gap-2">
-                          <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
-                            {t('common.back')}
-                          </Button>
-                          <span>{t('dialog.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
-                          <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
-                            {t('common.next')}
-                          </Button>
-                        </div>
-                      )}
-                      <div className="flex-1" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle className="bg-transparent" />
-
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <ResizablePanelGroup direction="vertical" className="h-full">
-                <ResizablePanel defaultSize={40} minSize={20}>
-                  <div className="p-2 font-medium pb-[11px]">{t('dialog.showLogs.commitMessage')}</div>
-                  <div className="h-full overflow-auto pb-[2.8rem]">
-                    <Textarea
-                      className="w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
-                      readOnly={true}
-                      value={commitMessage}
-                      spellCheck={false}
-                    />
-                  </div>
-                </ResizablePanel>
-
-                <ResizableHandle className="bg-transparent" />
-
-                <ResizablePanel defaultSize={60} minSize={20} className="flex flex-col">
-                  <div className="p-2 font-medium flex justify-between items-center">
-                    <span>{t('dialog.showLogs.changedFiles')}</span>
-                    <div className="flex gap-2">
-                      {Object.entries(statusSummary).map(([code, count]) =>
-                        count > 0 ? (
-                          <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
-                            <StatusIcon code={code as SvnStatusCode} />
-                            <span>{count}</span>
-                          </div>
-                        ) : null
-                      )}
-                    </div>
-                  </div>
-                  <div className="h-full overflow-auto border-1 rounded-md">
-                    <ScrollArea className="h-full">
-                      <Table wrapperClassName={cn('overflow-clip', changedFiles.length === 0 && 'h-full')}>
-                        <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                          <TableRow>
-                            <TableHead className="w-24">{t('dialog.showLogs.action')}</TableHead>
-                            <TableHead>{t('dialog.showLogs.path')}</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className={changedFiles.length === 0 ? 'h-full' : ''}>
-                          {changedFiles.length > 0 ? (
-                            changedFiles.map((file, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="p-0 h-6 px-2">
-                                  <StatusIcon code={file.action} />
+                                  {row.getVisibleCells().map((cell, index) => {
+                                    const isCurrentRevision = row.getValue('revision') === currentRevision
+                                    return (
+                                      <TableCell
+                                        key={cell.id}
+                                        className={cn(
+                                          'p-0 h-6 px-2',
+                                          index === 0 && 'text-center',
+                                          cell.column.id === 'filePath' && 'cursor-pointer',
+                                          isCurrentRevision && 'text-blue-700 dark:text-yellow-400'
+                                        )}
+                                      >
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                      </TableCell>
+                                    )
+                                  })}
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow className="h-full">
+                                <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
+                                  <div className="flex flex-col items-center justify-center gap-4 h-full">
+                                    <p className="text-muted-foreground">{t('common.noData')}</p>
+                                  </div>
                                 </TableCell>
-                                <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.filePath}</TableCell>
                               </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={2} className="text-center py-4">
-                                {selectedRevision ? 'No files changed in this revision' : 'Select a revision to view changed files'}
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                      <ScrollBar orientation="vertical" />
-                      <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                            )}
+                          </TableBody>
+                        </Table>
+                        <ScrollBar orientation="vertical" />
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    </div>
+
+                    {(isLoading || filteredLogData.length > 0) && (
+                      <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground h-12">
+                        <span className="flex-1 text-xs pl-1">
+                          {isLoading
+                            ? 'Loading...'
+                            : `${t('dialog.showLogs.totalEntries', { 0: totalEntriesFromBackend })} ${
+                                searchTerm.trim() ? `(${t('dialog.showLogs.filtered', { 0: filteredLogData.length })})` : ''
+                              }`}
+                        </span>
+                        {!isLoading && (
+                          <div className="flex items-center gap-2">
+                            <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
+                              {t('common.back')}
+                            </Button>
+                            <span>{t('dialog.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
+                            <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
+                              {t('common.next')}
+                            </Button>
+                          </div>
+                        )}
+                        <div className="flex-1" />
+                      </div>
+                    )}
                   </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle className="bg-transparent" />
+
+              <ResizablePanel
+                key={`second-panel-${layoutDirection}`}
+                defaultSize={panelSizes.secondPanelSize}
+                minSize={layoutDirection === 'horizontal' ? 30 : 40}
+                onResize={size => handlePanelResize('secondPanelSize', size)}
+                ref={secondPanelRef}
+              >
+                <ResizablePanelGroup direction="vertical" className="h-full">
+                  <ResizablePanel
+                    key={`commit-panel-${layoutDirection}`}
+                    defaultSize={panelSizes.commitPanelSize}
+                    minSize={20}
+                    className=""
+                    onResize={size => handlePanelResize('commitPanelSize', size)}
+                    ref={commitPanelRef}
+                  >
+                    <div className="p-2 font-medium pb-[11px]">{t('dialog.showLogs.commitMessage')}</div>
+                    <div className="h-full overflow-auto pb-[2.8rem]">
+                      <Textarea
+                        className="w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
+                        readOnly={true}
+                        value={commitMessage}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </ResizablePanel>
+
+                  <ResizableHandle className="bg-transparent" />
+
+                  <ResizablePanel
+                    key={`files-panel-${layoutDirection}`}
+                    defaultSize={panelSizes.filesPanelSize}
+                    minSize={20}
+                    className="flex flex-col"
+                    onResize={size => handlePanelResize('filesPanelSize', size)}
+                    ref={filesPanelRef}
+                  >
+                    <div className="p-2 font-medium flex justify-between items-center">
+                      <span>{t('dialog.showLogs.changedFiles')}</span>
+                      <div className="flex gap-2">
+                        {Object.entries(statusSummary).map(([code, count]) =>
+                          count > 0 ? (
+                            <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
+                              <StatusIcon code={code as SvnStatusCode} />
+                              <span>{count}</span>
+                            </div>
+                          ) : null
+                        )}
+                      </div>
+                    </div>
+                    <div className="h-full overflow-auto border-1 rounded-md">
+                      <ScrollArea className="h-full">
+                        <Table wrapperClassName={cn('overflow-clip', changedFiles.length === 0 && 'h-full')}>
+                          <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                            <TableRow>
+                              <TableHead className="w-24">{t('dialog.showLogs.action')}</TableHead>
+                              <TableHead>{t('dialog.showLogs.path')}</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody className={changedFiles.length === 0 ? 'h-full' : ''}>
+                            {changedFiles.length > 0 ? (
+                              changedFiles.map((file, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="p-0 h-6 px-2">
+                                    <StatusIcon code={file.action} />
+                                  </TableCell>
+                                  <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.filePath}</TableCell>
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={2} className="text-center py-4">
+                                  {selectedRevision ? 'No files changed in this revision' : 'Select a revision to view changed files'}
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                        <ScrollBar orientation="vertical" />
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            // Layout dọc: 1 panel trên, 2 panel dưới (trái/phải)
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel
+                key={`main-panel-${layoutDirection}`}
+                defaultSize={panelSizes.mainPanelSize}
+                minSize={20}
+                className="w-full"
+                onResize={size => handlePanelResize('mainPanelSize', size)}
+                ref={mainPanelRef}
+              >
+                <div className="h-full pb-2">
+                  <div className="flex flex-col h-full">
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input placeholder={t('dialog.showLogs.placeholderSearch')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col border rounded-md overflow-auto h-full">
+                      <ScrollArea className="h-full w-full">
+                        <Table wrapperClassName={cn('overflow-clip', table.getRowModel().rows.length === 0 && 'h-full')}>
+                          <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                            {table.getHeaderGroups().map(headerGroup => (
+                              <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header, index) => (
+                                  <TableHead
+                                    key={header.id}
+                                    style={{ width: header.getSize() }}
+                                    className={cn('relative group h-9 px-2', '!text-[var(--table-header-fg)]', index === 0 && 'text-center')}
+                                  >
+                                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                  </TableHead>
+                                ))}
+                              </TableRow>
+                            ))}
+                          </TableHeader>
+                          <TableBody className={table.getRowModel().rows.length === 0 ? 'h-full' : ''}>
+                            {table.getRowModel().rows?.length ? (
+                              table.getRowModel().rows.map(row => (
+                                <TableRow
+                                  key={row.id}
+                                  data-state={row.getIsSelected() && 'selected'}
+                                  onClick={() => {
+                                    if (!row.getIsSelected()) {
+                                      table.resetRowSelection()
+                                      row.toggleSelected(true)
+                                      selectRevision(row.original.revision)
+                                    }
+                                  }}
+                                  className="cursor-pointer data-[state=selected]:bg-blue-100 dark:data-[state=selected]:bg-blue-900"
+                                >
+                                  {row.getVisibleCells().map((cell, index) => {
+                                    const isCurrentRevision = row.getValue('revision') === currentRevision
+                                    return (
+                                      <TableCell
+                                        key={cell.id}
+                                        className={cn(
+                                          'p-0 h-6 px-2',
+                                          index === 0 && 'text-center',
+                                          cell.column.id === 'filePath' && 'cursor-pointer',
+                                          isCurrentRevision && 'text-blue-700 dark:text-yellow-400'
+                                        )}
+                                      >
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                      </TableCell>
+                                    )
+                                  })}
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow className="h-full">
+                                <TableCell colSpan={table.getAllColumns().length} className="text-center h-full">
+                                  <div className="flex flex-col items-center justify-center gap-4 h-full">
+                                    <p className="text-muted-foreground">{t('common.noData')}</p>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                        <ScrollBar orientation="vertical" />
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    </div>
+
+                    {(isLoading || filteredLogData.length > 0) && (
+                      <div className="flex items-center justify-between pt-2 px-1 text-sm text-muted-foreground h-12">
+                        <span className="flex-1 text-xs pl-1">
+                          {isLoading
+                            ? 'Loading...'
+                            : `${t('dialog.showLogs.totalEntries', { 0: totalEntriesFromBackend })} ${
+                                searchTerm.trim() ? `(${t('dialog.showLogs.filtered', { 0: filteredLogData.length })})` : ''
+                              }`}
+                        </span>
+                        {!isLoading && (
+                          <div className="flex items-center gap-2">
+                            <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1 || isLoading}>
+                              {t('common.back')}
+                            </Button>
+                            <span>{t('dialog.showLogs.page', { 0: currentPage, 1: totalPages })}</span>
+                            <Button variant={variant} size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={isLoading || !hasMoreEntries}>
+                              {t('common.next')}
+                            </Button>
+                          </div>
+                        )}
+                        <div className="flex-1" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle className="bg-transparent" />
+
+              <ResizablePanel
+                key={`second-panel-${layoutDirection}`}
+                defaultSize={panelSizes.secondPanelSize}
+                minSize={40}
+                onResize={size => handlePanelResize('secondPanelSize', size)}
+                ref={secondPanelRef}
+              >
+                <ResizablePanelGroup direction="horizontal" className="h-full">
+                  <ResizablePanel
+                    key={`commit-panel-${layoutDirection}`}
+                    defaultSize={panelSizes.commitPanelSize}
+                    minSize={20}
+                    className="pr-2"
+                    onResize={size => handlePanelResize('commitPanelSize', size)}
+                    ref={commitPanelRef}
+                  >
+                    <div className="p-2 font-medium pb-[11px]">{t('dialog.showLogs.commitMessage')}</div>
+                    <div className="h-full overflow-auto pb-[2.8rem]">
+                      <Textarea
+                        className="w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
+                        readOnly={true}
+                        value={commitMessage}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </ResizablePanel>
+
+                  <ResizableHandle className="bg-transparent" />
+
+                  <ResizablePanel
+                    key={`files-panel-${layoutDirection}`}
+                    defaultSize={panelSizes.filesPanelSize}
+                    minSize={20}
+                    className="flex flex-col pl-2"
+                    onResize={size => handlePanelResize('filesPanelSize', size)}
+                    ref={filesPanelRef}
+                  >
+                    <div className="p-2 font-medium flex justify-between items-center">
+                      <span>{t('dialog.showLogs.changedFiles')}</span>
+                      <div className="flex gap-2">
+                        {Object.entries(statusSummary).map(([code, count]) =>
+                          count > 0 ? (
+                            <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
+                              <StatusIcon code={code as SvnStatusCode} />
+                              <span>{count}</span>
+                            </div>
+                          ) : null
+                        )}
+                      </div>
+                    </div>
+                    <div className="h-full overflow-auto border-1 rounded-md">
+                      <ScrollArea className="h-full">
+                        <Table wrapperClassName={cn('overflow-clip', changedFiles.length === 0 && 'h-full')}>
+                          <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                            <TableRow>
+                              <TableHead className="w-24">{t('dialog.showLogs.action')}</TableHead>
+                              <TableHead>{t('dialog.showLogs.path')}</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody className={changedFiles.length === 0 ? 'h-full' : ''}>
+                            {changedFiles.length > 0 ? (
+                              changedFiles.map((file, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="p-0 h-6 px-2">
+                                    <StatusIcon code={file.action} />
+                                  </TableCell>
+                                  <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.filePath}</TableCell>
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={2} className="text-center py-4">
+                                  {selectedRevision ? 'No files changed in this revision' : 'Select a revision to view changed files'}
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                        <ScrollBar orientation="vertical" />
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          )}
         </div>
       </div>
     </div>

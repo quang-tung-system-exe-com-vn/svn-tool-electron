@@ -11,6 +11,8 @@ type ConfigurationStore = {
   oneDriveRefreshToken: string
   startOnLogin: boolean
   showNotifications: boolean
+  enableMailNotification: boolean
+  enableTeamsNotification: boolean
   setFieldConfiguration: (key: keyof Omit<ConfigurationStore, 'setFieldConfiguration' | 'saveConfigurationConfig' | 'loadConfigurationConfig'>, value: string | boolean) => void
   saveConfigurationConfig: () => Promise<void>
   loadConfigurationConfig: () => Promise<void>
@@ -27,6 +29,8 @@ export const useConfigurationStore = create<ConfigurationStore>((set, get) => ({
   oneDriveRefreshToken: '',
   startOnLogin: false,
   showNotifications: true,
+  enableMailNotification: true,
+  enableTeamsNotification: true,
   setFieldConfiguration: (key, value) => set({ [key]: value }),
   saveConfigurationConfig: async () => {
     const { setFieldConfiguration, saveConfigurationConfig, loadConfigurationConfig, ...config } = get()

@@ -11,6 +11,8 @@ export type Schema = {
   oneDriveRefreshToken: string
   startOnLogin: boolean
   showNotifications: boolean
+  enableMailNotification: boolean
+  enableTeamsNotification: boolean
 }
 
 const config = new Store<Schema>({
@@ -26,6 +28,8 @@ const config = new Store<Schema>({
     oneDriveRefreshToken: '',
     startOnLogin: false,
     showNotifications: true,
+    enableMailNotification: true,
+    enableTeamsNotification: true,
   },
 })
 

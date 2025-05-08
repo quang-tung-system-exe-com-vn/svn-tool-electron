@@ -1,4 +1,5 @@
 import log from 'electron-log'
+import { sendMail } from 'main/notification/sendMail'
 import { sendTeams } from 'main/notification/sendTeams'
 import { listAllFilesRecursive } from 'main/utils/utils'
 import { exec } from 'node:child_process'
@@ -36,8 +37,6 @@ export async function commit(commitMessage: string, violations: string, selected
 
   let addedFilePaths: string[] = []
   let deletedFilePaths: string[] = []
-
-  // Handle deleted (missing) files
   const unsortedPaths: string[] = []
 
   for (const filePath of deletedFiles) {
@@ -47,18 +46,17 @@ export async function commit(commitMessage: string, violations: string, selected
 
     if (isDir) {
       const allPaths = listAllFilesRecursive(absolutePath)
-      unsortedPaths.push(...allPaths) // Thêm toàn bộ file/folder con
-      unsortedPaths.push(filePath) // Cuối cùng thêm thư mục gốc
+      unsortedPaths.push(...allPaths)
+      unsortedPaths.push(filePath)
     } else {
       unsortedPaths.push(filePath)
     }
   }
 
-  // Sau khi thu thập xong toàn bộ → sort theo độ dài giảm dần
   const finalDeletedPaths = unsortedPaths.sort((a, b) => {
     const depthA = a.split(/[\\/]/).length
     const depthB = b.split(/[\\/]/).length
-    return depthB - depthA || a.localeCompare(b) // sâu hơn → xóa trước, tên giống nhau thì fallback alphabet
+    return depthB - depthA || a.localeCompare(b)
   })
 
   const targetFiles = getMinimalParentFolders(finalDeletedPaths)
@@ -73,7 +71,6 @@ export async function commit(commitMessage: string, violations: string, selected
     deletedFilePaths = extractFilePaths(deleteResult.message)
   }
 
-  // Handle added (unversioned) files
   if (addedFiles.length > 0) {
     log.info('▶️ Adding files...')
     const addResult = await runSVNCommand('add', addedFiles)
@@ -85,12 +82,9 @@ export async function commit(commitMessage: string, violations: string, selected
     addedFilePaths = extractFilePaths(addResult.message)
   }
 
-  // Handle commit for modified, added, and deleted files
   const allFiles = [...modifiedFiles, ...addedFiles, ...targetFiles]
   if (allFiles.length > 0) {
     try {
-      console.log('commitMessage: ', commitMessage)
-      // Sử dụng một file tạm thời để lưu thông điệp commit
       const os = require('node:os')
       const tempFile = path.join(os.tmpdir(), `svn-commit-message-${Date.now()}.txt`)
       fs.writeFileSync(tempFile, commitMessage)
@@ -99,7 +93,6 @@ export async function commit(commitMessage: string, violations: string, selected
       try {
         commitResult = await runSVNCommand('commit', allFiles, tempFile, true)
       } finally {
-        // Xóa file tạm thời sau khi commit, bất kể thành công hay thất bại
         try {
           if (fs.existsSync(tempFile)) {
             fs.unlinkSync(tempFile)
@@ -134,8 +127,15 @@ export async function commit(commitMessage: string, violations: string, selected
         deletedFiles: deletedFilePaths,
       }
 
-      // sendMail(data)
-      sendTeams(data)
+      const { enableMailNotification, enableTeamsNotification } = configurationStore.store
+
+      if (enableMailNotification) {
+        sendMail(data)
+      }
+
+      if (enableTeamsNotification) {
+        sendTeams(data)
+      }
       return { status: 'success', message: `${commitResult.message}` }
     } catch (error: any) {
       return { status: 'error', message: `${error?.message ?? error}` }
@@ -172,10 +172,8 @@ async function runSVNCommand(command: string, selectedFiles: string[], commitMes
 
       if (commitMessage && command !== 'add' && command !== 'delete') {
         if (isMessageFile) {
-          // Sử dụng tùy chọn -F để đọc thông điệp từ file
           modifiedArgs.unshift(`-F "${commitMessage}"`)
         } else {
-          // Sử dụng tùy chọn -m cho thông điệp trực tiếp
           modifiedArgs.unshift(`-m ${commitMessage}`)
         }
       }
@@ -219,12 +217,10 @@ async function runSVNCommand(command: string, selectedFiles: string[], commitMes
   return { status: 'success', message: filePaths.toString() }
 }
 
-// Extract file paths from the SVN response message (lines starting with "A")
 function extractFilePaths(message: string): string[] {
   return message.split(',').map(p => p.trim())
 }
 
-// Helper function to chunk array into smaller batches
 function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   const result: T[][] = []
   for (let i = 0; i < array.length; i += chunkSize) {
@@ -234,12 +230,8 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 }
 
 function getMinimalParentFolders(filePaths: string[]): string[] {
-  // Nếu chỉ có một file duy nhất, trả về chính file đó
   if (filePaths.length === 1) {
     return [...filePaths]
   }
-
-  // Chỉ trả về danh sách các file, không thêm thư mục cha
-  // Điều này đảm bảo chỉ xóa các file được chỉ định, không xóa cả thư mục
   return [...new Set(filePaths)]
 }

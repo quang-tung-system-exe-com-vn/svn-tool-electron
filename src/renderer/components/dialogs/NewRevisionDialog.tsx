@@ -128,7 +128,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
         )}
 
         {/* Changed Files Table */}
-        <div className="space-y-2">
+        <div className="space-y-2 grid">
           <label htmlFor="commitMessage" className="text-sm font-medium">
             {t('dialog.updateSvn.changedFiles')}
           </label>
@@ -157,7 +157,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
         </div>
 
         {/* Commit Message */}
-        <div className="space-y-2">
+        <div className="space-y-2 grid">
           <label htmlFor="commitMessage" className="text-sm font-medium">
             {t('dialog.updateSvn.commitMessage')}
           </label>

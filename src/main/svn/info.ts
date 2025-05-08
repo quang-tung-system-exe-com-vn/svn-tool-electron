@@ -87,7 +87,6 @@ async function getCommitInfo(): Promise<any> {
     const { sourceFolder } = configurationStore.store
     const command = 'svn log -r HEAD:1 -l 1 -v'
     const { stdout, stderr } = await execPromise(command, { cwd: sourceFolder })
-    console.log(stdout)
     if (stderr?.trim()) {
       return { status: 'error', message: `SVN stderr: ${stderr.trim()}` }
     }

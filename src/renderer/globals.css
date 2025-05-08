@@ -1477,15 +1477,19 @@
   }
 
   .line-highlight {
-    background-color: oklch(0.976 0.154 0.355);
+    background-color: oklch(0.5 0.5 5 / 0.15);
   }
 
   [data-theme-mode="dark"] .line-highlight {
-    background-color: oklch(0.576 0.1 61.907 / 0.4);
+    background-color: oklch(0.5 0.5 5 / 0.25);
   }
   :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    padding: 0;
-    margin: 0;
-    background: transparent;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border-radius: 4px !important;
+  }
+  .language-java {
+    border-radius: 4px;
   }
 }

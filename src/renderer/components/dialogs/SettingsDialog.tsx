@@ -1,7 +1,7 @@
 'use client'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,7 +32,7 @@ import {
 import type { Theme } from 'main/store/AppearanceStore'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Joyride, { type CallBackProps, STATUS, type Step, ACTIONS } from 'react-joyride'
+import Joyride, { ACTIONS, type CallBackProps, STATUS, type Step } from 'react-joyride'
 
 import { useAppearanceStore } from '../../stores/useAppearanceStore'
 import { useConfigurationStore } from '../../stores/useConfigurationStore'
@@ -51,7 +51,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { theme, setTheme, themeMode, setThemeMode, fontSize, setFontSize, fontFamily, setFontFamily, buttonVariant, setButtonVariant, language, setLanguage } =
     useAppearanceStore()
   const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'))
-  const { t, i18n } = useTranslation() // Use the hook correctly
+  const { t, i18n } = useTranslation()
 
   const {
     openaiApiKey,
@@ -64,6 +64,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     oneDriveRefreshToken,
     startOnLogin,
     showNotifications,
+    enableMailNotification,
+    enableTeamsNotification,
     setFieldConfiguration,
     saveConfigurationConfig,
     loadConfigurationConfig,
@@ -86,7 +88,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   useEffect(() => {
     if (open) {
-      logger.info('SettingsDialog opened, running load functions...')
       loadWebhookConfig()
       loadConfigurationConfig()
       loadMailServerConfig()
@@ -292,7 +293,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       const { status, type, step, action } = data
       const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
       if (type === 'step:before') {
-        // Handle tab switching for tour
         if (step.target === '#settings-tab-configuration' && activeTab !== 'configuration') {
           setActiveTab('configuration')
         } else if (step.target === '#settings-tab-mailserver' && activeTab !== 'mailserver') {
@@ -457,10 +457,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <div className="flex items-center justify-between w-full">
                         {t('settings.theme')}
                         <div id="settings-dark-mode-switch" className="flex items-center space-x-2">
-                          <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={handleDarkModeToggle} />
                           <Label className="cursor-pointer" htmlFor="dark-mode">
                             {t('settings.darkMode')}
                           </Label>
+                          <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={handleDarkModeToggle} />
                         </div>
                       </div>
                     </CardTitle>
@@ -563,18 +563,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* Configuration Tab */}
           <TabsContent value="configuration">
             <Card className="gap-2 py-4 rounded-md">
-              <CardHeader className="pb-2">
+              {/* <CardHeader className="pb-2">
                 <CardTitle>{t('settings.tab.configuration')}</CardTitle>
                 <CardDescription>{t('settings.configuration.description')}</CardDescription>
-              </CardHeader>
+              </CardHeader> */}
               <CardContent className="space-y-4">
                 {/* OpenAI API Key */}
-                <div id="settings-openai-key" className="space-y-1">
+                <div id="settings-openai-key" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <KeyRound className="w-4 h-4" /> {t('settings.configuration.openaiApiKey')}
                   </Label>
                   <Input
-                    type="text"
+                    type="password"
                     placeholder={t('settings.configuration.openaiApiKeyPlaceholder')}
                     value={openaiApiKey}
                     onChange={e => setFieldConfiguration('openaiApiKey', e.target.value)}
@@ -582,7 +582,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
 
                 {/* SVN Folder */}
-                <div id="settings-svn-folder" className="space-y-1">
+                <div id="settings-svn-folder" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Folder className="w-4 h-4" /> {t('settings.configuration.svnFolder')}
                   </Label>
@@ -606,7 +606,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
 
                 {/* Source Folder */}
-                <div id="settings-source-folder" className="space-y-1">
+                <div id="settings-source-folder" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Folder className="w-4 h-4" /> {t('settings.configuration.sourceFolder')}
                   </Label>
@@ -630,18 +630,42 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
 
                 {/* Email PL */}
-                <div id="settings-email-pl" className="space-y-1">
-                  <Label className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" /> {t('settings.configuration.emailPL')}
-                  </Label>
+                <div id="settings-email-pl" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" /> {t('settings.configuration.emailPL')}
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="enable-mail-notification" className="cursor-pointer">
+                        {t('settings.configuration.receiveMailNotification', 'Nhận thông báo Mail')}
+                      </Label>
+                      <Switch
+                        id="enable-mail-notification"
+                        checked={enableMailNotification}
+                        onCheckedChange={checked => setFieldConfiguration('enableMailNotification', checked)}
+                      />
+                    </div>
+                  </div>
                   <Input type="email" placeholder={t('settings.configuration.emailPlaceholder')} value={emailPL} onChange={e => setFieldConfiguration('emailPL', e.target.value)} />
                 </div>
 
                 {/* Webhook MS */}
-                <div id="settings-webhook-ms" className="space-y-1">
-                  <Label className="mr-2 flex items-center gap-2">
-                    <Webhook className="w-4 h-4" /> {t('settings.configuration.webhookMS')}
-                  </Label>
+                <div id="settings-webhook-ms" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="mr-2 flex items-center gap-2">
+                      <Webhook className="w-4 h-4" /> {t('settings.configuration.webhookMS')}
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="enable-teams-notification" className="cursor-pointer">
+                        {t('settings.configuration.receiveTeamsNotification', 'Nhận thông báo MS Teams')}
+                      </Label>
+                      <Switch
+                        id="enable-teams-notification"
+                        checked={enableTeamsNotification}
+                        onCheckedChange={checked => setFieldConfiguration('enableTeamsNotification', checked)}
+                      />
+                    </div>
+                  </div>
                   <div className="flex items-center justify-between gap-2">
                     <Select value={webhookMS} onValueChange={value => setFieldConfiguration('webhookMS', value)}>
                       <SelectTrigger className="border rounded-md w-full">
@@ -708,12 +732,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* Mail Server Configuration Tab */}
           <TabsContent value="mailserver">
             <Card className="gap-2 py-4 rounded-md">
-              <CardHeader className="pb-2">
+              {/* <CardHeader className="pb-2">
                 <CardTitle>{t('settings.tab.mailserver')}</CardTitle>
                 <CardDescription>{t('settings.mailserver.description')}</CardDescription>
-              </CardHeader>
+              </CardHeader> */}
               <CardContent className="space-y-4">
-                <div id="settings-smtp-server" className="space-y-1">
+                <div id="settings-smtp-server" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Database className="w-4 h-4" /> {t('settings.mailserver.smtpServer')}
                   </Label>
@@ -724,19 +748,19 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     placeholder={t('settings.mailserver.smtpServerPlaceholder')}
                   />
                 </div>
-                <div id="settings-port" className="space-y-1">
+                <div id="settings-port" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Network className="w-4 h-4" /> {t('settings.mailserver.port')}
                   </Label>
                   <Input type="text" value={port} onChange={e => setFieldMailServer('port', e.target.value)} placeholder={t('settings.mailserver.portPlaceholder')} />
                 </div>
-                <div id="settings-mail-email" className="space-y-1">
+                <div id="settings-mail-email" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Mail className="w-4 h-4" /> {t('settings.mailserver.email')}
                   </Label>
                   <Input type="email" value={email} onChange={e => setFieldMailServer('email', e.target.value)} placeholder={t('settings.mailserver.emailPlaceholder')} />
                 </div>
-                <div id="settings-mail-password" className="space-y-1">
+                <div id="settings-mail-password" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Lock className="w-4 h-4" /> {t('settings.mailserver.password')}
                   </Label>
@@ -759,12 +783,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* OneDrive Configuration Tab */}
           <TabsContent value="onedrive">
             <Card className="gap-2 py-4 rounded-md">
-              <CardHeader className="pb-2">
+              {/* <CardHeader className="pb-2">
                 <CardTitle>{t('settings.tab.onedrive')}</CardTitle>
                 <CardDescription>{t('settings.onedrive.description')}</CardDescription>
-              </CardHeader>
+              </CardHeader> */}
               <CardContent className="space-y-4">
-                <div id="settings-onedrive-client-id" className="space-y-1">
+                <div id="settings-onedrive-client-id" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <User className="w-4 h-4" /> {t('settings.onedrive.clientId')}
                   </Label>
@@ -776,7 +800,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   />
                 </div>
                 {/* Client Secret */}
-                <div id="settings-onedrive-client-secret" className="space-y-1">
+                <div id="settings-onedrive-client-secret" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Lock className="w-4 h-4" /> {t('settings.onedrive.clientSecret', 'Client Secret')}
                   </Label>
@@ -788,7 +812,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   />
                 </div>
                 {/* Refresh Token */}
-                <div id="settings-onedrive-refresh-token" className="space-y-1">
+                <div id="settings-onedrive-refresh-token" className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <RefreshCw className="w-4 h-4" /> {t('settings.onedrive.refreshToken')}
                   </Label>

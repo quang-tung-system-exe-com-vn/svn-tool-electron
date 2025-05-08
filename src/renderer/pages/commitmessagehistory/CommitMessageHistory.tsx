@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import indexedDBService, { initializeIfNeeded } from '@/services/indexedDB'
+import logger from '@/services/logger'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { format } from 'date-fns'
 import { Check, Copy } from 'lucide-react'
@@ -26,12 +27,11 @@ export function CommitMessageHistory() {
     const initData = async () => {
       setIsLoading(true)
       try {
-        console.log('Khởi tạo IndexedDB cho cửa sổ CommitMessageHistory')
         await initializeIfNeeded()
         await loadHistoryConfig()
         await handleRefresh()
       } catch (error) {
-        console.error('Lỗi khi khởi tạo dữ liệu:', error)
+        logger.error('Lỗi khi khởi tạo dữ liệu:', error)
       } finally {
         setIsLoading(false)
       }
@@ -43,18 +43,18 @@ export function CommitMessageHistory() {
   const handleRefresh = async () => {
     setIsLoading(true)
     try {
-      console.log('Đang tải dữ liệu từ IndexedDB...')
+      logger.info('Đang tải dữ liệu từ IndexedDB...')
       const messages = await indexedDBService.getHistoryMessages()
-      console.log('Dữ liệu từ IndexedDB:', messages)
+      logger.info('Dữ liệu từ IndexedDB:', messages)
 
       const sortedMessages = messages.sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime()
       })
       setResult(sortedMessages)
-      console.log('Đã cập nhật state với dữ liệu từ IndexedDB')
+      logger.info('Đã cập nhật state với dữ liệu từ IndexedDB')
     } catch (error) {
-      console.error('Lỗi khi tải dữ liệu từ IndexedDB:', error)
-      console.log('Sử dụng dữ liệu từ store:', commitMessages)
+      logger.error('Lỗi khi tải dữ liệu từ IndexedDB:', error)
+      logger.info('Sử dụng dữ liệu từ store:', commitMessages)
       const sortedMessages = [...commitMessages].sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime()
       })
@@ -73,7 +73,7 @@ export function CommitMessageHistory() {
         setTimeout(() => setCopiedCode(null), 2000)
       })
       .catch(err => {
-        console.error('Không thể copy vào clipboard:', err)
+        logger.error('Không thể copy vào clipboard:', err)
         toast.error('Không thể copy vào clipboard')
       })
   }

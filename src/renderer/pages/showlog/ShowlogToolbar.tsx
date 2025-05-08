@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-import { BarChart3, CalendarIcon, Minus, RefreshCw, Square, X } from 'lucide-react'
+import { BarChart3, CalendarIcon, LayoutTemplate, Minus, RefreshCw, Square, X } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
@@ -19,9 +19,20 @@ interface ShowlogProps {
   dateRange?: DateRange
   setDateRange?: (range: DateRange | undefined) => void
   onOpenStatistic?: () => void
+  layoutDirection?: 'horizontal' | 'vertical'
+  onToggleLayout?: () => void
 }
 
-export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, isLoading, dateRange, setDateRange, onOpenStatistic }) => {
+export const ShowlogToolbar: React.FC<ShowlogProps> = ({
+  onRefresh,
+  filePath,
+  isLoading,
+  dateRange,
+  setDateRange,
+  onOpenStatistic,
+  layoutDirection = 'horizontal',
+  onToggleLayout,
+}) => {
   const { t } = useTranslation()
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
@@ -148,7 +159,22 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({ onRefresh, filePath, is
       </Button>
 
       {/* Right Section (Window Controls) */}
-      <div className="flex gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+      <div className="flex gap-1 items-center" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+        {onToggleLayout && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={onToggleLayout}
+                className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px] mr-2"
+              >
+                <LayoutTemplate className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{layoutDirection === 'horizontal' ? t('common.switchToVertical') : t('common.switchToHorizontal')}</TooltipContent>
+          </Tooltip>
+        )}
         <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">
           <Minus size={15.5} strokeWidth={1} absoluteStrokeWidth />
         </button>
