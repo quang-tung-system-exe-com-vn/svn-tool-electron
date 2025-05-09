@@ -46,11 +46,13 @@ export const SpotbugsAIChat = ({
   isLoading: isParentLoading,
   filePaths,
   selectedSourceLineKey = '',
+  onAiLoadingChange,
 }: {
   bug: BugInstance | null
   isLoading: boolean
   filePaths: string[]
   selectedSourceLineKey?: string
+  onAiLoadingChange?: (isLoading: boolean) => void
 }) => {
   const variant = useButtonVariant()
   const { t } = useTranslation()
@@ -226,6 +228,7 @@ export const SpotbugsAIChat = ({
   const handleExplainError = async () => {
     if (!bug) return
     setIsAiLoading(true)
+    onAiLoadingChange?.(true)
     setAiResponse('')
     try {
       const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
@@ -286,6 +289,7 @@ export const SpotbugsAIChat = ({
       toast.error(t('toast.aiError'))
     } finally {
       setIsAiLoading(false)
+      onAiLoadingChange?.(false)
     }
   }
 
@@ -431,6 +435,7 @@ export const SpotbugsAIChat = ({
                 })()}
                 key={`monaco-editor-${selectedSourceLine}-${activeTab}`}
                 options={{
+                  renderWhitespace: 'all',
                   fontSize: 13,
                   readOnly: true,
                   minimap: { enabled: true },

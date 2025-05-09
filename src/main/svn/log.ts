@@ -23,7 +23,6 @@ async function fetchAllLogData(
   const effectiveStartDate = startDate
   const { sourceFolder } = configurationStore.store
 
-  // Apply date range if specified
   if (effectiveStartDate) {
     const fromISO = effectiveStartDate ? new Date(effectiveStartDate).toISOString() : null
     const toISO = endDate ? new Date(endDate).toISOString() : null
@@ -77,7 +76,7 @@ async function fetchAllLogData(
     logger.info(`No revisions found in range [${effectiveStartDate || 'Beginning'}, ${endDate || 'HEAD'}].`)
     return { status: 'success', totalEntries: 0, data: '' }
   }
-  const detailCommand = detailCommandBase // Lệnh này đã bao gồm date range
+  const detailCommand = detailCommandBase
   logger.info('Executing detail command for ALL revisions in range:', detailCommand)
 
   let allData = ''
@@ -101,30 +100,24 @@ async function fetchAllLogData(
 export async function log(filePath: string | string[] = '.', options?: LogOptions): Promise<SVNResponse> {
   try {
     logger.info('Initial Log options (fetching all data):', options)
-    const { dateFrom, dateTo } = options || {} // Bỏ limit, offset
+    const { dateFrom, dateTo } = options || {}
     const { sourceFolder } = configurationStore.store
     let suggestedStartDate: string | null = null
 
-    // SVN log không cho phép nhiều file path trong một lệnh
-    // Nếu filePath là một mảng, thực hiện lệnh log cho từng file và kết hợp kết quả
     if (Array.isArray(filePath)) {
       logger.info(`Multiple files provided (${filePath.length}), fetching logs for each file separately`);
-
       let combinedData = '';
       let totalEntries = 0;
       let hasError = false;
       let errorMessage = '';
-
       for (const path of filePath) {
         logger.info(`Fetching log for file: ${path}`);
         const singleResult = await fetchAllLogData(path, dateFrom, dateTo);
-
         if (singleResult.status === 'error') {
           hasError = true;
           errorMessage += `Error fetching log for ${path}: ${singleResult.message}\n`;
           continue;
         }
-
         if (singleResult.data) {
           if (combinedData) {
             combinedData += '\n------------------------------------------------------------------------\n';
@@ -146,7 +139,6 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
       };
     }
 
-    // Xử lý trường hợp một file
     logger.info(`--- Attempt 1: Fetching ALL logs for [${dateFrom || 'Beginning'}, ${dateTo || 'HEAD'}] ---`)
     let result = await fetchAllLogData(filePath, dateFrom, dateTo)
 
@@ -176,27 +168,20 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
           if (dateMatch?.[1]) {
             suggestedStartDate = dateMatch[1]
             logger.info(`Found last revision date before ${dateFrom}: ${suggestedStartDate}. Retrying fetch.`)
-
-            // --- Second Attempt (Retry): Fetch all data with suggested start date ---
             logger.info(`--- Attempt 2: Retrying fetch ALL logs for [${suggestedStartDate}, ${dateTo || 'HEAD'}] ---`)
-
-            // Nếu filePath là một mảng, xử lý tương tự như trên
             if (Array.isArray(filePath)) {
               let combinedData = '';
               let totalEntries = 0;
               let hasError = false;
               let errorMessage = '';
-
               for (const path of filePath) {
                 logger.info(`Retrying fetch log for file: ${path}`);
                 const singleResult = await fetchAllLogData(path, suggestedStartDate, dateTo);
-
                 if (singleResult.status === 'error') {
                   hasError = true;
                   errorMessage += `Error fetching log for ${path}: ${singleResult.message}\n`;
                   continue;
                 }
-
                 if (singleResult.data) {
                   if (combinedData) {
                     combinedData += '\n------------------------------------------------------------------------\n';
@@ -219,7 +204,6 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
               };
             }
 
-            // Xử lý trường hợp một file
             result = await fetchAllLogData(filePath, suggestedStartDate, dateTo) // Gọi lại fetchAllLogData
 
             if (result.status === 'error') {

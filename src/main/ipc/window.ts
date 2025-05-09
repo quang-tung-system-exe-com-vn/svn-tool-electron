@@ -59,7 +59,12 @@ export function registerWindowIpcHandlers() {
     }
   })
 
-  ipcMain.on(IPC.WINDOW.DIFF_WINDOWS, (event, filePath) => {
+  ipcMain.on(IPC.WINDOW.DIFF_WINDOWS, (event, data) => {
+    const filePath = typeof data === 'string' ? data : data.filePath
+    const fileStatus = typeof data === 'object' && data.fileStatus ? data.fileStatus : undefined
+    const revision = typeof data === 'object' && data.revision ? data.revision : undefined
+    const currentRevision = typeof data === 'object' && data.currentRevision ? data.currentRevision : undefined
+
     const window = new BrowserWindow({
       width: 1365,
       height: 768,
@@ -88,7 +93,7 @@ export function registerWindowIpcHandlers() {
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
-      window.webContents.send('load-diff-data', { filePath })
+      window.webContents.send('load-diff-data', { filePath, fileStatus, revision, currentRevision })
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })
       }
@@ -125,12 +130,9 @@ export function registerWindowIpcHandlers() {
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
-      // Xử lý cả trường hợp data là object hoặc string
       const dataToSend = typeof data === 'string'
         ? { path: data }
         : data
-
-      // Gửi dữ liệu (bao gồm path và currentRevision nếu có) đến renderer process
       window.webContents.send('load-diff-data', dataToSend)
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })

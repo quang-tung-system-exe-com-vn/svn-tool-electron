@@ -20,7 +20,7 @@ export function registerSvnIpcHandlers() {
   ipcMain.handle(IPC.SVN.GET_DIFF, async (_event, selectedFiles: any[]) => await getDiff(selectedFiles))
   ipcMain.handle(IPC.SVN.COMMIT, async (_event, commitMessage: string, violations: string, selectedFiles: any[]) => await commit(commitMessage, violations, selectedFiles))
   ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string) => await info(filePath))
-  ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string) => await cat(filePath))
+  ipcMain.handle(IPC.SVN.CAT, async (_event, filePath: string, fileStatus: string, revision?: string) => await cat(filePath, fileStatus, revision))
   ipcMain.handle(IPC.SVN.BLAME, async (_event, filePath: string) => await blame(filePath))
   ipcMain.handle(IPC.SVN.REVERT, async (_event, filePath: string | string[]) => await revert(filePath))
   ipcMain.handle(IPC.SVN.CLEANUP, async (_event, options?: string[]) => await cleanup(options))

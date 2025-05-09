@@ -9,9 +9,10 @@ import { useTranslation } from 'react-i18next'
 interface ShowlogProps {
   onRefresh?: () => void
   isLoading: boolean
+  isLoadingAI?: boolean
 }
 
-export const SpotbugsToolbar: React.FC<ShowlogProps> = ({ isLoading, onRefresh }) => {
+export const SpotbugsToolbar: React.FC<ShowlogProps> = ({ isLoading, isLoadingAI = false, onRefresh }) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -37,7 +38,7 @@ export const SpotbugsToolbar: React.FC<ShowlogProps> = ({ isLoading, onRefresh }
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  disabled={isLoading}
+                  disabled={isLoading || isLoadingAI}
                   variant="link"
                   size="sm"
                   onClick={onRefresh}

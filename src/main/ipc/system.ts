@@ -1,9 +1,9 @@
-import fs from 'node:fs'
-import { readFile, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 import { dialog, ipcMain, shell } from 'electron'
 import log from 'electron-log'
 import { IPC } from 'main/constants'
+import fs from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import configurationStore from '../store/ConfigurationStore'
 
 export function registerSystemIpcHandlers() {
@@ -43,6 +43,7 @@ export function registerSystemIpcHandlers() {
         throw new Error('Invalid filePath provided for reading.')
       }
       const { sourceFolder } = configurationStore.store
+      console.log(`Source folder: ${sourceFolder}`);
       const absolutePath = sourceFolder ? path.resolve(sourceFolder, filePath) : path.resolve(filePath)
       log.info(`Reading file from absolute path: ${absolutePath}`)
       const content = await readFile(absolutePath, 'utf-8')
@@ -50,7 +51,7 @@ export function registerSystemIpcHandlers() {
       return content
     } catch (err: any) {
       log.error(`Error reading file ${filePath}:`, err)
-      return `Error reading file: ${err.message || 'Unknown error'}`
+      // return `Error reading file: ${err.message || 'Unknown error'}`
     }
   })
 

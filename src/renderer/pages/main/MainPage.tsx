@@ -37,6 +37,20 @@ export function MainPage() {
   const { t } = useTranslation()
   const variant = useButtonVariant()
   const { addHistory } = useHistoryStore()
+
+  useEffect(() => {
+    const initDB = async () => {
+      try {
+        const { initializeIfNeeded } = await import('@/services/indexedDB')
+        await initializeIfNeeded()
+        console.log('IndexedDB đã được khởi tạo trong MainPage')
+      } catch (error) {
+        console.error('Lỗi khi khởi tạo IndexedDB trong MainPage:', error)
+      }
+    }
+
+    initDB()
+  }, [])
   const [isLoadingGenerate, setLoadingGenerate] = useState(false)
   const [isLoadingCommit, setLoadingCommit] = useState(false)
   const tableRef = useRef<any>(null)

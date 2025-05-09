@@ -13,9 +13,10 @@ interface DiffToolbarProps {
   isLoading: boolean
   isSaving?: boolean
   filePath: string
+  disableSave: boolean
 }
 
-export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, onSave, isLoading, isSaving = false, filePath }) => {
+export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides, onSave, isLoading, isSaving = false, filePath, disableSave }) => {
   const handleWindow = (action: string) => {
     window.api.electron.send('window-action', action)
   }
@@ -71,7 +72,7 @@ export const DiffToolbar: React.FC<DiffToolbarProps> = ({ onRefresh, onSwapSides
                   variant="link"
                   size="sm"
                   onClick={onSave}
-                  disabled={isSaving}
+                  disabled={isSaving || disableSave}
                   className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
                 >
                   <Save strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />

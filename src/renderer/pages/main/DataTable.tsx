@@ -277,6 +277,7 @@ export const DataTable = forwardRef((props, ref) => {
 
   const handleFilePathDoubleClick = async (row: any) => {
     const { filePath } = row.original
+    console.log(filePath)
     try {
       window.api.svn.open_diff(filePath)
     } catch (error) {

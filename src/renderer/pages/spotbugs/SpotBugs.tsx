@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import logger from '@/services/logger'
 import {
-  AlertCircle,
   AlertTriangle,
   ArrowDown,
   ArrowUp,
@@ -26,6 +25,7 @@ import {
   FileCode,
   Info,
   List,
+  OctagonAlert,
   PieChart as PieChartIcon,
 } from 'lucide-react'
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
@@ -47,6 +47,7 @@ interface SpotbugsPanelSizes {
 export function SpotBugs() {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingAI, setIsLoadingAI] = useState(false)
   const [filePaths, setFilePaths] = useState<string[]>([])
   const [spotbugsResult, setSpotbugsResult] = useState<SpotBugsResult>({
     version: { version: '', sequence: null, timestamp: null, analysisTimestamp: null, release: '' },
@@ -328,7 +329,7 @@ export function SpotBugs() {
   const getPrioriyIcon = (priority: number) => {
     switch (priority) {
       case 1:
-        return <AlertCircle strokeWidth={1.25} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
+        return <OctagonAlert strokeWidth={1.25} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
       case 2:
         return <AlertTriangle strokeWidth={1.25} className="h-4 w-4 text-yellow-800 dark:text-yellow-400 border-yellow-500/20" />
       case 3:
@@ -516,7 +517,7 @@ export function SpotBugs() {
   return (
     <div className="flex h-screen w-full">
       <div className="flex flex-col flex-1 w-full">
-        <SpotbugsToolbar isLoading={isLoading} onRefresh={handleRefresh} />
+        <SpotbugsToolbar isLoading={isLoading} isLoadingAI={isLoadingAI} onRefresh={handleRefresh} />
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <TabsList aria-disabled={isLoading}>
@@ -528,7 +529,7 @@ export function SpotBugs() {
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="high">
-                <AlertCircle strokeWidth={1.25} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
+                <OctagonAlert strokeWidth={1.25} className="h-4 w-4 text-red-800 dark:text-red-400 border-red-500/20" />
                 {t('dialog.spotbugs.high')}
                 <Badge variant="outline" className="rounded-md ml-2 bg-red-200/10 text-red-800 dark:text-red-400 border-red-500/20 font-bold">
                   {spotbugsResult.bugCount.byPriority.high}
@@ -692,7 +693,7 @@ export function SpotBugs() {
                                   <span>{t('dialog.spotbugs.aiAssistant')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger value="summary" className="flex items-center gap-1">
-                                  <AlertCircle strokeWidth={1.25} className="h-4 w-4" />
+                                  <OctagonAlert strokeWidth={1.25} className="h-4 w-4" />
                                   <span>{t('dialog.spotbugs.bugSummary')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger value="details" className="flex items-center gap-1">
@@ -936,7 +937,13 @@ export function SpotBugs() {
                               </TabsContent>
                               {/* AI Assistant Tab */}
                               <TabsContent value="ai" className="relative h-full">
-                                <SpotbugsAIChat bug={selectedBug} isLoading={isLoading} filePaths={filePaths} selectedSourceLineKey={selectedSourceLineKey} />
+                                <SpotbugsAIChat
+                                  bug={selectedBug}
+                                  isLoading={isLoading}
+                                  filePaths={filePaths}
+                                  selectedSourceLineKey={selectedSourceLineKey}
+                                  onAiLoadingChange={setIsLoadingAI}
+                                />
                               </TabsContent>
                             </Tabs>
                           </div>
@@ -951,7 +958,6 @@ export function SpotBugs() {
                       {t('dialog.spotbugs.fileList')} ({filePaths.length})
                     </div>
                     <ScrollArea className="h-full w-full overflow-auto">
-                      <OverlayLoader isLoading={isLoading} />
                       <Table wrapperClassName={cn('overflow-unset', filePaths.length === 0 && 'h-full')}>
                         <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                           <TableRow>

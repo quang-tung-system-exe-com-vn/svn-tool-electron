@@ -9,7 +9,7 @@ import { Clock, Hash, User } from 'lucide-react'
 import { forwardRef, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useButtonVariant } from '../../stores/useAppearanceStore'
-import type { SvnStatusCode } from '../shared/constants'
+import { STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { StatusIcon } from '../ui-elements/StatusIcon'
 import toast from '../ui-elements/Toast'
@@ -38,6 +38,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
   const variant = useButtonVariant()
   const [isLoading, setLoading] = useState(false)
   const [dontShowAgain, setDontShowAgain] = useState(false)
+  const [statusSummary, setStatusSummary] = useState<Record<SvnStatusCode, number>>({} as Record<SvnStatusCode, number>)
 
   useEffect(() => {
     if (open) {
@@ -49,9 +50,29 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
   }, [open, onOpenChange, isManuallyOpened])
 
   useEffect(() => {
+    if (open && svnInfo?.changedFiles) {
+      setStatusSummary(calculateStatusSummary(svnInfo.changedFiles))
+    }
+  }, [open, svnInfo?.changedFiles])
+
+  useEffect(() => {
     const savedState = localStorage.getItem('dont-show-revision-dialog') === 'true'
     setDontShowAgain(savedState)
   }, [])
+
+  const calculateStatusSummary = (changedFiles: { status: SvnStatusCode; path: string }[]) => {
+    const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
+
+    for (const code of Object.keys(STATUS_TEXT)) {
+      summary[code as SvnStatusCode] = 0
+    }
+
+    for (const file of changedFiles) {
+      summary[file.status] = (summary[file.status] || 0) + 1
+    }
+
+    return summary
+  }
 
   const handleSvnUpdate = () => {
     toast.info(t('Updating SVN...'))
@@ -129,9 +150,21 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
 
         {/* Changed Files Table */}
         <div className="space-y-2 grid">
-          <label htmlFor="commitMessage" className="text-sm font-medium">
-            {t('dialog.updateSvn.changedFiles')}
-          </label>
+          <div className="font-medium flex justify-between items-center">
+            <label htmlFor="commitMessage" className="text-sm font-medium">
+              {t('dialog.updateSvn.changedFiles')}
+            </label>
+            <div className="flex gap-2">
+              {Object.entries(statusSummary).map(([code, count]) =>
+                count > 0 ? (
+                  <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
+                    <StatusIcon code={code as SvnStatusCode} />
+                    <span>{count}</span>
+                  </div>
+                ) : null
+              )}
+            </div>
+          </div>
           <div className="max-h-60 border rounded-md overflow-auto">
             <ScrollArea className="h-full">
               <Table wrapperClassName={cn('overflow-clip', (svnInfo?.changedFiles ?? []).length === 0 && 'h-full')}>
@@ -147,7 +180,22 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
                       <TableCell className="p-0 h-6 px-2">
                         <StatusIcon code={file.status} />
                       </TableCell>
-                      <TableCell className="p-0 h-6 px-2 cursor-pointer break-all whitespace-normal">{file.path}</TableCell>
+                      <TableCell
+                        className="p-0 h-6 px-2 cursor-pointer break-all whitespace-normal"
+                        onClick={() => {
+                          try {
+                            window.api.svn.open_diff(file.path, {
+                              fileStatus: file.status,
+                              revision: svnInfo.revision,
+                              currentRevision: svnInfo.curRevision,
+                            })
+                          } catch (error) {
+                            toast.error(error)
+                          }
+                        }}
+                      >
+                        {file.path}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

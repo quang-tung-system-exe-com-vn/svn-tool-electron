@@ -5,8 +5,6 @@ import configurationStore from '../store/ConfigurationStore'
 import { getResourcePath } from '../utils/utils'
 import { updateRevisionStatus } from '../windows/overlayStateManager'
 
-const execPromise = promisify(exec)
-
 export type SVNResponse = { status: 'success'; data: any } | { status: 'no-change'; data: any } | { status: 'error'; message: string }
 
 export interface SVNLastChangedInfo {
@@ -14,6 +12,45 @@ export interface SVNLastChangedInfo {
   revision: string
   curRevision?: string
   date: string
+}
+const execPromise = promisify(exec)
+
+let sourceFolderPrefix = '';
+
+async function calculateSourceFolderPrefix() {
+  try {
+    const { sourceFolder } = configurationStore.store
+    const rootFolder = await getWorkingCopyRoot()
+
+    if (rootFolder && sourceFolder) {
+      const normalizedRoot = rootFolder.replace(/\\/g, '/').replace(/\/$/, '')
+      const normalizedSource = sourceFolder.replace(/\\/g, '/').replace(/\/$/, '')
+      if (normalizedSource.length > normalizedRoot.length && normalizedSource.startsWith(normalizedRoot)) {
+        sourceFolderPrefix = normalizedSource.substring(normalizedRoot.length)
+        if (sourceFolderPrefix.startsWith('/')) {
+          sourceFolderPrefix = sourceFolderPrefix.substring(1)
+        }
+        console.log('Phần dư giữa sourceFolder và rootFolder:', sourceFolderPrefix)
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi khi tính toán phần dư:', error)
+  }
+}
+
+calculateSourceFolderPrefix()
+
+export async function getWorkingCopyRoot(): Promise<string> {
+  try {
+    const { sourceFolder } = configurationStore.store
+    const command = 'svn info --show-item wc-root'
+    const { stdout, stderr } = await execPromise(command, { cwd: sourceFolder })
+    if (stderr?.trim()) throw new Error(stderr.trim())
+    return stdout.trim()
+  } catch (error) {
+    console.error('Lỗi khi lấy root folder:', error)
+    return ''
+  }
 }
 
 export async function info(filePath: string): Promise<SVNResponse> {
@@ -121,9 +158,27 @@ function parseCommitInfo(info: string) {
       if (lines[i].trim() === '') break
       const fileMatch = lines[i].match(/([AMDRCI?!~X])\s+(.+)/)
       if (fileMatch) {
+        let filePath = fileMatch[2].trim();
+        try {
+          if (sourceFolderPrefix) {
+            const prefixPattern = new RegExp(`^/?${sourceFolderPrefix}/?`);
+            filePath = filePath.replace(prefixPattern, '');
+          } else {
+            const pathParts = filePath.split('/').filter(Boolean);
+            if (pathParts.length > 1) {
+              filePath = pathParts.slice(1).join('/');
+            }
+          }
+        } catch (error) {
+          console.error('Lỗi khi xử lý đường dẫn:', error);
+          const pathParts = filePath.split('/').filter(Boolean);
+          if (pathParts.length > 1) {
+            filePath = pathParts.slice(1).join('/');
+          }
+        }
         changedFiles.push({
           status: fileMatch[1],
-          path: fileMatch[2].trim(),
+          path: filePath,
         })
       }
     }

@@ -317,15 +317,12 @@ export function ShowLog() {
     }
   }, [dateRange])
 
-  // Đọc kích thước các panel từ localStorage khi component mount
   useEffect(() => {
     try {
       const savedPanelSizes = localStorage.getItem(SHOWLOG_PANEL_SIZES_KEY)
       if (savedPanelSizes) {
         const sizes: ShowlogPanelSizes = JSON.parse(savedPanelSizes)
         setPanelSizes(sizes)
-
-        // Cập nhật kích thước của các panel thông qua refs
         setTimeout(() => {
           if (mainPanelRef.current?.resize) mainPanelRef.current.resize(sizes.mainPanelSize)
           if (secondPanelRef.current?.resize) secondPanelRef.current.resize(sizes.secondPanelSize)
@@ -338,7 +335,6 @@ export function ShowLog() {
     }
   }, [])
 
-  // Lưu kích thước panel vào localStorage khi component unmount
   useEffect(() => {
     return () => {
       try {
@@ -349,7 +345,6 @@ export function ShowLog() {
     }
   }, [panelSizes])
 
-  // Lưu kích thước panel vào localStorage mỗi khi panelSizes thay đổi
   useEffect(() => {
     try {
       localStorage.setItem(SHOWLOG_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
@@ -358,7 +353,6 @@ export function ShowLog() {
     }
   }, [panelSizes])
 
-  // Xử lý sự kiện thay đổi kích thước panel
   const handlePanelResize = (panelName: keyof ShowlogPanelSizes, size: number) => {
     setPanelSizes(prev => ({
       ...prev,
@@ -421,7 +415,37 @@ export function ShowLog() {
             if (!match) break
             const [, actionCode, filePath] = match
             if (!isSvnStatusCode(actionCode)) break
-            changedFiles.push({ action: actionCode, filePath })
+
+            // Xử lý đường dẫn để loại bỏ phần sourceFolder
+            let processedPath = filePath
+
+            try {
+              // Tách đường dẫn thành các phần
+              const pathParts = processedPath.split('/').filter(Boolean)
+
+              // Danh sách các thư mục gốc phổ biến
+              const knownPrefixes = ['programsource', 'src', 'source', 'project', 'tokodenko']
+
+              // Tìm vị trí của thư mục gốc trong đường dẫn
+              const firstPart = pathParts[0]?.toLowerCase()
+
+              if (firstPart && knownPrefixes.includes(firstPart)) {
+                // Nếu phần đầu tiên là một thư mục gốc đã biết
+                processedPath = pathParts.slice(1).join('/')
+              } else if (pathParts.length > 1) {
+                // Fallback: chỉ loại bỏ phần đầu tiên
+                processedPath = pathParts.slice(1).join('/')
+              }
+            } catch (error) {
+              console.error('Lỗi khi xử lý đường dẫn:', error)
+              // Fallback: chỉ loại bỏ phần đầu tiên nếu có lỗi
+              const pathParts = processedPath.split('/').filter(Boolean)
+              if (pathParts.length > 1) {
+                processedPath = pathParts.slice(1).join('/')
+              }
+            }
+
+            changedFiles.push({ action: actionCode, filePath: processedPath })
             i++
           }
           const messageLines = lines.slice(i)
@@ -805,7 +829,26 @@ export function ShowLog() {
                                   <TableCell className="p-0 h-6 px-2">
                                     <StatusIcon code={file.action} />
                                   </TableCell>
-                                  <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.filePath}</TableCell>
+                                  <TableCell
+                                    className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal"
+                                    onClick={() => {
+                                      try {
+                                        if (selectedRevision) {
+                                          window.api.svn.open_diff(file.filePath, {
+                                            fileStatus: file.action,
+                                            revision: selectedRevision,
+                                            currentRevision: currentRevision,
+                                          })
+                                        } else {
+                                          window.api.svn.open_diff(file.filePath)
+                                        }
+                                      } catch (error) {
+                                        toast.error(error)
+                                      }
+                                    }}
+                                  >
+                                    {file.filePath}
+                                  </TableCell>
                                 </TableRow>
                               ))
                             ) : (
@@ -1006,7 +1049,26 @@ export function ShowLog() {
                                   <TableCell className="p-0 h-6 px-2">
                                     <StatusIcon code={file.action} />
                                   </TableCell>
-                                  <TableCell className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal">{file.filePath}</TableCell>
+                                  <TableCell
+                                    className="p-0 h-6 px-2 cursor-pointer break-words whitespace-normal"
+                                    onClick={() => {
+                                      try {
+                                        if (selectedRevision) {
+                                          window.api.svn.open_diff(file.filePath, {
+                                            fileStatus: file.action,
+                                            revision: selectedRevision,
+                                            currentRevision: currentRevision,
+                                          })
+                                        } else {
+                                          window.api.svn.open_diff(file.filePath)
+                                        }
+                                      } catch (error) {
+                                        toast.error(error)
+                                      }
+                                    }}
+                                  >
+                                    {file.filePath}
+                                  </TableCell>
                                 </TableRow>
                               ))
                             ) : (

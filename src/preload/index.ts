@@ -26,13 +26,13 @@ declare global {
         get_diff: (selectedFiles: any[]) => Promise<SVNResponse>
         commit: (commitMessage: string, violations: string, selectedFiles: any[]) => Promise<SVNResponse>
         info: (filePath: string, revision?: string) => Promise<any>
-        cat: (filePath: string) => Promise<any>
+        cat: (filePath: string, fileStatus: string, revision?: string) => Promise<any>
         blame: (filePath: string) => Promise<any>
         revert: (filePath: string | string[]) => Promise<any>
         cleanup: (options?: string[]) => Promise<any>
         log: (filePath: string | string[], options?: { limit?: number; offset?: number }) => Promise<any>
         update: (filePath?: string | string[]) => Promise<any>
-        open_diff: (filePath: string) => void
+        open_diff: (filePath: string, options?: { fileStatus: string, revision?: string, currentRevision?: string }) => void
         statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) => Promise<any>
       }
 
@@ -143,13 +143,13 @@ contextBridge.exposeInMainWorld('api', {
     get_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_DIFF, selectedFiles),
     commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
     info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
-    cat: (filePath: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath),
+    cat: (filePath: string, fileStatus: string, revision?: string) => ipcRenderer.invoke(IPC.SVN.CAT, filePath, fileStatus, revision),
     blame: (filePath: string) => ipcRenderer.invoke(IPC.SVN.BLAME, filePath),
     revert: (filePath: string | string[]) => ipcRenderer.invoke(IPC.SVN.REVERT, filePath),
     cleanup: (options?: string[]) => ipcRenderer.invoke(IPC.SVN.CLEANUP, options),
     log: (filePath: string | string[], options?: { limit?: number; offset?: number }) => ipcRenderer.invoke(IPC.SVN.LOG, filePath, options),
     update: (filePath?: string | string[]) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
-    open_diff: (filePath: string) => ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, filePath),
+    open_diff: (filePath: string, options?: { fileStatus: string, revision?: string, currentRevision?: string }) => ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { filePath, ...options }),
     statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) =>
       ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),
   },

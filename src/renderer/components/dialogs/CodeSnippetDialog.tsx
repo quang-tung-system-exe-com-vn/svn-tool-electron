@@ -195,6 +195,7 @@ export const CodeSnippetDialog = ({ trigger, title, fileContent, codeSnippet, st
                   }
                 }}
                 options={{
+                  renderWhitespace: 'all',
                   readOnly: true,
                   minimap: { enabled: true },
                   scrollBeyondLastLine: false,

@@ -12,10 +12,14 @@ import { DiffToolbar } from './DiffToolbar'
 
 export function CodeDiffViewer() {
   const monaco = useMonaco()
-  const { themeMode, setThemeMode } = useAppearanceStore()
+  const { themeMode } = useAppearanceStore()
   const [originalCode, setOriginalCode] = useState('')
   const [modifiedCode, setModifiedCode] = useState('')
   const [filePath, setFilePath] = useState('')
+  const [fileStatus, setFileStatus] = useState('')
+  const [revision, setRevision] = useState<string | undefined>(undefined)
+  const [currentRevision, setCurrentRevision] = useState<string | undefined>(undefined)
+  const [isSwapped, setIsSwapped] = useState(false)
   const [language, setLanguage] = useState('javascript')
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
   const [isLoading, setIsLoading] = useState(false)
@@ -31,6 +35,11 @@ export function CodeDiffViewer() {
   useEffect(() => {
     filePathRef.current = filePath
   }, [filePath])
+
+  const revisionRef = useRef(revision)
+  useEffect(() => {
+    revisionRef.current = revision
+  }, [revision])
 
   window.addEventListener('storage', event => {
     if (event.key === 'ui-settings') {
@@ -189,10 +198,14 @@ export function CodeDiffViewer() {
   }
 
   useEffect(() => {
-    const handler = (_event: any, { filePath }: any) => {
+    const handler = (_event: any, { filePath, fileStatus, revision, currentRevision }: any) => {
       setFilePath(filePath)
+      setFileStatus(fileStatus)
+      setRevision(revision)
+      setCurrentRevision(currentRevision)
+      setIsSwapped(false)
       setLanguage(detectLanguage(filePath))
-      handleRefresh(filePath)
+      handleRefresh(filePath, fileStatus, revision, currentRevision)
     }
     window.api.on('load-diff-data', handler)
 
@@ -268,16 +281,36 @@ export function CodeDiffViewer() {
   }
 
   const onRefresh = async () => {
-    handleRefresh(filePath)
+    setIsSwapped(false)
+    handleRefresh(filePath, fileStatus, revision, currentRevision)
   }
 
-  const handleRefresh = async (path: string) => {
+  const isSwap = (): boolean => {
+    return currentRevision !== undefined && revision !== undefined && Number(currentRevision) < Number(revision)
+  }
+
+  const handleRefresh = async (path: string, fileStatus: string, revision?: string, currentRevision?: string) => {
     try {
+      const swap = isSwap()
       setIsLoading(true)
-      const originalCode = await window.api.svn.cat(path)
-      const modifiedCode = await window.api.system.read_file(path)
-      setOriginalCode(originalCode.data)
-      setModifiedCode(modifiedCode)
+      const originalCode = await window.api.svn.cat(path, fileStatus, revision)
+      const modifiedCode = currentRevision ? await window.api.svn.cat(path, fileStatus, String(Number(revision) - 1)) : await window.api.system.read_file(path)
+      console.log('originalCode: ', originalCode)
+      console.log('modifiedCode: ', modifiedCode)
+      setTimeout(() => {
+        if (!currentRevision) {
+          setOriginalCode(originalCode.data)
+          setModifiedCode(modifiedCode)
+        } else {
+          if (swap) {
+            setOriginalCode(originalCode.data)
+            setModifiedCode(modifiedCode.data)
+          } else {
+            setOriginalCode(modifiedCode.data)
+            setModifiedCode(originalCode.data)
+          }
+        }
+      }, 500)
     } catch (error) {
       logger.error('Error loading file for diff:', error)
     } finally {
@@ -288,10 +321,12 @@ export function CodeDiffViewer() {
   const handleSwap = () => {
     setOriginalCode(modifiedCode)
     setModifiedCode(originalCode)
+    setIsSwapped(prev => !prev)
   }
 
   const handleSaveFile = async () => {
     try {
+      if (currentRevision) return
       const filePath = filePathRef.current
       if (!filePath || !modifiedCodeRef.current) return
       setIsSaving(true)
@@ -313,7 +348,27 @@ export function CodeDiffViewer() {
   return (
     <div className="flex flex-col w-full h-full">
       <OverlayLoader isLoading={isLoading} />
-      <DiffToolbar onRefresh={onRefresh} onSwapSides={handleSwap} onSave={handleSaveFile} isLoading={isLoading} isSaving={isSaving} filePath={filePath} />
+      <DiffToolbar
+        onRefresh={onRefresh}
+        onSwapSides={handleSwap}
+        onSave={handleSaveFile}
+        isLoading={isLoading}
+        isSaving={isSaving}
+        filePath={filePath}
+        disableSave={currentRevision != null}
+      />
+      <div className="flex px-4 py-1 text-xs text-gray-500 border-b">
+        <div className="flex items-center justify-center w-[50%]">
+          <span className="border rounded px-2 dark:bg-gray-200 dark:text-gray-600 font-bold">
+            {isSwapped ? revision : currentRevision ? Number(revision) - 1 : 'Working Copy'}
+          </span>
+        </div>
+        <div className="flex items-center justify-center w-[50%]">
+          <span className="border rounded px-2 dark:bg-gray-200 dark:text-gray-600 font-bold">
+            {isSwapped ? (currentRevision ? Number(revision) - 1 : 'Working Copy') : revision}
+          </span>
+        </div>
+      </div>
       <div className="flex-1 overflow-hidden">
         <DiffEditor
           height="100%"
@@ -323,6 +378,7 @@ export function CodeDiffViewer() {
           theme={themeMode === 'dark' ? 'custom-dark' : 'custom-light'}
           onMount={handleEditorMount}
           options={{
+            renderWhitespace: 'all',
             readOnly: false,
             fontSize: 12,
             fontFamily: 'Jetbrains Mono NL, monospace',

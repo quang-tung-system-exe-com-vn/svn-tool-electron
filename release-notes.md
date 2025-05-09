@@ -2,34 +2,37 @@
 
 ### English (en)
 
-- Added layout toggle button to `ShowlogToolbar` for switching between horizontal and vertical layouts.
-- Updated `SpotBugs` component to manage panel sizes using `localStorage`, enabling persistent panel size across sessions.
-- Integrated `OverlayLoader` in `SpotBugs` for improved loading experience during data fetching.
-- Modified `SpotbugsAIChat` to save AI responses for selected source lines, enhancing context retention.
-- Updated `SpotbugsToolbar` to disable refresh button while loading is in progress.
-- Enhanced configuration store with mail and Microsoft Teams notification settings.
-- Improved logging in `useHistoryStore` for better tracking and debugging of history actions.
+- Updated IPC handlers to support additional parameters for SVN operations (`cat`, `open_diff`).
+- Improved error handling and logging in SVN commands.
+- Enhanced the `CodeDiffViewer` to manage file status and revisions more effectively.
+- Added loading states for AI interactions in SpotBugs.
+- Updated SpotBugs and its components to reflect loading states and improve user experience.
+- Refactored the handling of file paths in `ShowLog` and `DataTable` for better clarity.
+- Improved the UI of the `NewRevisionDialog` to display status summaries of changed files.
+- Added functionality to handle file path processing in SVN logs.
 
 ---
 
 ### Japanese (ja)
 
-- `ShowlogToolbar` にレイアウト切り替えボタンを追加し、横向きと縦向きのレイアウトを切り替え可能にしました。
-- `SpotBugs` コンポーネントでパネルサイズを `localStorage` に保存するようにし、セッション間でサイズを保持できるようにしました。
-- データ取得中の読み込み体験を向上させるため、`SpotBugs` に `OverlayLoader` を統合しました。
-- `SpotbugsAIChat` を変更し、選択されたソース行に対して AI の応答を保存し、コンテキストを保持できるようにしました。
-- 読み込み中にリフレッシュボタンを無効にするよう `SpotbugsToolbar` を更新しました。
-- 設定ストアにメールと Microsoft Teams 通知設定を追加しました。
-- `useHistoryStore` のログ出力を改善し、履歴操作の追跡とデバッグがしやすくなりました。
+- SVN 操作（`cat`、`open_diff`）に追加パラメータを対応するため、IPC ハンドラーを更新しました。
+- SVN コマンドのエラーハンドリングとログ出力を改善しました。
+- `CodeDiffViewer` を強化し、ファイルステータスとリビジョン管理を改善しました。
+- SpotBugs の AI 連携においてローディング状態を追加しました。
+- SpotBugs とそのコンポーネントを更新し、ユーザー体験を向上させました。
+- `ShowLog` と `DataTable` におけるファイルパスの処理をリファクタリングしました。
+- `NewRevisionDialog` の UI を改善し、変更ファイルのステータス概要を表示できるようにしました。
+- SVN ログ内のファイルパス処理機能を追加しました。
 
 ---
 
 ### Vietnamese (vi)
 
-- Thêm nút chuyển đổi bố cục vào `ShowlogToolbar` để chuyển giữa bố cục ngang và dọc.
-- Cập nhật component `SpotBugs` để lưu kích thước panel bằng `localStorage`, cho phép giữ nguyên kích thước qua các phiên làm việc.
-- Tích hợp `OverlayLoader` trong `SpotBugs` nhằm cải thiện trải nghiệm khi đang tải dữ liệu.
-- Sửa đổi `SpotbugsAIChat` để lưu phản hồi AI theo từng dòng mã được chọn, giúp giữ ngữ cảnh tốt hơn.
-- Cập nhật `SpotbugsToolbar` để vô hiệu hóa nút làm mới khi đang tải.
-- Nâng cấp kho cấu hình để bao gồm thiết lập thông báo qua email và Microsoft Teams.
-- Cải thiện ghi log trong `useHistoryStore` nhằm hỗ trợ theo dõi và debug các thao tác lịch sử hiệu quả hơn.
+- Cập nhật các handler IPC để hỗ trợ thêm tham số cho các thao tác SVN (`cat`, `open_diff`).
+- Cải thiện xử lý lỗi và ghi log trong các lệnh SVN.
+- Nâng cấp `CodeDiffViewer` để quản lý trạng thái và phiên bản file hiệu quả hơn.
+- Thêm trạng thái loading cho các tương tác AI trong SpotBugs.
+- Cập nhật SpotBugs và các component để phản ánh trạng thái tải và cải thiện trải nghiệm người dùng.
+- Refactor lại xử lý đường dẫn file trong `ShowLog` và `DataTable` cho rõ ràng hơn.
+- Cải tiến UI của `NewRevisionDialog` để hiển thị tổng quan trạng thái của các file thay đổi.
+- Thêm chức năng xử lý đường dẫn file trong SVN logs.
