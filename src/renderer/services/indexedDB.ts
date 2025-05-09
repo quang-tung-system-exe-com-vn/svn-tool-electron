@@ -1,3 +1,5 @@
+import logger from "./logger"
+
 const DB_NAME = 'svn-tool-db'
 const DB_VERSION = 1
 const HISTORY_STORE = 'history'
@@ -11,14 +13,14 @@ export class IndexedDBService {
   private db: IDBDatabase | null = null
 
   async initDB(): Promise<void> {
-    console.log('Đang mở kết nối đến IndexedDB...')
+    logger.info('Đang mở kết nối đến IndexedDB...')
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION)
       let isNewlyCreated = false
       let isUpgraded = false
 
       request.onerror = (event) => {
-        console.error('Lỗi khi mở IndexedDB:', event)
+        logger.error('Lỗi khi mở IndexedDB:', event)
         reject(new Error('Không thể mở IndexedDB'))
       }
 
@@ -26,14 +28,14 @@ export class IndexedDBService {
         this.db = (event.target as IDBOpenDBRequest).result
 
         if (isNewlyCreated) {
-          console.log('IndexedDB đã được tạo mới thành công')
+          logger.info('IndexedDB đã được tạo mới thành công')
           localStorage.setItem(`${DB_NAME}_initialized`, 'true')
           localStorage.setItem(`${DB_NAME}_version`, DB_VERSION.toString())
         } else if (isUpgraded) {
-          console.log('IndexedDB đã được nâng cấp thành công')
+          logger.info('IndexedDB đã được nâng cấp thành công')
           localStorage.setItem(`${DB_NAME}_version`, DB_VERSION.toString())
         } else {
-          console.log('Kết nối đến IndexedDB đã được mở thành công')
+          logger.info('Kết nối đến IndexedDB đã được mở thành công')
         }
 
         resolve()
@@ -41,7 +43,7 @@ export class IndexedDBService {
 
       request.onupgradeneeded = (event) => {
         const oldVersion = event.oldVersion
-        console.log(`Đang nâng cấp/tạo mới database từ phiên bản ${oldVersion} lên ${DB_VERSION}...`)
+        logger.info(`Đang nâng cấp/tạo mới database từ phiên bản ${oldVersion} lên ${DB_VERSION}...`)
 
         if (oldVersion === 0) {
           isNewlyCreated = true
@@ -51,7 +53,7 @@ export class IndexedDBService {
 
         const db = (event.target as IDBOpenDBRequest).result
         if (!db.objectStoreNames.contains(HISTORY_STORE)) {
-          console.log('Tạo object store mới:', HISTORY_STORE)
+          logger.info('Tạo object store mới:', HISTORY_STORE)
           db.createObjectStore(HISTORY_STORE, { keyPath: 'date' })
         }
 
@@ -65,12 +67,12 @@ export class IndexedDBService {
   }
 
   async getHistoryMessages(): Promise<HistoryCommitMessage[]> {
-    console.log('Đang lấy dữ liệu lịch sử từ IndexedDB...')
+    logger.info('Đang lấy dữ liệu lịch sử từ IndexedDB...')
     // Không tự động khởi tạo IndexedDB nữa
 
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        console.error('Database chưa được khởi tạo, không thể lấy dữ liệu')
+        logger.error('Database chưa được khởi tạo, không thể lấy dữ liệu')
         reject(new Error('Database chưa được khởi tạo'))
         return
       }
@@ -81,28 +83,28 @@ export class IndexedDBService {
         const request = store.getAll()
 
         request.onsuccess = () => {
-          console.log(`Đã lấy ${request.result.length} bản ghi từ IndexedDB`)
+          logger.info(`Đã lấy ${request.result.length} bản ghi từ IndexedDB`)
           resolve(request.result)
         }
 
         request.onerror = (event) => {
-          console.error('Lỗi khi lấy dữ liệu từ IndexedDB:', event)
+          logger.error('Lỗi khi lấy dữ liệu từ IndexedDB:', event)
           reject(new Error('Không thể lấy dữ liệu từ IndexedDB'))
         }
       } catch (error) {
-        console.error('Lỗi khi tạo transaction:', error)
+        logger.error('Lỗi khi tạo transaction:', error)
         reject(error)
       }
     })
   }
 
   async addHistoryMessage(message: HistoryCommitMessage): Promise<void> {
-    console.log('Đang thêm tin nhắn mới vào IndexedDB:', message)
+    logger.info('Đang thêm tin nhắn mới vào IndexedDB:', message)
     // Không tự động khởi tạo IndexedDB nữa
 
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        console.error('Database chưa được khởi tạo, không thể thêm tin nhắn')
+        logger.error('Database chưa được khởi tạo, không thể thêm tin nhắn')
         reject(new Error('Database chưa được khởi tạo'))
         return
       }
@@ -115,17 +117,17 @@ export class IndexedDBService {
         const addRequest = store.add(message)
 
         addRequest.onsuccess = () => {
-          console.log('Đã thêm tin nhắn thành công')
+          logger.info('Đã thêm tin nhắn thành công')
           // Lấy tất cả messages để kiểm tra số lượng
           const countRequest = store.count()
 
           countRequest.onsuccess = () => {
             const count = countRequest.result
-            console.log(`Hiện có ${count} tin nhắn trong database`)
+            logger.info(`Hiện có ${count} tin nhắn trong database`)
 
             // Nếu có hơn 50 messages, xóa các messages cũ nhất
             if (count > 50) {
-              console.log('Số lượng tin nhắn vượt quá 50, đang xóa tin nhắn cũ...')
+              logger.info('Số lượng tin nhắn vượt quá 50, đang xóa tin nhắn cũ...')
               const getAllRequest = store.getAll()
 
               getAllRequest.onsuccess = () => {
@@ -136,7 +138,7 @@ export class IndexedDBService {
 
                 // Xóa các messages cũ nhất để chỉ giữ lại 50 messages
                 const messagesToDelete = allMessages.slice(0, count - 50)
-                console.log(`Đang xóa ${messagesToDelete.length} tin nhắn cũ nhất`)
+                logger.info(`Đang xóa ${messagesToDelete.length} tin nhắn cũ nhất`)
 
                 // Sử dụng for...of thay vì forEach (sửa lỗi biome)
                 for (const msg of messagesToDelete) {
@@ -150,11 +152,11 @@ export class IndexedDBService {
         }
 
         addRequest.onerror = (event) => {
-          console.error('Lỗi khi thêm dữ liệu vào IndexedDB:', event)
+          logger.error('Lỗi khi thêm dữ liệu vào IndexedDB:', event)
           reject(new Error('Không thể thêm dữ liệu vào IndexedDB'))
         }
       } catch (error) {
-        console.error('Lỗi khi tạo transaction:', error)
+        logger.error('Lỗi khi tạo transaction:', error)
         reject(error)
       }
     })
@@ -173,7 +175,7 @@ async function initializeIfNeeded() {
       const dbExists = databases.some(db => db.name === DB_NAME)
 
       if (dbExists) {
-        console.log(`Database '${DB_NAME}' đã tồn tại, chỉ mở kết nối`)
+        logger.info(`Database '${DB_NAME}' đã tồn tại, chỉ mở kết nối`)
         await indexedDBService.initDB()
         return
       }
@@ -184,14 +186,14 @@ async function initializeIfNeeded() {
       const dbVersion = localStorage.getItem(`${DB_NAME}_version`)
 
       if (dbInitialized === 'true' && dbVersion === DB_VERSION.toString()) {
-        console.log(`Database '${DB_NAME}' đã được khởi tạo trước đó, chỉ mở kết nối`)
+        logger.info(`Database '${DB_NAME}' đã được khởi tạo trước đó, chỉ mở kết nối`)
         await indexedDBService.initDB()
         return
       }
     }
 
     // Nếu database chưa tồn tại hoặc cần nâng cấp
-    console.log(`Database '${DB_NAME}' chưa tồn tại hoặc cần nâng cấp, đang khởi tạo...`)
+    logger.info(`Database '${DB_NAME}' chưa tồn tại hoặc cần nâng cấp, đang khởi tạo...`)
     await indexedDBService.initDB()
 
     // Lưu trạng thái đã khởi tạo vào localStorage
@@ -199,7 +201,7 @@ async function initializeIfNeeded() {
     localStorage.setItem(`${DB_NAME}_version`, DB_VERSION.toString())
 
   } catch (error) {
-    console.error('Lỗi khi kiểm tra hoặc khởi tạo IndexedDB:', error)
+    logger.error('Lỗi khi kiểm tra hoặc khởi tạo IndexedDB:', error)
   }
 }
 

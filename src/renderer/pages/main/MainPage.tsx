@@ -23,10 +23,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Joyride, { type CallBackProps, STATUS, type Step } from 'react-joyride'
 
-// Khóa localStorage để lưu kích thước của ResizablePanel
 const MAIN_PANEL_SIZES_KEY = 'main-panel-sizes-config'
 
-// Interface cho kích thước của các ResizablePanel
 interface MainPanelSizes {
   topPanelSize: number
   bottomPanelSize: number
@@ -43,14 +41,14 @@ export function MainPage() {
       try {
         const { initializeIfNeeded } = await import('@/services/indexedDB')
         await initializeIfNeeded()
-        console.log('IndexedDB đã được khởi tạo trong MainPage')
+        logger.info('IndexedDB đã được khởi tạo trong MainPage')
       } catch (error) {
-        console.error('Lỗi khi khởi tạo IndexedDB trong MainPage:', error)
+        logger.error('Lỗi khi khởi tạo IndexedDB trong MainPage:', error)
       }
     }
-
     initDB()
   }, [])
+
   const [isLoadingGenerate, setLoadingGenerate] = useState(false)
   const [isLoadingCommit, setLoadingCommit] = useState(false)
   const tableRef = useRef<any>(null)

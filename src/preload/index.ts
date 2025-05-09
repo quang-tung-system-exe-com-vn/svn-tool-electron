@@ -32,7 +32,7 @@ declare global {
         cleanup: (options?: string[]) => Promise<any>
         log: (filePath: string | string[], options?: { limit?: number; offset?: number }) => Promise<any>
         update: (filePath?: string | string[]) => Promise<any>
-        open_diff: (filePath: string, options?: { fileStatus: string, revision?: string, currentRevision?: string }) => void
+        open_diff: (filePath: string, options?: { fileStatus: string; revision?: string; currentRevision?: string }) => void
         statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) => Promise<any>
       }
 
@@ -149,7 +149,8 @@ contextBridge.exposeInMainWorld('api', {
     cleanup: (options?: string[]) => ipcRenderer.invoke(IPC.SVN.CLEANUP, options),
     log: (filePath: string | string[], options?: { limit?: number; offset?: number }) => ipcRenderer.invoke(IPC.SVN.LOG, filePath, options),
     update: (filePath?: string | string[]) => ipcRenderer.invoke(IPC.SVN.UPDATE, filePath),
-    open_diff: (filePath: string, options?: { fileStatus: string, revision?: string, currentRevision?: string }) => ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { filePath, ...options }),
+    open_diff: (filePath: string, options?: { fileStatus: string; revision?: string; currentRevision?: string }) =>
+      ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { filePath, ...options }),
     statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) =>
       ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),
   },
@@ -178,5 +179,3 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.removeAllListeners(channel)
   },
 })
-
-console.log('✅ Preload script loaded')
