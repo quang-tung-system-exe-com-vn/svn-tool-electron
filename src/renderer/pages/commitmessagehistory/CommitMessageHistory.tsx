@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import indexedDBService, { initializeIfNeeded } from '@/services/indexedDB'
+import indexedDBService from '@/services/indexedDB'
 import logger from '@/services/logger'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { format } from 'date-fns'
@@ -27,6 +27,7 @@ export function CommitMessageHistory() {
     const initData = async () => {
       setIsLoading(true)
       try {
+        const { initializeIfNeeded } = await import('@/services/indexedDB')
         await initializeIfNeeded()
         await loadHistoryConfig()
         await handleRefresh()
