@@ -2,6 +2,7 @@ import type { BrowserWindow } from 'electron'
 import { Notification, app, ipcMain } from 'electron'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
+import { getResourcePath } from 'main/utils/utils'
 import { IPC } from '../constants'
 import configurationStore from '../store/ConfigurationStore'
 import { updateAppStatus } from '../windows/overlayStateManager'
@@ -48,9 +49,11 @@ export function initAutoUpdater(window: BrowserWindow) {
   autoUpdater.on('update-downloaded', info => {
     updateAppStatus(true)
     if (showNotifications && Notification.isSupported()) {
+      const icon = getResourcePath('icon.ico')
       const notification = new Notification({
         title: 'Update Available',
         body: `Version ${info.version} is available. It will be downloaded in the background.`,
+        icon: icon,
       })
       notification.show()
     } else {
