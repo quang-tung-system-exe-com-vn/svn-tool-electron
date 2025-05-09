@@ -2,7 +2,7 @@
   "displayName": "SVNTool",
   "name": "svn-tool-electron",
   "description": "SVNTool",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
