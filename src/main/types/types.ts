@@ -1,5 +1,4 @@
 type CommitInfo = {
-  // Add export
   commitUser: string
   commitTime: string
   commitMessage: string
