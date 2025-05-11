@@ -83,10 +83,10 @@ Công cụ này được thiết kế cho **mọi nhân viên trong công ty** c
 ## Cài đặt dự án (Dành cho nhà phát triển)
 
 1.  Sao chép mã nguồn dự án:
-    \`\`\`bash
-    git clone <URL_repository_cua_ban>
+  ```bash
+    git clone https://github.com/quang-tung-system-exe-com-vn/svn-tool-electron
     cd svn-tool-electron
-    \`\`\`
+  ```
 2.  Cài đặt các dependencies:
     ```bash
     pnpm install
