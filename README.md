@@ -18,7 +18,7 @@
 
 ## Giới thiệu
 
-SVNTool là một ứng dụng desktop mạnh mẽ được xây dựng bằng Electron, được thiết kế để giúp mọi người trong công ty quản lý quy trình làm việc với SVN một cách hiệu quả và dễ dàng. Ứng dụng cung cấp đầy đủ các tính năng cần thiết như **tạo commit, hỗ trợ kiểm tra coding rule, Spotbug bằng AI,**, xem lịch sử (log), dọn dẹp (cleanup), xem thay đổi (diff) theo thời gian thực, tích hợp phân tích mã SpotBugs.
+SVNTool là một ứng dụng desktop mạnh mẽ được xây dựng bằng Electron, được thiết kế để giúp mọi người trong công ty quản lý quy trình làm việc với SVN một cách hiệu quả và dễ dàng. Ứng dụng cung cấp đầy đủ các tính năng cần thiết như **tạo commit, hỗ trợ kiểm tra coding rule, Spotbug tích hợp AI,**, xem lịch sử (log), dọn dẹp (cleanup), xem thay đổi (diff) theo thời gian thực, tích hợp phân tích mã SpotBugs.
 
 ## Đối tượng sử dụng
 
