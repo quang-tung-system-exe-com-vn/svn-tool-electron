@@ -11,7 +11,7 @@ import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import logger from '@/services/logger'
-import { CircleArrowDown, Eraser, FileText, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { CircleArrowDown, Eraser, FileText, GitMerge, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -155,6 +155,12 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
 
   const openCleanDialog = () => {
     setShowClean(true)
+  }
+
+  const openMergeSvnWindow = () => {
+    if (!isLoading) {
+      window.api.electron.send(IPC.WINDOW.MERGE_SVN, undefined)
+    }
   }
 
   const openShowLogWindow = () => {
@@ -346,6 +352,21 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
               <TooltipContent>
                 {hasSvnUpdate ? t('title.updateSvn1', { 0: svnInfo?.revision, 1: svnInfo?.curRevision }) : t('title.updateSvn', { 0: svnInfo?.revision })}
               </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  id="svn-merge-button"
+                  variant="link"
+                  size="sm"
+                  onClick={openMergeSvnWindow}
+                  className="shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-muted transition-colors rounded-sm h-[25px] w-[25px]"
+                >
+                  <GitMerge strokeWidth={1.25} absoluteStrokeWidth size={15} className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('title.mergeSvn')}</TooltipContent>
             </Tooltip>
 
             <Tooltip>

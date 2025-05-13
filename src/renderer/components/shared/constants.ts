@@ -25,6 +25,27 @@ export const STATUS_COLOR_CLASS_MAP = {
   '!': 'text-rose-600 dark:text-rose-400',
   '~': 'text-indigo-600 dark:text-indigo-400',
 }
+export type SvnMergeStatusCode = 'A' | 'D' | 'U' | 'C' | 'G' | 'E' | 'R' | '~'
+export const MERGE_STATUS_TEXT = {
+  A: 'svn.status.added',
+  D: 'svn.status.deleted',
+  U: 'Updated',
+  C: 'svn.status.conflicted',
+  G: 'Merged',
+  E: 'Existed',
+  R: 'svn.status.replaced',
+  '~': 'Obstructed',
+}
+export const MERGE_STATUS_COLOR_CLASS_MAP = {
+  A: 'text-green-600 dark:text-green-400',
+  D: 'text-red-600 dark:text-red-400',
+  U: 'text-blue-600 dark:text-blue-400',
+  C: 'text-purple-600 dark:text-purple-400',
+  G: 'text-indigo-600 dark:text-indigo-400',
+  E: 'text-yellow-700 dark:text-yellow-500',
+  R: 'text-orange-500 dark:text-orange-300',
+  '~': 'text-gray-600 dark:text-gray-400',
+}
 
 export const FONT_SIZES = ['small', 'medium', 'large'] as const
 

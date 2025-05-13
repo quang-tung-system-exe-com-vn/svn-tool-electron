@@ -1,4 +1,5 @@
 import { Notification } from 'electron'
+import log from 'electron-log'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
@@ -30,11 +31,10 @@ async function calculateSourceFolderPrefix() {
         if (sourceFolderPrefix.startsWith('/')) {
           sourceFolderPrefix = sourceFolderPrefix.substring(1)
         }
-        console.log('Phần dư giữa sourceFolder và rootFolder:', sourceFolderPrefix)
       }
     }
   } catch (error) {
-    console.error('Lỗi khi tính toán phần dư:', error)
+    log.error('Lỗi khi tính toán phần dư:', error)
   }
 }
 
@@ -48,7 +48,7 @@ export async function getWorkingCopyRoot(): Promise<string> {
     if (stderr?.trim()) throw new Error(stderr.trim())
     return stdout.trim()
   } catch (error) {
-    console.error('Lỗi khi lấy root folder:', error)
+    log.error('Lỗi khi lấy root folder:', error)
     return ''
   }
 }
@@ -98,7 +98,7 @@ export async function info(filePath: string): Promise<SVNResponse> {
           }).show()
         }
       } catch (notificationError) {
-        console.error('Failed to process SVN update notification:', notificationError)
+        log.error('Failed to process SVN update notification:', notificationError)
       }
       return { status: 'success', data }
     }
@@ -170,7 +170,7 @@ function parseCommitInfo(info: string) {
             }
           }
         } catch (error) {
-          console.error('Lỗi khi xử lý đường dẫn:', error);
+          log.error('Lỗi khi xử lý đường dẫn:', error);
           const pathParts = filePath.split('/').filter(Boolean);
           if (pathParts.length > 1) {
             filePath = pathParts.slice(1).join('/');

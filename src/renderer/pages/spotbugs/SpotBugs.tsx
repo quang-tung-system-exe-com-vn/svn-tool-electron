@@ -13,21 +13,7 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import logger from '@/services/logger'
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  BarChart3,
-  BarChart as BarChartIcon,
-  Bot,
-  Bug,
-  FileCode,
-  Info,
-  List,
-  OctagonAlert,
-  PieChart as PieChartIcon,
-} from 'lucide-react'
+import { AlertTriangle, BarChart3, BarChart as BarChartIcon, Bot, Bug, FileCode, Info, List, OctagonAlert, PieChart as PieChartIcon } from 'lucide-react'
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts'
@@ -35,10 +21,8 @@ import { SpotbugsAIChat } from './SpotbugsAIChat'
 import { SpotbugsToolbar } from './SpotbugsToolbar'
 import type { BugInstance, SpotBugsResult } from './constants'
 
-// Khóa localStorage để lưu kích thước của ResizablePanel
 const SPOTBUGS_PANEL_SIZES_KEY = 'spotbugs-panel-sizes-config'
 
-// Interface cho kích thước của các ResizablePanel
 interface SpotbugsPanelSizes {
   leftPanelSize: number
   rightPanelSize: number
@@ -71,13 +55,11 @@ export function SpotBugs() {
   const [selectedSourceLineKey, setSelectedSourceLineKey] = useState<string>('')
   const [activeChartType, setActiveChartType] = useState<'priority' | 'file' | 'package'>('priority') // State for active chart
 
-  // State cho kích thước các panel
   const [panelSizes, setPanelSizes] = useState<SpotbugsPanelSizes>({
     leftPanelSize: 50,
     rightPanelSize: 50,
   })
 
-  // Refs cho các panel
   const leftPanelRef = useRef<any>(null)
   const rightPanelRef = useRef<any>(null)
 
@@ -115,15 +97,12 @@ export function SpotBugs() {
     }
   }, [t])
 
-  // Đọc kích thước các panel từ localStorage khi component mount
   useEffect(() => {
     try {
       const savedPanelSizes = localStorage.getItem(SPOTBUGS_PANEL_SIZES_KEY)
       if (savedPanelSizes) {
         const sizes: SpotbugsPanelSizes = JSON.parse(savedPanelSizes)
         setPanelSizes(sizes)
-
-        // Cập nhật kích thước của các panel thông qua refs
         setTimeout(() => {
           if (leftPanelRef.current?.resize) leftPanelRef.current.resize(sizes.leftPanelSize)
           if (rightPanelRef.current?.resize) rightPanelRef.current.resize(sizes.rightPanelSize)
@@ -134,7 +113,6 @@ export function SpotBugs() {
     }
   }, [])
 
-  // Lưu kích thước panel vào localStorage khi component unmount
   useEffect(() => {
     return () => {
       try {
@@ -145,7 +123,6 @@ export function SpotBugs() {
     }
   }, [panelSizes])
 
-  // Lưu kích thước panel vào localStorage mỗi khi panelSizes thay đổi
   useEffect(() => {
     try {
       localStorage.setItem(SPOTBUGS_PANEL_SIZES_KEY, JSON.stringify(panelSizes))
@@ -154,7 +131,6 @@ export function SpotBugs() {
     }
   }, [panelSizes])
 
-  // Xử lý sự kiện thay đổi kích thước panel
   const handlePanelResize = (panelName: keyof SpotbugsPanelSizes, size: number) => {
     setPanelSizes(prev => ({
       ...prev,
@@ -584,33 +560,33 @@ export function SpotBugs() {
                                     <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('priority')}>
                                       <div className="flex items-center gap-1">
                                         {t('table.severity')}
-                                        {sortKey !== 'priority' && <ArrowUpDown className="w-4 h-4" />}
-                                        {sortKey === 'priority' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                        {sortKey === 'priority' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                        {sortKey !== 'priority'}
+                                        {sortKey === 'priority' && sortDirection === 'asc' && '↑'}
+                                        {sortKey === 'priority' && sortDirection === 'desc' && '↓'}
                                       </div>
                                     </TableHead>
                                     <TableHead className="cursor-pointer" onClick={() => handleSort('sourceFile')}>
                                       <div className="flex items-center gap-1">
                                         {t('table.file')}
-                                        {sortKey !== 'sourceFile' && <ArrowUpDown className="w-4 h-4" />}
-                                        {sortKey === 'sourceFile' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                        {sortKey === 'sourceFile' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                        {sortKey !== 'sourceFile'}
+                                        {sortKey === 'sourceFile' && sortDirection === 'asc' && '↑'}
+                                        {sortKey === 'sourceFile' && sortDirection === 'desc' && '↓'}
                                       </div>
                                     </TableHead>
                                     <TableHead className="w-15 cursor-pointer" onClick={() => handleSort('category')}>
                                       <div className="flex items-center gap-1">
                                         {t('table.category')}
-                                        {sortKey !== 'category' && <ArrowUpDown className="w-4 h-4" />}
-                                        {sortKey === 'category' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                        {sortKey === 'category' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                        {sortKey !== 'category'}
+                                        {sortKey === 'category' && sortDirection === 'asc' && '↑'}
+                                        {sortKey === 'category' && sortDirection === 'desc' && '↓'}
                                       </div>
                                     </TableHead>
                                     <TableHead className="cursor-pointer" onClick={() => handleSort('type')}>
                                       <div className="flex items-center gap-1">
                                         {t('table.issue')}
-                                        {sortKey !== 'type' && <ArrowUpDown className="w-4 h-4" />}
-                                        {sortKey === 'type' && sortDirection === 'asc' && <ArrowUp className="w-4 h-4" />}
-                                        {sortKey === 'type' && sortDirection === 'desc' && <ArrowDown className="w-4 h-4" />}
+                                        {sortKey !== 'type'}
+                                        {sortKey === 'type' && sortDirection === 'asc' && '↑'}
+                                        {sortKey === 'type' && sortDirection === 'desc' && '↓'}
                                       </div>
                                     </TableHead>
                                   </TableRow>

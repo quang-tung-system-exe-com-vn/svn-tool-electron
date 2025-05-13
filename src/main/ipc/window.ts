@@ -277,5 +277,41 @@ export function registerWindowIpcHandlers() {
     })
   })
 
+  ipcMain.on(IPC.WINDOW.MERGE_SVN, event => {
+    const window = new BrowserWindow({
+      width: 1365,
+      height: 768,
+      minWidth: 1000,
+      minHeight: 800,
+      center: true,
+      frame: false,
+      autoHideMenuBar: true,
+      title: 'Merge SVN',
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    const url = ENVIRONMENT.IS_DEV
+      ? 'http://localhost:4927/#/merge-svn'
+      : format({
+        pathname: resolve(__dirname, '../renderer/index.html'),
+        protocol: 'file:',
+        slashes: true,
+        hash: '/merge-svn',
+      })
+    window.loadURL(url)
+
+    window.webContents.on('did-finish-load', () => {
+      if (ENVIRONMENT.IS_DEV) {
+        window.webContents.openDevTools({ mode: 'bottom' })
+      }
+      window.show()
+    })
+  })
+
   log.info('✅ Window IPC Handlers Registered')
 }

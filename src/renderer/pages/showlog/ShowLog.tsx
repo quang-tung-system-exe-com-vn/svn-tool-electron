@@ -15,7 +15,7 @@ import logger from '@/services/logger'
 import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import chalk from 'chalk'
-import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
@@ -57,17 +57,13 @@ interface LogFile {
   filePath: string
 }
 
-// Khóa localStorage để lưu cấu hình layout
 const SHOWLOG_LAYOUT_KEY = 'showlog-layout-config'
-// Khóa localStorage để lưu kích thước của ResizablePanel
 const SHOWLOG_PANEL_SIZES_KEY = 'showlog-panel-sizes-config'
 
-// Interface cho cấu hình layout được lưu trong localStorage
 interface ShowlogLayoutConfig {
   direction: 'horizontal' | 'vertical'
 }
 
-// Interface cho kích thước của các ResizablePanel
 interface ShowlogPanelSizes {
   mainPanelSize: number
   secondPanelSize: number
@@ -78,11 +74,8 @@ interface ShowlogPanelSizes {
 export function ShowLog() {
   const { t } = useTranslation()
   const variant = useButtonVariant()
-
-  // State cho layout và kích thước panel
   const [layoutDirection, setLayoutDirection] = useState<'horizontal' | 'vertical'>('horizontal')
 
-  // Đọc cấu hình từ localStorage khi component mount
   useEffect(() => {
     try {
       const savedConfig = localStorage.getItem(SHOWLOG_LAYOUT_KEY)
@@ -95,9 +88,7 @@ export function ShowLog() {
     }
   }, [])
 
-  // Lưu cấu hình vào localStorage khi component unmount
   useEffect(() => {
-    // Lưu cấu hình khi component unmount
     return () => {
       try {
         const config: ShowlogLayoutConfig = {
@@ -110,7 +101,6 @@ export function ShowLog() {
     }
   }, [layoutDirection])
 
-  // Lưu cấu hình khi thay đổi layout
   useEffect(() => {
     try {
       const config: ShowlogLayoutConfig = {
@@ -130,9 +120,11 @@ export function ShowLog() {
       header: ({ column }) => (
         <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
           {t('dialog.showLogs.revision')}
-          {!column.getIsSorted() && <ArrowUpDown />}
-          {column.getIsSorted() === 'asc' && <ArrowUp />}
-          {column.getIsSorted() === 'desc' && <ArrowDown />}
+          <span className="pr-0.5">
+            {!column.getIsSorted()}
+            {column.getIsSorted() === 'asc' && '↑'}
+            {column.getIsSorted() === 'desc' && '↓'}
+          </span>
         </Button>
       ),
       cell: ({ row }) => <div>{row.getValue('revision')}</div>,
@@ -146,9 +138,11 @@ export function ShowLog() {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('dialog.showLogs.date')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
@@ -162,9 +156,11 @@ export function ShowLog() {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('dialog.showLogs.author')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
@@ -177,9 +173,11 @@ export function ShowLog() {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('dialog.showLogs.action')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
@@ -203,9 +201,11 @@ export function ShowLog() {
       header: ({ column }) => (
         <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
           Reference ID
-          {!column.getIsSorted() && <ArrowUpDown />}
-          {column.getIsSorted() === 'asc' && <ArrowUp />}
-          {column.getIsSorted() === 'desc' && <ArrowDown />}
+          <span className="pr-0.5">
+            {!column.getIsSorted()}
+            {column.getIsSorted() === 'asc' && '↑'}
+            {column.getIsSorted() === 'desc' && '↓'}
+          </span>
         </Button>
       ),
       cell: ({ row }) => <div>{row.getValue('referenceId')}</div>,
@@ -216,9 +216,11 @@ export function ShowLog() {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('dialog.showLogs.message')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
@@ -242,7 +244,6 @@ export function ShowLog() {
   const [filePath, setFilePath] = useState<string | string[]>('')
   const [currentRevision, setCurrentRevision] = useState<string>('')
 
-  // Chuyển đổi filePath thành chuỗi để truyền vào các component
   const displayFilePath = useMemo(() => {
     if (Array.isArray(filePath)) {
       return filePath.length > 1 ? `${filePath[0]} (+${filePath.length - 1} files)` : filePath[0]
@@ -267,7 +268,6 @@ export function ShowLog() {
 
   const [isStatisticOpen, setIsStatisticOpen] = useState(false)
 
-  // State cho kích thước các panel
   const [panelSizes, setPanelSizes] = useState<ShowlogPanelSizes>({
     mainPanelSize: 50,
     secondPanelSize: 50,
@@ -275,7 +275,6 @@ export function ShowLog() {
     filesPanelSize: 50,
   })
 
-  // Refs cho các panel
   const mainPanelRef = useRef<any>(null)
   const secondPanelRef = useRef<any>(null)
   const commitPanelRef = useRef<any>(null)
@@ -416,35 +415,23 @@ export function ShowLog() {
             const [, actionCode, filePath] = match
             if (!isSvnStatusCode(actionCode)) break
 
-            // Xử lý đường dẫn để loại bỏ phần sourceFolder
             let processedPath = filePath
-
             try {
-              // Tách đường dẫn thành các phần
               const pathParts = processedPath.split('/').filter(Boolean)
-
-              // Danh sách các thư mục gốc phổ biến
               const knownPrefixes = ['programsource', 'src', 'source', 'project', 'tokodenko']
-
-              // Tìm vị trí của thư mục gốc trong đường dẫn
               const firstPart = pathParts[0]?.toLowerCase()
-
               if (firstPart && knownPrefixes.includes(firstPart)) {
-                // Nếu phần đầu tiên là một thư mục gốc đã biết
                 processedPath = pathParts.slice(1).join('/')
               } else if (pathParts.length > 1) {
-                // Fallback: chỉ loại bỏ phần đầu tiên
                 processedPath = pathParts.slice(1).join('/')
               }
             } catch (error) {
               console.error('Lỗi khi xử lý đường dẫn:', error)
-              // Fallback: chỉ loại bỏ phần đầu tiên nếu có lỗi
               const pathParts = processedPath.split('/').filter(Boolean)
               if (pathParts.length > 1) {
                 processedPath = pathParts.slice(1).join('/')
               }
             }
-
             changedFiles.push({ action: actionCode, filePath: processedPath })
             i++
           }
@@ -520,15 +507,12 @@ export function ShowLog() {
 
   const calculateStatusSummary = useCallback((changedFiles: LogFile[]) => {
     const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
-
     for (const code of Object.keys(STATUS_TEXT)) {
       summary[code as SvnStatusCode] = 0
     }
-
     for (const file of changedFiles) {
       summary[file.action] = (summary[file.action] || 0) + 1
     }
-
     return summary
   }, [])
 
@@ -649,7 +633,6 @@ export function ShowLog() {
         />
         <div className="p-4 space-y-4 flex-1 h-full flex flex-col overflow-hidden">
           {layoutDirection === 'horizontal' ? (
-            // Layout ngang: 1 panel trái, 2 panel phải (trên/dưới)
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel
                 key={`main-panel-${layoutDirection}`}
@@ -869,7 +852,6 @@ export function ShowLog() {
               </ResizablePanel>
             </ResizablePanelGroup>
           ) : (
-            // Layout dọc: 1 panel trên, 2 panel dưới (trái/phải)
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel
                 key={`main-panel-${layoutDirection}`}

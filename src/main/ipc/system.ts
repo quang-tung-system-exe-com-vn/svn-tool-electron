@@ -43,7 +43,6 @@ export function registerSystemIpcHandlers() {
         throw new Error('Invalid filePath provided for reading.')
       }
       const { sourceFolder } = configurationStore.store
-      console.log(`Source folder: ${sourceFolder}`);
       const absolutePath = sourceFolder ? path.resolve(sourceFolder, filePath) : path.resolve(filePath)
       log.info(`Reading file from absolute path: ${absolutePath}`)
       const content = await readFile(absolutePath, 'utf-8')

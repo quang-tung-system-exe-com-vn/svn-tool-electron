@@ -6,6 +6,7 @@ import { CheckCodingRules } from '../pages/checkcodingrule/CheckCodingRules'
 import { CommitMessageHistory } from '../pages/commitmessagehistory/CommitMessageHistory'
 import { CodeDiffViewer } from '../pages/diffviewer/CodeDiffViewer'
 import { MainPage } from '../pages/main/MainPage'
+import { MergeSvn } from '../pages/mergesvn/MergeSvn'
 import { ShowLog } from '../pages/showlog/ShowLog'
 import { SpotBugs } from '../pages/spotbugs/SpotBugs'
 import { useAppearanceStore } from '../stores/useAppearanceStore'
@@ -31,6 +32,7 @@ export function AppRoutes() {
         <Route path="/spotbugs" element={<SpotBugs />} />
         <Route path="/check-coding-rules" element={<CheckCodingRules />} />
         <Route path="/commit-message-history" element={<CommitMessageHistory />} />
+        <Route path="/merge-svn" element={<MergeSvn />} />
       </Routes>
     </Router>
   )

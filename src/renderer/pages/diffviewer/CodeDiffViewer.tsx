@@ -295,8 +295,6 @@ export function CodeDiffViewer() {
       setIsLoading(true)
       const originalCode = await window.api.svn.cat(path, fileStatus, revision)
       const modifiedCode = currentRevision ? await window.api.svn.cat(path, fileStatus, String(Number(revision) - 1)) : await window.api.system.read_file(path)
-      console.log('originalCode: ', originalCode)
-      console.log('modifiedCode: ', modifiedCode)
       setTimeout(() => {
         if (!currentRevision) {
           setOriginalCode(originalCode.data)

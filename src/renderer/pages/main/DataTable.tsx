@@ -19,7 +19,7 @@ import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { type ColumnDef, type SortingState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next'
 import 'ldrs/react/Quantum.css'
-import { ArrowDown, ArrowUp, ArrowUpDown, Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
+import { Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../components/shared/constants'
@@ -27,6 +27,12 @@ import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../c
 export type SvnFile = {
   filePath: string
   status: SvnStatusCode
+  propStatus: SvnStatusCode
+  lockStatus: SvnStatusCode
+  historyStatus: SvnStatusCode
+  switchedStatus: SvnStatusCode
+  lockInfo: SvnStatusCode
+  versionStatus: SvnStatusCode
   isFile: boolean
 }
 
@@ -71,14 +77,19 @@ export function buildColumns({
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('table.filePath')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
       cell: ({ row }) => {
-        const statusCode = row.getValue('status') as SvnStatusCode
+        let statusCode = row.getValue('status') as SvnStatusCode
+        if (!statusCode) {
+          statusCode = row.getValue('versionStatus') as SvnStatusCode
+        }
         const className = STATUS_COLOR_CLASS_MAP[statusCode]
         return (
           <div
@@ -102,9 +113,11 @@ export function buildColumns({
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('table.isFile')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
@@ -112,21 +125,27 @@ export function buildColumns({
         return <div>{row.getValue('isFile') ? 'Yes' : 'No'}</div>
       },
     },
+
     {
       accessorKey: 'fileType',
-      size: 80,
+      size: 90,
       header: ({ column }) => {
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('table.extension')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
       cell: ({ row }) => {
-        const statusCode = row.getValue('status') as SvnStatusCode
+        let statusCode = row.getValue('status') as SvnStatusCode
+        if (!statusCode) {
+          statusCode = row.getValue('versionStatus') as SvnStatusCode
+        }
         const className = STATUS_COLOR_CLASS_MAP[statusCode]
         return <div className={className}>{row.getValue('fileType')}</div>
       },
@@ -138,18 +157,48 @@ export function buildColumns({
         return (
           <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
             {t('table.status')}
-            {!column.getIsSorted() && <ArrowUpDown />}
-            {column.getIsSorted() === 'asc' && <ArrowUp />}
-            {column.getIsSorted() === 'desc' && <ArrowDown />}
+            <span className="pr-0.5">
+              {!column.getIsSorted()}
+              {column.getIsSorted() === 'asc' && '↑'}
+              {column.getIsSorted() === 'desc' && '↓'}
+            </span>
           </Button>
         )
       },
       cell: ({ row }) => {
-        const statusCode = row.getValue('status') as SvnStatusCode
+        let statusCode = row.getValue('status') as SvnStatusCode
+        if (!statusCode) {
+          statusCode = row.getValue('versionStatus') as SvnStatusCode
+        }
         const status = STATUS_TEXT[statusCode]
         const className = STATUS_COLOR_CLASS_MAP[statusCode]
         return <div className={className}>{t(status)}</div>
       },
+    },
+    {
+      accessorKey: 'versionStatus',
+      // size: 80,
+      // header: ({ column }) => {
+      // return (
+      //   <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
+      //     {t('table.status')}
+      //     <span className="pr-0.5">
+      //       {!column.getIsSorted()}
+      //       {column.getIsSorted() === 'asc' && '↑'}
+      //       {column.getIsSorted() === 'desc' && '↓'}
+      //     </span>
+      //   </Button>
+      // )
+      // },
+      // cell: ({ row }) => {
+      //   let statusCode = row.getValue('status') as SvnStatusCode
+      //   if (!statusCode) {
+      //     statusCode = row.getValue('versionStatus') as SvnStatusCode
+      //   }
+      //   const status = STATUS_TEXT[statusCode]
+      //   const className = STATUS_COLOR_CLASS_MAP[statusCode]
+      //   return <div className={className}>{t(status)}</div>
+      // },
     },
   ]
 }
@@ -277,7 +326,6 @@ export const DataTable = forwardRef((props, ref) => {
 
   const handleFilePathDoubleClick = async (row: any) => {
     const { filePath } = row.original
-    console.log(filePath)
     try {
       window.api.svn.open_diff(filePath)
     } catch (error) {
@@ -430,6 +478,7 @@ export const DataTable = forwardRef((props, ref) => {
       rowSelection,
       columnVisibility: {
         isFile: false,
+        versionStatus: false,
       },
     },
   })

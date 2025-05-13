@@ -34,6 +34,10 @@ declare global {
         update: (filePath?: string | string[]) => Promise<any>
         open_diff: (filePath: string, options?: { fileStatus: string; revision?: string; currentRevision?: string }) => void
         statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) => Promise<any>
+        merge: (options: { sourcePath: string; targetPath: string; dryRun?: boolean; revision?: string }) => Promise<any>
+        merge_resolve_conflict: (filePath: string, resolution: 'mine' | 'theirs' | 'base' | 'working', isRevisionConflict?: boolean, targetPath?: string) => Promise<any>
+        merge_create_snapshot: (targetPath: string) => Promise<any>
+        merge_get_commits: (options: { sourcePath: string; targetPath: string }) => Promise<any>
       }
 
       openai: {
@@ -153,6 +157,14 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { filePath, ...options }),
     statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) =>
       ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),
+    merge: (options: { sourcePath: string; targetPath: string; dryRun?: boolean; revision?: string }) =>
+      ipcRenderer.invoke(IPC.SVN.MERGE, options),
+    merge_resolve_conflict: (filePath: string, resolution: 'mine' | 'theirs' | 'base' | 'working', isRevisionConflict?: boolean, targetPath?: string) =>
+      ipcRenderer.invoke(IPC.SVN.MERGE_RESOLVE_CONFLICT, filePath, resolution, isRevisionConflict, targetPath),
+    merge_create_snapshot: (targetPath: string) =>
+      ipcRenderer.invoke(IPC.SVN.MERGE_CREATE_SNAPSHOT, targetPath),
+    merge_get_commits: (options: { sourcePath: string; targetPath: string }) =>
+      ipcRenderer.invoke(IPC.SVN.MERGE_GET_COMMITS, options),
   },
 
   updater: {

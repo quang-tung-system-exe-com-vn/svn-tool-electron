@@ -9,6 +9,7 @@ import { commit } from 'main/svn/commit'
 import { getDiff } from 'main/svn/get-diff'
 import { info } from 'main/svn/info'
 import { type LogOptions, log as logSvn } from 'main/svn/log'
+import { createSnapshot, getCommitsForMerge, merge, resolveConflict } from 'main/svn/merge'
 import { revert } from 'main/svn/revert'
 import { type StatisticsOptions, getStatistics } from 'main/svn/statistics'
 import { update } from 'main/svn/update'
@@ -27,6 +28,10 @@ export function registerSvnIpcHandlers() {
   ipcMain.handle(IPC.SVN.LOG, async (_event, filePath: string | string[], options?: LogOptions) => await logSvn(filePath, options))
   ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string | string[]) => await update(filePath))
   ipcMain.handle(IPC.SVN.STATISTICS, async (_event, filePath: string, options?: StatisticsOptions) => await getStatistics(filePath, options))
+  ipcMain.handle(IPC.SVN.MERGE, async (_event, options) => await merge(options))
+  ipcMain.handle(IPC.SVN.MERGE_RESOLVE_CONFLICT, async (_event, filePath, resolution, isRevisionConflict, targetPath) => await resolveConflict(filePath, resolution, isRevisionConflict, targetPath))
+  ipcMain.handle(IPC.SVN.MERGE_CREATE_SNAPSHOT, async (_event, targetPath) => await createSnapshot(targetPath))
+  ipcMain.handle(IPC.SVN.MERGE_GET_COMMITS, async (_event, options) => await getCommitsForMerge(options))
 
   log.info('✅ SVN IPC Handlers Registered')
 }

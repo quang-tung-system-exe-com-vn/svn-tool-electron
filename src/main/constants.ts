@@ -6,6 +6,7 @@ export const IPC = {
     CHECK_CODING_RULES: 'check-coding-rules',
     SPOTBUGS: 'spotbugs',
     COMMIT_MESSAGE_HISTORY: 'commit-message-history',
+    MERGE_SVN: 'merge-svn',
   },
   SETTING: {
     APPEARANCE: {
@@ -38,6 +39,10 @@ export const IPC = {
     LOG: 'svn:log',
     UPDATE: 'svn:update',
     STATISTICS: 'svn:statistics',
+    MERGE: 'svn:merge',
+    MERGE_RESOLVE_CONFLICT: 'svn:merge-resolve-conflict',
+    MERGE_CREATE_SNAPSHOT: 'svn:merge-create-snapshot',
+    MERGE_GET_COMMITS: 'svn:merge-get-commits',
   },
   OPENAI: {
     SEND_MESSAGE: 'openai:send-message',

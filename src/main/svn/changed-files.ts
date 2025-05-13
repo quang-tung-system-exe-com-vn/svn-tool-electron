@@ -83,19 +83,21 @@ export async function changedFiles() {
       windowsHide: true,
       maxBuffer: 10 * 1024 * 1024
     })
-
-    const rawChangedFiles = stdout.split('\n').filter(line => line.trim() !== '')
+    const rawChangedFiles = stdout
+      .split('\n')
+      .map(line => line.trimEnd())
+      .filter(line => line.trim() !== '' && !line.trimStart().startsWith('>'))
     const changedFiles: any[] = []
     const missingFiles: string[] = []
 
     for (const line of rawChangedFiles) {
-      const status = line[0]
-      const propStatus = line[1] ?? ''
-      const lockStatus = line[2] ?? ''
-      const historyStatus = line[3] ?? ''
-      const switchedStatus = line[4] ?? ''
-      const lockInfo = line[5] ?? ''
-      const versionStatus = line[6] ?? ''
+      const status = line[0].trim()
+      const propStatus = line[1].trim() ?? ''
+      const lockStatus = line[2].trim() ?? ''
+      const historyStatus = line[3].trim() ?? ''
+      const switchedStatus = line[4].trim() ?? ''
+      const lockInfo = line[5].trim() ?? ''
+      const versionStatus = line[6].trim() ?? ''
       const filePath = line.substring(8).trim()
 
       if (filePath.includes('ignore-on-commit')) {

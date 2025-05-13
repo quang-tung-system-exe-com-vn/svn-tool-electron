@@ -7,7 +7,6 @@ const execPromise = promisify(exec)
 export async function cat(filePath: string, fileStatus: string, revision?: string): Promise<SVNResponse> {
   const { sourceFolder } = configurationStore.store
   try {
-    console.log('fileStatus: ', fileStatus)
     if (fileStatus === 'A') {
       const repoUrl = await getRepositoryUrl()
       if (!repoUrl) {
