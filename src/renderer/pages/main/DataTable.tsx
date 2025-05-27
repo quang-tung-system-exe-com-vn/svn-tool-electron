@@ -177,43 +177,15 @@ export function buildColumns({
     },
     {
       accessorKey: 'versionStatus',
-      // size: 80,
-      // header: ({ column }) => {
-      // return (
-      //   <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-      //     {t('table.status')}
-      //     <span className="pr-0.5">
-      //       {!column.getIsSorted()}
-      //       {column.getIsSorted() === 'asc' && '↑'}
-      //       {column.getIsSorted() === 'desc' && '↓'}
-      //     </span>
-      //   </Button>
-      // )
-      // },
-      // cell: ({ row }) => {
-      //   let statusCode = row.getValue('status') as SvnStatusCode
-      //   if (!statusCode) {
-      //     statusCode = row.getValue('versionStatus') as SvnStatusCode
-      //   }
-      //   const status = STATUS_TEXT[statusCode]
-      //   const className = STATUS_COLOR_CLASS_MAP[statusCode]
-      //   return <div className={className}>{t(status)}</div>
-      // },
     },
   ]
 }
 
-async function changedFiles(): Promise<SvnFile[]> {
-  const result = await window.api.svn.changed_files()
-  const { status, message, data } = result
-  if (status === 'error') {
-    toast.error(message)
-    return [] as SvnFile[]
-  }
-  return data as SvnFile[]
+interface DataTableProps {
+  targetPath?: string
 }
 
-export const DataTable = forwardRef((props, ref) => {
+export const DataTable = forwardRef(({ targetPath }: DataTableProps, ref) => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<SvnFile[]>([])
@@ -256,6 +228,17 @@ export const DataTable = forwardRef((props, ref) => {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
+
+  async function changedFiles(): Promise<SvnFile[]> {
+    console.log(targetPath)
+    const result = await window.api.svn.changed_files(targetPath || '')
+    const { status, message, data } = result
+    if (status === 'error') {
+      toast.error(message)
+      return [] as SvnFile[]
+    }
+    return data as SvnFile[]
+  }
 
   const reloadData = async () => {
     try {
@@ -526,65 +509,67 @@ export const DataTable = forwardRef((props, ref) => {
                         ))}
                       </TableRow>
                     </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      {isMultipleSelected ? (
-                        <>
-                          <ContextMenuItem onClick={() => showLog(filePaths)}>
-                            Show Log
-                            <ContextMenuShortcut>
-                              <History strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                          <ContextMenuItem disabled={hasUnversionedFiles} onClick={() => revertFile(filePaths)}>
-                            Revert Selected Files
-                            <ContextMenuShortcut>
-                              <RotateCcw strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                          <ContextMenuItem onClick={() => updateFile(filePaths)}>
-                            Update Selected Files
-                            <ContextMenuShortcut>
-                              <RefreshCw strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                        </>
-                      ) : (
-                        <>
-                          <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
-                            Reveal in File Explorer
-                            <ContextMenuShortcut>
-                              <FolderOpen strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem onClick={() => info(row.original.filePath)}>
-                            File Info
-                            <ContextMenuShortcut>
-                              <Info strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem onClick={() => showLog(row.original.filePath)}>
-                            Show Log
-                            <ContextMenuShortcut>
-                              <History strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                          <ContextMenuItem disabled={row.original.status === '?'} onClick={() => revertFile(row.original.filePath)}>
-                            Revert
-                            <ContextMenuShortcut>
-                              <RotateCcw strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                          <ContextMenuItem onClick={() => updateFile(row.original.filePath)}>
-                            Update
-                            <ContextMenuShortcut>
-                              <RefreshCw strokeWidth={1.25} className="ml-3 h-4 w-4" />
-                            </ContextMenuShortcut>
-                          </ContextMenuItem>
-                        </>
-                      )}
-                    </ContextMenuContent>
+                    {!targetPath && (
+                      <ContextMenuContent>
+                        {isMultipleSelected ? (
+                          <>
+                            <ContextMenuItem onClick={() => showLog(filePaths)}>
+                              Show Log
+                              <ContextMenuShortcut>
+                                <History strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                            <ContextMenuItem disabled={hasUnversionedFiles} onClick={() => revertFile(filePaths)}>
+                              Revert Selected Files
+                              <ContextMenuShortcut>
+                                <RotateCcw strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => updateFile(filePaths)}>
+                              Update Selected Files
+                              <ContextMenuShortcut>
+                                <RefreshCw strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                          </>
+                        ) : (
+                          <>
+                            <ContextMenuItem disabled={row.original.status === '!'} onClick={() => revealInFileExplorer(row.original.filePath)}>
+                              Reveal in File Explorer
+                              <ContextMenuShortcut>
+                                <FolderOpen strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem onClick={() => info(row.original.filePath)}>
+                              File Info
+                              <ContextMenuShortcut>
+                                <Info strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem onClick={() => showLog(row.original.filePath)}>
+                              Show Log
+                              <ContextMenuShortcut>
+                                <History strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                            <ContextMenuItem disabled={row.original.status === '?'} onClick={() => revertFile(row.original.filePath)}>
+                              Revert
+                              <ContextMenuShortcut>
+                                <RotateCcw strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => updateFile(row.original.filePath)}>
+                              Update
+                              <ContextMenuShortcut>
+                                <RefreshCw strokeWidth={1.25} className="ml-3 h-4 w-4" />
+                              </ContextMenuShortcut>
+                            </ContextMenuItem>
+                          </>
+                        )}
+                      </ContextMenuContent>
+                    )}
                   </ContextMenu>
                 )
               })

@@ -200,7 +200,7 @@ export function ShowLog() {
       maxSize: 30,
       header: ({ column }) => (
         <Button className="!p-0 !h-7 !bg-transparent !hover:bg-transparent" variant="ghost" onClick={() => column.toggleSorting()}>
-          Reference ID
+          {t('dialog.showLogs.message')}
           <span className="pr-0.5">
             {!column.getIsSorted()}
             {column.getIsSorted() === 'asc' && '↑'}
@@ -227,10 +227,7 @@ export function ShowLog() {
       cell: ({ row }) => {
         const message = row.getValue('message') as string
         const referenceId = row.getValue('referenceId') as string
-
-        // Nếu có reference ID, loại bỏ nó khỏi message hiển thị
         const displayMessage = referenceId && message.startsWith(referenceId) ? message.substring(referenceId.length).trim() : message
-
         return (
           <div className="overflow-hidden text-ellipsis whitespace-nowrap w-[200px]" title={displayMessage}>
             {displayMessage}

@@ -66,7 +66,7 @@ async function batchCheckKind(
   }
 }
 
-export async function changedFiles() {
+export async function changedFiles(targetPath: string) {
   const { svnFolder, sourceFolder } = configurationStore.store
   if (!fs.existsSync(svnFolder)) {
     return { status: 'error', message: 'Invalid path to svn.exe.' }
@@ -76,32 +76,42 @@ export async function changedFiles() {
   }
 
   const svnExecutable = path.join(svnFolder, 'bin', 'svn.exe')
+  const cwd = targetPath ? targetPath : sourceFolder
 
   try {
     const { stdout } = await execFileAsync(svnExecutable, ['status'], {
-      cwd: sourceFolder,
-      windowsHide: true,
+      cwd,
       maxBuffer: 10 * 1024 * 1024
     })
+
     const rawChangedFiles = stdout
       .split('\n')
       .map(line => line.trimEnd())
       .filter(line => line.trim() !== '' && !line.trimStart().startsWith('>'))
+
     const changedFiles: any[] = []
     const missingFiles: string[] = []
 
     for (const line of rawChangedFiles) {
       const status = line[0].trim()
-      const propStatus = line[1].trim() ?? ''
-      const lockStatus = line[2].trim() ?? ''
-      const historyStatus = line[3].trim() ?? ''
-      const switchedStatus = line[4].trim() ?? ''
-      const lockInfo = line[5].trim() ?? ''
-      const versionStatus = line[6].trim() ?? ''
-      const filePath = line.substring(8).trim()
+      const propStatus = line[1]?.trim() ?? ''
+      const lockStatus = line[2]?.trim() ?? ''
+      const historyStatus = line[3]?.trim() ?? ''
+      const switchedStatus = line[4]?.trim() ?? ''
+      const lockInfo = line[5]?.trim() ?? ''
+      const versionStatus = line[6]?.trim() ?? ''
+      let filePath = line.substring(8).trim()
 
-      if (filePath.includes('ignore-on-commit')) {
+      if (filePath === '.') {
+        filePath = path.basename(cwd)
+      }
+
+      if (line.includes('ignore-on-commit') || line.includes('Summary of conflicts:')) {
         break
+      }
+
+      if (filePath.endsWith('.working') || /\.r\d+$/.test(filePath)) {
+        continue
       }
 
       const absolutePath = path.join(sourceFolder, filePath)
@@ -127,6 +137,11 @@ export async function changedFiles() {
         const untrackedFiles = listAllFilesRecursive(absolutePath)
         for (const file of untrackedFiles) {
           const relative = path.relative(sourceFolder, file)
+
+          if (relative.endsWith('.working') || /\.r\d+$/.test(relative)) {
+            continue
+          }
+
           changedFiles.push({
             status,
             propStatus: '',
@@ -159,6 +174,7 @@ export async function changedFiles() {
         })
       }
     }
+
     const kindMap = await batchCheckKind(svnExecutable, sourceFolder, missingFiles)
     for (const file of changedFiles) {
       if (kindMap.has(file.filePath)) {
@@ -166,6 +182,7 @@ export async function changedFiles() {
         file.isFile = kind === 'file'
       }
     }
+
     log.info('✅ SVN status successfully retrieved with all files and folders')
     return { status: 'success', data: changedFiles }
   } catch (error) {

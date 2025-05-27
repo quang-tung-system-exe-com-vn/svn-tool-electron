@@ -17,7 +17,7 @@ import { update } from 'main/svn/update'
 export function registerSvnIpcHandlers() {
   log.info('🔄 Registering SVN IPC Handlers...')
 
-  ipcMain.handle(IPC.SVN.CHANGED_FILES, async _event => await changedFiles())
+  ipcMain.handle(IPC.SVN.CHANGED_FILES, async (_event, targetPath: string) => await changedFiles(targetPath))
   ipcMain.handle(IPC.SVN.GET_DIFF, async (_event, selectedFiles: any[]) => await getDiff(selectedFiles))
   ipcMain.handle(IPC.SVN.COMMIT, async (_event, commitMessage: string, violations: string, selectedFiles: any[]) => await commit(commitMessage, violations, selectedFiles))
   ipcMain.handle(IPC.SVN.INFO, async (_event, filePath: string) => await info(filePath))
@@ -29,7 +29,7 @@ export function registerSvnIpcHandlers() {
   ipcMain.handle(IPC.SVN.UPDATE, async (_event, filePath?: string | string[]) => await update(filePath))
   ipcMain.handle(IPC.SVN.STATISTICS, async (_event, filePath: string, options?: StatisticsOptions) => await getStatistics(filePath, options))
   ipcMain.handle(IPC.SVN.MERGE, async (_event, options) => await merge(options))
-  ipcMain.handle(IPC.SVN.MERGE_RESOLVE_CONFLICT, async (_event, filePath, resolution, isRevisionConflict, targetPath) => await resolveConflict(filePath, resolution, isRevisionConflict, targetPath))
+  ipcMain.handle(IPC.SVN.MERGE_RESOLVE_CONFLICT, async (_event, filePath, resolution, isRevisionConflict) => await resolveConflict(filePath, resolution, isRevisionConflict))
   ipcMain.handle(IPC.SVN.MERGE_CREATE_SNAPSHOT, async (_event, targetPath) => await createSnapshot(targetPath))
   ipcMain.handle(IPC.SVN.MERGE_GET_COMMITS, async (_event, options) => await getCommitsForMerge(options))
 

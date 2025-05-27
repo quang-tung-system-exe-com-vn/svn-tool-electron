@@ -404,7 +404,7 @@ export function MainPage() {
                   <Textarea
                     id="commit-message-area"
                     placeholder={t('placeholder.commitMessage')}
-                    className="w-full h-full flex-1 resize-none"
+                    className="absolute w-full h-full flex-1 resize-none"
                     onChange={handleCommitMessage}
                     ref={commitMessageRef}
                     spellCheck={false}

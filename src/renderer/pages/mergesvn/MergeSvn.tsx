@@ -3,7 +3,7 @@ import { MERGE_STATUS_COLOR_CLASS_MAP, MERGE_STATUS_TEXT, type SvnMergeStatusCod
 import { GlowLoader } from '@/components/ui-elements/GlowLoader'
 import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
@@ -15,10 +15,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import logger from '@/services/logger'
 import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
-import { DiffEditor, Editor, useMonaco } from '@monaco-editor/react'
+import { Editor, useMonaco } from '@monaco-editor/react'
 import { FileWarning, GitMerge, SearchCheck, SendHorizontal } from 'lucide-react'
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DataTable } from '../main/DataTable'
 import { MergeSvnToolbar } from './MergeSvnToolbar'
 
 interface Commit {
@@ -31,9 +32,10 @@ interface Commit {
 interface ConflictFile {
   path: string
   content?: {
+    working: string
+    base: string
     mine: string
     theirs: string
-    base: string
   }
   isRevisionConflict?: boolean
 }
@@ -48,11 +50,12 @@ export function MergeSvn() {
   const variant = useButtonVariant()
   const { themeMode } = useAppearanceStore()
   const monaco = useMonaco()
+  const tableRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('setup')
   const [sourcePath, setSourcePath] = useState('D:\\tokodenko\\ProgramSource\\FrontEnd\\tokodenko-material')
   const [targetPath, setTargetPath] = useState('D:\\tokodenko\\ProgramSource\\FrontEnd\\tokodenko-material_mobile')
-  const [revision, setRevision] = useState('4598:4634')
+  const [revision, setRevision] = useState('4598')
   const [createBackup, setCreateBackup] = useState(false)
   const [dryRunOutput, setDryRunOutput] = useState('')
   const [mergeTableData, setMergeTableData] = useState<MergeOutputItem[]>([])
@@ -60,8 +63,6 @@ export function MergeSvn() {
   const [conflicts, setConflicts] = useState<ConflictFile[]>([])
   const [selectedConflict, setSelectedConflict] = useState<ConflictFile | null>(null)
   const [commitMessage, setCommitMessage] = useState('')
-  const [mergeCompleted, setMergeCompleted] = useState(false)
-  const [changedFiles, setChangedFiles] = useState<string[]>([])
   const [mergeTableSort, setMergeTableSort] = useState<string | null>(null)
   const [mergeTableSortDirection, setMergeTableSortDirection] = useState<'asc' | 'desc'>('asc')
   const [commitsSort, setCommitsSort] = useState<string | null>(null)
@@ -102,11 +103,15 @@ export function MergeSvn() {
   }, [monaco, themeMode])
 
   const checkMerge = async () => {
+    setCommits([])
+    setMergeTableData([])
+    setDryRunOutput('')
     if (!sourcePath || !targetPath) {
       toast.warning(t('message.pathsRequired'))
       return
     }
 
+    setActiveTab('preview')
     setIsLoading(true)
     try {
       if (createBackup) {
@@ -126,8 +131,11 @@ export function MergeSvn() {
         revision: revision || undefined,
       })
       if (result.status === 'success') {
+        logger.info('Merge Output:', result.data)
         setDryRunOutput(result.data?.dryRunOutput || '')
         setMergeTableData(result.data?.mergeTableData || [])
+        toast.success(t('toast.dryRunSuccess'))
+
         const commitsResult = await window.api.svn.merge_get_commits({
           sourcePath,
           targetPath,
@@ -155,8 +163,6 @@ export function MergeSvn() {
             }
           }
         }
-        setActiveTab('preview')
-        toast.success(t('toast.dryRunSuccess'))
       } else {
         toast.error(result.message)
       }
@@ -181,12 +187,11 @@ export function MergeSvn() {
         revision: revision || undefined,
       })
       if (result.status === 'success') {
-        setChangedFiles(result.data?.changedFiles || [])
-        setMergeCompleted(true)
         setActiveTab('complete')
         toast.success(t('toast.mergeSuccess'))
       } else if (result.status === 'conflict') {
         setConflicts(result.data?.conflicts || [])
+        logger.info('Merge Conflicts:', result.data?.conflicts)
         if (result.data?.conflicts && result.data.conflicts.length > 0) {
           setSelectedConflict(result.data.conflicts[0])
         }
@@ -202,22 +207,18 @@ export function MergeSvn() {
     }
   }
 
-  const resolveConflict = async (resolution: 'mine' | 'theirs' | 'base' | 'working') => {
+  const resolveConflict = async (resolution: 'working' | 'theirs' | 'mine' | 'base' | '') => {
     if (!selectedConflict) return
     setIsLoading(true)
     try {
       const isRevisionConflict = selectedConflict.isRevisionConflict || false
-      const result = await window.api.svn.merge_resolve_conflict(selectedConflict.path, resolution, isRevisionConflict, targetPath)
+      const result = await window.api.svn.merge_resolve_conflict(selectedConflict.path, resolution, isRevisionConflict)
       if (result.status === 'success') {
         const updatedConflicts = conflicts.filter(conflict => conflict.path !== selectedConflict.path)
         setConflicts(updatedConflicts)
-        if (result.data?.changedFiles) {
-          setChangedFiles(result.data.changedFiles)
-        }
         if (updatedConflicts.length > 0) {
           setSelectedConflict(updatedConflicts[0])
         } else {
-          setMergeCompleted(true)
           setActiveTab('complete')
         }
         toast.success(result.message)
@@ -236,13 +237,29 @@ export function MergeSvn() {
       toast.warning(t('message.commitMessageRequired'))
       return
     }
+    const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
+    const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
+      filePath: row.original.filePath,
+      status: row.original.status,
+    }))
+    if (selectedFiles.length === 0) {
+      toast.warning(t('message.noFilesWarning'))
+      return
+    }
     setIsLoading(true)
     try {
-      const result = await window.api.svn.commit(commitMessage, '', [])
-      if (result.status === 'success') {
+      const result = await window.api.svn.commit(commitMessage, '', selectedFiles)
+      const { status, message } = result
+      if (status === 'success') {
         toast.success(t('toast.commitSuccess'))
+        if (tableRef.current) {
+          tableRef.current.reloadData()
+          setTimeout(() => {
+            tableRef.current.table.toggleAllPageRowsSelected(false)
+          }, 0)
+        }
       } else {
-        toast.error(result.message)
+        toast.error(message)
       }
     } catch (error) {
       toast.error(`${t('toast.commitError')}: ${error}`)
@@ -338,7 +355,7 @@ export function MergeSvn() {
 
   const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }>(({ className, wrapperClassName, ...props }, ref) => {
     return (
-      <div className={cn('relative w-full overflow-auto', wrapperClassName)}>
+      <div className={cn('absolute w-full overflow-auto', wrapperClassName)}>
         <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
       </div>
     )
@@ -350,7 +367,7 @@ export function MergeSvn() {
       <div className="flex flex-col flex-1 w-full">
         <MergeSvnToolbar isLoading={isLoading} />
         <div className="p-4 space-y-4 flex-1 flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <Tabs value={activeTab} className="flex-1 flex flex-col">
             <TabsList className="grid grid-cols-4">
               <TabsTrigger value="setup">{t('dialog.mergeSvn.tabs.setup')}</TabsTrigger>
               <TabsTrigger value="preview">{t('dialog.mergeSvn.tabs.preview')}</TabsTrigger>
@@ -361,8 +378,8 @@ export function MergeSvn() {
             <TabsContent value="setup" className="flex-1 flex flex-col">
               <div className="flex-1 flex flex-col">
                 <Card className="flex-1">
-                  <CardContent>
-                    <div className="grid gap-4 py-2">
+                  <CardContent className="flex flex-1 items-center justify-center">
+                    <div className="grid gap-4">
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="source-path" className="text-right">
                           {t('dialog.mergeSvn.sourcePath')}
@@ -402,7 +419,7 @@ export function MergeSvn() {
                           className="col-span-3"
                         />
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
+                      <div className="grid grid-cols-4 items-center gap-4 h-[34px]">
                         <Label htmlFor="create-backup" className="text-right">
                           {t('dialog.mergeSvn.createBackup')}
                         </Label>
@@ -411,139 +428,132 @@ export function MergeSvn() {
                           <Label htmlFor="create-backup">{createBackup ? t('dialog.mergeSvn.backupEnabled') : t('dialog.mergeSvn.backupDisabled')}</Label>
                         </div>
                       </div>
+
+                      <div className="flex justify-center p-5 w-full">
+                        <Button
+                          className={`relative ${isLoading ? 'border-effect' : ''} ${isLoading ? 'cursor-progress' : ''}`}
+                          variant={variant}
+                          onClick={() => {
+                            if (!isLoading) {
+                              checkMerge()
+                            }
+                          }}
+                        >
+                          {isLoading ? <GlowLoader /> : <SearchCheck className="h-4 w-4" />} {t('dialog.mergeSvn.checkMerge')}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
-                  <CardFooter>
-                    <div className="flex justify-center w-full">
-                      <Button
-                        className={`relative ${isLoading ? 'border-effect' : ''} ${isLoading ? 'cursor-progress' : ''}`}
-                        variant={variant}
-                        onClick={() => {
-                          if (!isLoading) {
-                            checkMerge()
-                          }
-                        }}
-                      >
-                        {isLoading ? <GlowLoader /> : <SearchCheck className="h-4 w-4" />} {t('dialog.mergeSvn.checkMerge')}
-                      </Button>
-                    </div>
-                  </CardFooter>
                 </Card>
               </div>
             </TabsContent>
 
             <TabsContent value="preview" className="flex-1 flex flex-col">
-              <ResizablePanelGroup direction="vertical" className="flex-1 gap-2">
-                <ResizablePanel defaultSize={60} minSize={30}>
-                  <Card className="flex-1 h-full p-2 pt-0">
-                    <CardContent className="h-full p-2">
-                      <div className="h-full flex flex-col">
-                        <div className="flex items-center justify-between">
-                          <Label className=" mb-2">{t('dialog.mergeSvn.dryRunResult')}</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(
-                              mergeTableData.reduce(
-                                (acc, item) => {
-                                  const status = item.status as SvnMergeStatusCode
-                                  acc[status] = (acc[status] || 0) + 1
-                                  return acc
-                                },
-                                {} as Record<SvnMergeStatusCode, number>
-                              )
-                            ).map(([status, count]) => (
-                              <div key={status} className={`px-2 py-1 rounded-md text-sm ${MERGE_STATUS_COLOR_CLASS_MAP[status as SvnMergeStatusCode]}`}>
-                                {t(MERGE_STATUS_TEXT[status as SvnMergeStatusCode])}: {count}
-                              </div>
-                            ))}
+              <ResizablePanelGroup direction="horizontal" className="flex-1 gap-2">
+                <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col">
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-center justify-between h-6">
+                      <Label className="">{t('dialog.mergeSvn.dryRunResult')}</Label>
+                      <div className="flex flex-wrap">
+                        {Object.entries(
+                          mergeTableData.reduce(
+                            (acc, item) => {
+                              const status = item.status as SvnMergeStatusCode
+                              acc[status] = (acc[status] || 0) + 1
+                              return acc
+                            },
+                            {} as Record<SvnMergeStatusCode, number>
+                          )
+                        ).map(([status, count]) => (
+                          <div key={status} className={`px-2 py-1 rounded-md text-sm ${MERGE_STATUS_COLOR_CLASS_MAP[status as SvnMergeStatusCode]}`}>
+                            {t(MERGE_STATUS_TEXT[status as SvnMergeStatusCode])}: {count}
                           </div>
-                        </div>
-                        <div className="flex flex-col border rounded-md overflow-auto h-full">
-                          <ScrollArea className="h-full w-full">
-                            {mergeTableData.length > 0 ? (
-                              <Table wrapperClassName={cn('overflow-clip', mergeTableData.length === 0 && 'h-full')}>
-                                <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                                  <TableRow>
-                                    <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleMergeTableSort('status')}>
-                                      Trạng thái
-                                      {mergeTableSort === 'status' && <span className="ml-1">{mergeTableSortDirection === 'asc' ? '↑' : '↓'}</span>}
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleMergeTableSort('filePath')}>
-                                      Tệp tin
-                                      {mergeTableSort === 'filePath' && <span className="ml-1">{mergeTableSortDirection === 'asc' ? '↑' : '↓'}</span>}
-                                    </TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {getSortedMergeTableData().map((item, index) => (
-                                    <TableRow key={index}>
-                                      <TableCell className="w-1 py-0.5">
-                                        <span className={`${MERGE_STATUS_COLOR_CLASS_MAP[item.status as SvnMergeStatusCode]}`}>
-                                          {t(MERGE_STATUS_TEXT[item.status as SvnMergeStatusCode])}
-                                        </span>
-                                      </TableCell>
-                                      <TableCell className={`py-0.5 ${MERGE_STATUS_COLOR_CLASS_MAP[item.status as SvnMergeStatusCode]}`}>{item.filePath}</TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            ) : (
-                              <pre className="text-xs whitespace-pre-wrap">{dryRunOutput}</pre>
-                            )}
-                          </ScrollArea>
-                        </div>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <div className="h-full overflow-auto border-1 rounded-md relative">
+                      <ScrollArea className="h-full w-full">
+                        {mergeTableData.length > 0 ? (
+                          <Table wrapperClassName={cn('overflow-clip', mergeTableData.length === 0 && 'h-full')}>
+                            <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                              <TableRow>
+                                <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleMergeTableSort('status')}>
+                                  {t('dialog.showLogs.action')}
+                                  {mergeTableSort === 'status' && <span className="ml-1">{mergeTableSortDirection === 'asc' ? '↑' : '↓'}</span>}
+                                </TableHead>
+                                <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleMergeTableSort('filePath')}>
+                                  {t('dialog.showLogs.path')}
+                                  {mergeTableSort === 'filePath' && <span className="ml-1">{mergeTableSortDirection === 'asc' ? '↑' : '↓'}</span>}
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {getSortedMergeTableData().map((item, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="w-1 py-0.5">
+                                    <span className={`${MERGE_STATUS_COLOR_CLASS_MAP[item.status as SvnMergeStatusCode]}`}>
+                                      {t(MERGE_STATUS_TEXT[item.status as SvnMergeStatusCode])}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className={`py-0.5 ${MERGE_STATUS_COLOR_CLASS_MAP[item.status as SvnMergeStatusCode]}`}>{item.filePath}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <pre className="text-xs whitespace-pre-wrap">{dryRunOutput}</pre>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  </div>
                 </ResizablePanel>
                 <ResizableHandle withHandle className="bg-transparent" />
-                <ResizablePanel defaultSize={40} minSize={30}>
-                  <Card className="flex-1 h-full p-2 pt-0">
-                    <CardContent className="h-full p-2">
-                      <div className="h-full flex flex-col">
-                        <Label className="mb-2">{t('dialog.mergeSvn.commits')}</Label>
-                        <div className="flex flex-col border rounded-md overflow-auto h-full">
-                          <ScrollArea className="h-full w-full">
-                            {commits.length > 0 ? (
-                              <Table wrapperClassName={cn('overflow-clip', commits.length === 0 && 'h-full')}>
-                                <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                                  <TableRow>
-                                    <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('revision')}>
-                                      Revision
-                                      {commitsSort === 'revision' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('author')}>
-                                      Author
-                                      {commitsSort === 'author' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('date')}>
-                                      Date
-                                      {commitsSort === 'date' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('message')}>
-                                      Message
-                                      {commitsSort === 'message' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
-                                    </TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {getSortedCommits().map((commit, index) => (
-                                    <TableRow key={index}>
-                                      <TableCell className="w-1 py-0.5">{commit.revision}</TableCell>
-                                      <TableCell className="w-1 py-0.5">{commit.author}</TableCell>
-                                      <TableCell className="w-1 py-0.5">{commit.date}</TableCell>
-                                      <TableCell className="whitespace-break-spaces py-0.5">{commit.message}</TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            ) : (
-                              <div className="text-sm p-2">{t('dialog.mergeSvn.noCommits')}</div>
-                            )}
-                          </ScrollArea>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <ResizablePanel defaultSize={40} minSize={30} className="flex flex-col">
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-center justify-between h-6">
+                      <Label>{t('dialog.mergeSvn.commits')}</Label>
+                    </div>
+                    <div className="h-full overflow-auto border-1 rounded-md relative">
+                      <ScrollArea className="h-full w-full">
+                        {commits.length > 0 ? (
+                          <Table wrapperClassName={cn('overflow-clip', commits.length === 0 && 'h-full')}>
+                            <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                              <TableRow>
+                                <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('revision')}>
+                                  Revision
+                                  {commitsSort === 'revision' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
+                                </TableHead>
+                                <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('author')}>
+                                  Author
+                                  {commitsSort === 'author' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
+                                </TableHead>
+                                <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('date')}>
+                                  Date
+                                  {commitsSort === 'date' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
+                                </TableHead>
+                                <TableHead className="cursor-pointer hover:bg-muted/50 h-9" onClick={() => handleCommitsSort('message')}>
+                                  Message
+                                  {commitsSort === 'message' && <span className="ml-1">{commitsSortDirection === 'asc' ? '↑' : '↓'}</span>}
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {getSortedCommits().map((commit, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="w-1 py-0.5">{commit.revision}</TableCell>
+                                  <TableCell className="w-1 py-0.5">{commit.author}</TableCell>
+                                  <TableCell className="w-1 py-0.5">{commit.date}</TableCell>
+                                  <TableCell className="whitespace-break-spaces py-0.5">{commit.message}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <div className="text-sm p-2">{t('dialog.mergeSvn.noCommits')}</div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  </div>
                 </ResizablePanel>
               </ResizablePanelGroup>
               <div className="flex justify-center gap-2 mt-4">
@@ -568,7 +578,7 @@ export function MergeSvn() {
               <Card className="flex-1 h-full py-0">
                 <CardContent className="h-full p-0">
                   <ResizablePanelGroup direction="horizontal" className="flex-1">
-                    <ResizablePanel defaultSize={40} minSize={30}>
+                    <ResizablePanel defaultSize={40} minSize={10}>
                       <div className="h-full flex flex-col p-2">
                         <ScrollArea className="flex-1">
                           {conflicts.map((conflict, index) => (
@@ -589,7 +599,7 @@ export function MergeSvn() {
                       </div>
                     </ResizablePanel>
                     <ResizableHandle withHandle />
-                    <ResizablePanel defaultSize={60} minSize={30}>
+                    <ResizablePanel defaultSize={60} minSize={50}>
                       {conflicts.length > 0 && (
                         <div className="h-full flex flex-col p-2">
                           {selectedConflict?.isRevisionConflict ? (
@@ -597,29 +607,21 @@ export function MergeSvn() {
                               <div className="text-center p-4 mb-4 border rounded-md bg-muted">
                                 <h3 className="text-lg font-semibold mb-2">Conflict Revision</h3>
                                 <p className="mb-2">File này chỉ có xung đột về revision, không có thay đổi nội dung.</p>
-                                <p>Bạn có thể giải quyết xung đột bằng cách chọn một trong các tùy chọn bên dưới.</p>
                               </div>
                             </div>
                           ) : selectedConflict?.content ? (
-                            <Tabs defaultValue="diff" className="w-full h-full flex flex-col">
-                              <TabsList className="w-full grid grid-cols-3">
-                                <TabsTrigger value="mine">{t('dialog.mergeSvn.mine')}</TabsTrigger>
-                                <TabsTrigger value="theirs">{t('dialog.mergeSvn.theirs')}</TabsTrigger>
-                                <TabsTrigger value="diff">{t('dialog.mergeSvn.diff')}</TabsTrigger>
+                            <Tabs defaultValue="working_base" className="w-full h-full flex flex-col">
+                              <TabsList className="w-full grid grid-cols-2">
+                                <TabsTrigger value="working_copy">{t('dialog.mergeSvn.base')}</TabsTrigger>
+                                <TabsTrigger value="working_base">{t('dialog.mergeSvn.working')}</TabsTrigger>
+                                {/* <TabsTrigger value="diff">{t('dialog.mergeSvn.diff')}</TabsTrigger> */}
                               </TabsList>
-                              <TabsContent value="mine" className="flex-1">
-                                <Editor height="100%" language="typescript" value={selectedConflict.content.mine} options={{ readOnly: true, minimap: { enabled: false } }} />
-                              </TabsContent>
-                              <TabsContent value="theirs" className="flex-1">
-                                <Editor height="100%" language="typescript" value={selectedConflict.content.theirs} options={{ readOnly: true, minimap: { enabled: false } }} />
-                              </TabsContent>
-                              <TabsContent value="diff" className="flex-1">
-                                <DiffEditor
+                              <TabsContent value="working_copy" className="flex-1">
+                                <Editor
                                   height="100%"
                                   language="typescript"
-                                  original={selectedConflict.content.mine}
-                                  modified={selectedConflict.content.theirs}
                                   theme={themeMode === 'dark' ? 'custom-dark' : 'custom-light'}
+                                  value={selectedConflict.content.base}
                                   options={{
                                     renderWhitespace: 'all',
                                     readOnly: true,
@@ -630,19 +632,82 @@ export function MergeSvn() {
                                     lineNumbers: 'on',
                                     scrollBeyondLastLine: false,
                                     contextmenu: true,
-                                    renderIndicators: true,
-                                    renderMarginRevertIcon: true,
                                     showFoldingControls: 'always',
                                     smoothScrolling: true,
                                     scrollbar: {
                                       verticalScrollbarSize: 8,
                                       horizontalScrollbarSize: 8,
                                     },
-                                    diffAlgorithm: 'advanced',
                                     renderValidationDecorations: 'off',
                                   }}
                                 />
                               </TabsContent>
+                              <TabsContent value="working_base" className="flex-1">
+                                <Editor
+                                  height="100%"
+                                  language="typescript"
+                                  theme={themeMode === 'dark' ? 'custom-dark' : 'custom-light'}
+                                  value={selectedConflict.content.working}
+                                  options={{
+                                    renderWhitespace: 'all',
+                                    readOnly: true,
+                                    fontSize: 12,
+                                    fontFamily: 'Jetbrains Mono NL, monospace',
+                                    automaticLayout: true,
+                                    padding: { top: 12, bottom: 12 },
+                                    lineNumbers: 'on',
+                                    scrollBeyondLastLine: false,
+                                    contextmenu: true,
+                                    showFoldingControls: 'always',
+                                    smoothScrolling: true,
+                                    scrollbar: {
+                                      verticalScrollbarSize: 8,
+                                      horizontalScrollbarSize: 8,
+                                    },
+                                    renderValidationDecorations: 'off',
+                                  }}
+                                />
+                              </TabsContent>
+                              {/* <TabsContent value="diff" className="flex-1 h-full">
+                                <div className="flex px-4 py-1 text-xs text-gray-500 border-b">
+                                  <div className="flex items-center justify-center w-[50%]">
+                                    <span className="border rounded px-2 dark:bg-gray-200 dark:text-gray-600 font-bold">Theirs</span>
+                                  </div>
+                                  <div className="flex items-center justify-center w-[50%]">
+                                    <span className="border rounded px-2 dark:bg-gray-200 dark:text-gray-600 font-bold">Mine</span>
+                                  </div>
+                                </div>
+                                <div className="flex-1 overflow-hidden h-full">
+                                  <DiffEditor
+                                    height="100%"
+                                    language="typescript"
+                                    modified={selectedConflict.content.theirs}
+                                    original={selectedConflict.content.mine}
+                                    theme={themeMode === 'dark' ? 'custom-dark' : 'custom-light'}
+                                    options={{
+                                      renderWhitespace: 'all',
+                                      readOnly: true,
+                                      fontSize: 12,
+                                      fontFamily: 'Jetbrains Mono NL, monospace',
+                                      automaticLayout: true,
+                                      padding: { top: 12, bottom: 12 },
+                                      lineNumbers: 'on',
+                                      scrollBeyondLastLine: false,
+                                      contextmenu: true,
+                                      renderIndicators: true,
+                                      renderMarginRevertIcon: true,
+                                      showFoldingControls: 'always',
+                                      smoothScrolling: true,
+                                      scrollbar: {
+                                        verticalScrollbarSize: 8,
+                                        horizontalScrollbarSize: 8,
+                                      },
+                                      diffAlgorithm: 'advanced',
+                                      renderValidationDecorations: 'off',
+                                    }}
+                                  />
+                                </div>
+                              </TabsContent> */}
                             </Tabs>
                           ) : (
                             <div className="flex items-center justify-center h-full">
@@ -657,12 +722,15 @@ export function MergeSvn() {
               </Card>
               <div className="flex justify-center gap-2 mt-4">
                 {selectedConflict?.isRevisionConflict ? (
-                  <Button variant={variant} onClick={() => resolveConflict('working')}>
+                  <Button variant={variant} onClick={() => resolveConflict('')}>
                     Resolve Conflict
                   </Button>
                 ) : (
                   selectedConflict && (
                     <>
+                      {/* <Button variant={variant} onClick={() => resolveConflict('working')}>
+                        {t('dialog.mergeSvn.useWorking')}
+                      </Button> */}
                       <Button variant={variant} onClick={() => resolveConflict('mine')}>
                         {t('dialog.mergeSvn.useMine')}
                       </Button>
@@ -679,51 +747,25 @@ export function MergeSvn() {
             </TabsContent>
 
             <TabsContent value="complete" className="flex-1 flex flex-col">
-              <ResizablePanelGroup direction="vertical" className="flex-1 gap-2">
+              <ResizablePanelGroup direction="vertical" className="rounded-md border">
                 <ResizablePanel defaultSize={40} minSize={30}>
-                  <Card className="flex-1 h-full p-2 pt-0">
-                    <CardContent className="h-full p-2">
-                      <div className="h-full flex flex-col">
-                        <Label className="pb-2">{t('dialog.mergeSvn.changedFiles')}</Label>
-                        <div className="flex flex-col border rounded-md overflow-auto h-full">
-                          <ScrollArea className="h-full w-full">
-                            {changedFiles.length > 0 ? (
-                              <Table>
-                                <TableBody>
-                                  {changedFiles.map((file, index) => (
-                                    <TableRow key={index} className="hover:bg-muted/50">
-                                      <TableCell className="py-0.5">
-                                        <span className="truncate">{file}</span>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            ) : (
-                              <p className="text-sm">{t('dialog.mergeSvn.noChangedFiles')}</p>
-                            )}
-                          </ScrollArea>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <DataTable ref={tableRef} targetPath={targetPath} />
                 </ResizablePanel>
-                <ResizableHandle withHandle className="bg-transparent" />
-                <ResizablePanel defaultSize={60} minSize={30}>
-                  <Card className="flex-1 h-full p-2 pt-0">
-                    <CardContent className="h-full p-2">
-                      <div className="h-full flex flex-col">
-                        <Label htmlFor="commit-message">{t('dialog.mergeSvn.commitMessage')}</Label>
-                        <Textarea
-                          id="commit-message"
-                          value={commitMessage}
-                          onChange={e => setCommitMessage(e.target.value)}
-                          placeholder={t('placeholder.commitMessage')}
-                          className="flex-1 mt-2"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                <ResizableHandle />
+                <ResizablePanel className="p-2" defaultSize={60} minSize={30}>
+                  <div className="relative overflow-hidden h-full flex flex-col">
+                    <Label className="h-10">Commit Message</Label>
+                    <div className="h-full relative">
+                      <Textarea
+                        id="commit-message-area"
+                        placeholder={t('placeholder.commitMessage')}
+                        className="w-full h-full flex-1 resize-none"
+                        onChange={e => setCommitMessage(e.target.value)}
+                        value={commitMessage}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
                 </ResizablePanel>
               </ResizablePanelGroup>
               <div className="flex justify-center mt-4">

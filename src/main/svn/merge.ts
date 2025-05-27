@@ -27,9 +27,10 @@ interface MergeResult {
     conflicts?: Array<{
       path: string
       content?: {
-        mine: string
-        theirs: string
+        working: string
         base: string
+        theirs: string
+        mine: string
       }
       isRevisionConflict?: boolean
     }>
@@ -37,21 +38,25 @@ interface MergeResult {
     commits?: Commit[]
     dryRunOutput?: string
     mergeTableData?: MergeOutputItem[]
+    summary?: {
+      textConflicts: number
+      treeConflicts: number
+    }
   }
 }
 
 interface Commit {
-  revision: string;
-  author: string;
-  date: string;
-  message: string;
+  revision: string
+  author: string
+  date: string
+  message: string
 }
 
 interface MergeOutputItem {
-  status: string;
-  filePath: string;
+  status: string
+  filePath: string
+  conflictType?: string
 }
-
 
 async function checkCleanWorkingCopy(path: string): Promise<boolean> {
   try {
@@ -115,7 +120,7 @@ export async function merge(options: MergeOptions): Promise<MergeResult> {
     if (!isClean) {
       return {
         status: 'error',
-        message: 'Working copy is not clean. Please commit or revert changes before merging.'
+        message: 'Working copy is not clean. Please commit or revert changes before merging.',
       }
     }
     let mergeCommand = 'svn merge'
@@ -135,15 +140,7 @@ export async function merge(options: MergeOptions): Promise<MergeResult> {
     log.info(`Thực hiện lệnh: ${mergeCommand}`)
     const { stdout, stderr } = await execPromise(mergeCommand, { cwd: sourceFolder })
     if (dryRun) {
-      const mergeTableData = formatMergeOutput(stdout)
-      return {
-        status: 'success',
-        message: 'Check merge successfully',
-        data: {
-          dryRunOutput: stdout,
-          mergeTableData: mergeTableData
-        }
-      }
+      return formatMergeOutput(stdout)
     }
 
     let hasConflicts = false
@@ -173,74 +170,91 @@ export async function merge(options: MergeOptions): Promise<MergeResult> {
           .map(async (conflict: { path: string }) => {
             try {
               const filePath = conflict.path
-              const fullFilePath = path.join(targetPath, filePath)
+              const fullFilePath = path.join(sourceFolder, filePath)
               const textResult = isText(fullFilePath)
-              if (textResult) {
-                const minePath = `${fullFilePath}.mine`
-                const theirsPath = `${fullFilePath}.r.new`
-                const basePath = `${fullFilePath}.r.old`
+              if (!textResult) {
+                return { path: filePath }
+              }
+              const dir = path.dirname(fullFilePath)
+              const baseName = path.basename(fullFilePath)
 
-                // Kiểm tra xem có phải conflict revision không
-                const hasMineFile = fs.existsSync(minePath)
-                const hasTheirsFile = fs.existsSync(theirsPath)
-                const hasBaseFile = fs.existsSync(basePath)
+              const workingPath = `${fullFilePath}.working`
+              const allFiles = fs.readdirSync(dir)
 
-                // Nếu không có các file .mine, .r.new, .r.old thì đây là conflict revision
-                const isRevisionConflict = !(hasMineFile || hasTheirsFile || hasBaseFile)
+              const leftFile = allFiles.find(f => f.startsWith(`${baseName}.merge-left.r`))
+              const rightFile = allFiles.find(f => f.startsWith(`${baseName}.merge-right.r`))
 
-                if (isRevisionConflict) {
-                  return {
-                    path: filePath,
-                    isRevisionConflict: true
-                  }
-                }
+              const fullLeftPath = leftFile ? path.join(dir, leftFile) : null
+              const fullRightPath = rightFile ? path.join(dir, rightFile) : null
 
-                const mine = hasMineFile ? fs.readFileSync(minePath, 'utf8') : 'No .mine file available'
-                const theirs = hasTheirsFile ? fs.readFileSync(theirsPath, 'utf8') : 'No .r.new file available'
-                const base = hasBaseFile ? fs.readFileSync(basePath, 'utf8') : 'No .r.old file available'
+              const hasWorkingFile = fs.existsSync(workingPath)
+              const hasLeftFile = fullLeftPath && fs.existsSync(fullLeftPath)
+              const hasRightFile = fullRightPath && fs.existsSync(fullRightPath)
 
+              const isRevisionConflict = !(hasWorkingFile || hasLeftFile || hasRightFile)
+
+              if (isRevisionConflict) {
                 return {
                   path: filePath,
-                  content: { mine, theirs, base },
-                  isRevisionConflict: false
+                  isRevisionConflict: true,
                 }
               }
-              return { path: filePath }
+
+              const base = hasWorkingFile ? fs.readFileSync(fullFilePath, 'utf8') : 'No .working file available'
+              const working = hasWorkingFile ? fs.readFileSync(workingPath, 'utf8') : 'No .working file available'
+              const theirs = hasLeftFile ? fs.readFileSync(fullLeftPath, 'utf8') : 'No .merge-left file available'
+              const mine = fullRightPath ? fs.readFileSync(fullRightPath, 'utf8') : 'No .merge-right file available'
+
+              // Extract revision numbers
+              const extractRevision = (fileName: string | null) => {
+                if (!fileName) return null
+                const match = fileName.match(/\.r(\d+)$/)
+                return match ? Number.parseInt(match[1], 10) : null
+              }
+
+              const baseRevision = extractRevision(leftFile || null)
+              const theirsRevision = extractRevision(rightFile || null)
+
+              return {
+                path: filePath,
+                isRevisionConflict: false,
+                revisions: {
+                  base: baseRevision,
+                  theirs: theirsRevision,
+                },
+                content: { working, base, theirs, mine },
+              }
             } catch (error) {
               log.error(`Lỗi khi đọc file xung đột ${conflict.path}:`, error)
               return { path: conflict.path, content: undefined }
             }
           })
       )
-
       return {
         status: 'conflict',
         message: 'Merge có xung đột cần giải quyết',
-        data: { conflicts }
+        data: { conflicts },
       }
     }
-
-    const changedFilesResult = await execPromise(`svn status "${targetPath}"`, { cwd: sourceFolder })
-    const changedFiles = changedFilesResult.stdout
-      .split('\n')
-      .filter(line => line.trim() !== '')
-      .map(line => line.substring(8).trim())
 
     return {
       status: 'success',
       message: 'Merge thành công',
-      data: { changedFiles }
     }
   } catch (error) {
     log.error('Lỗi khi thực hiện merge:', error)
     return {
       status: 'error',
-      message: `Lỗi khi thực hiện merge: ${error}`
+      message: `Lỗi khi thực hiện merge: ${error}`,
     }
   }
 }
 
-export async function resolveConflict(filePath: string, resolution: 'mine' | 'theirs' | 'base' | 'working', isRevisionConflict?: boolean, targetPath?: string): Promise<MergeResult> {
+export async function resolveConflict(
+  filePath: string,
+  resolution: 'working' | 'theirs' | 'mine' | 'base' | '',
+  isRevisionConflict?: boolean
+): Promise<Omit<MergeResult, 'data'>> {
   try {
     const { sourceFolder } = configurationStore.store
     let command: string
@@ -248,50 +262,45 @@ export async function resolveConflict(filePath: string, resolution: 'mine' | 'th
       command = `svn resolve --accept working "${filePath}"`
     } else {
       switch (resolution) {
-        case 'mine':
-          command = `svn resolve --accept mine-full "${filePath}"`
+        case 'working':
+          command = `svn resolve --accept working "${filePath}"`
           break
         case 'theirs':
           command = `svn resolve --accept theirs-full "${filePath}"`
           break
+        case 'mine':
+          command = `svn resolve --accept mine-full "${filePath}"`
+          break
         case 'base':
           command = `svn resolve --accept base "${filePath}"`
-          break
-        case 'working':
-          command = `svn resolve --accept working "${filePath}"`
           break
         default:
           return {
             status: 'error',
-            message: 'Phương thức giải quyết xung đột không hợp lệ'
+            message: 'Phương thức giải quyết xung đột không hợp lệ.',
           }
       }
     }
+
     await execPromise(command, { cwd: sourceFolder })
 
-    const pathToCheck = targetPath || path.dirname(filePath)
-    const changedFilesResult = await execPromise(`svn status "${pathToCheck}"`, { cwd: sourceFolder })
-    const changedFiles = changedFilesResult.stdout
-      .split('\n')
-      .filter(line => line.trim() !== '')
-      .map(line => path.relative(sourceFolder, line.substring(8).trim()))
-
     const successMessage = isRevisionConflict
-      ? `Đã giải quyết xung đột revision cho file ${filePath}`
-      : `Đã giải quyết xung đột cho file ${filePath}`
+      ? `✅ Đã giải quyết xung đột revision cho file: ${filePath}`
+      : `✅ Đã giải quyết xung đột nội dung cho file: ${filePath}`
+
     return {
       status: 'success',
       message: successMessage,
-      data: { changedFiles }
     }
   } catch (error) {
-    log.error('Lỗi khi giải quyết xung đột:', error)
+    log.error('❌ Lỗi khi giải quyết xung đột:', error)
     return {
       status: 'error',
-      message: `Lỗi khi giải quyết xung đột: ${error}`
+      message: `Lỗi khi giải quyết xung đột: ${error}`,
     }
   }
 }
+
 
 export async function createSnapshot(targetPath: string): Promise<MergeResult> {
   try {
@@ -305,7 +314,7 @@ export async function createSnapshot(targetPath: string): Promise<MergeResult> {
     // Bước 1: Tạo thư mục snapshot và sao chép source
     await execPromise(`mkdir "${snapshotDir}"`)
     await execPromise(`xcopy "${srcPath}" "${snapshotSrcDir}" /E /I /H`, {
-      maxBuffer: 1024 * 1024 * 10
+      maxBuffer: 1024 * 1024 * 10,
     })
 
     // Bước 2: Tạo file zip bằng PowerShell
@@ -317,14 +326,13 @@ export async function createSnapshot(targetPath: string): Promise<MergeResult> {
 
     return {
       status: 'success',
-      message: `Đã tạo và nén snapshot thành công: ${zipPath}`
+      message: `Đã tạo và nén snapshot thành công: ${zipPath}`,
     }
-
   } catch (error) {
     console.error('Lỗi khi tạo snapshot:', error)
     return {
       status: 'error',
-      message: `Lỗi khi tạo snapshot: ${error}`
+      message: `Lỗi khi tạo snapshot: ${error}`,
     }
   }
 }
@@ -337,46 +345,79 @@ export async function getCommitsForMerge(options: MergeOptions): Promise<MergeRe
       message: 'Lấy danh sách commit thành công',
       data: {
         changedFiles: commits.map(commit => commit.revision),
-        commits: commits
-      }
+        commits: commits,
+      },
     }
   } catch (error) {
     log.error('Lỗi khi lấy danh sách commit cho merge:', error)
     return {
       status: 'error',
-      message: `Lỗi khi lấy danh sách commit: ${error}`
+      message: `Lỗi khi lấy danh sách commit: ${error}`,
     }
   }
 }
 
-function formatMergeOutput(output: string): MergeOutputItem[] {
-  const lines = output.split('\n')
+function formatMergeOutput(stdout: string): MergeResult {
+  const lines = stdout.split('\n')
   const result: MergeOutputItem[] = []
+  let textConflicts = 0
+  let treeConflicts = 0
+
   for (const line of lines) {
     const trimmed = line.trim()
     if (trimmed.startsWith('---') || trimmed === '') {
       continue
     }
-    let status = ''
-    const filePath = trimmed.slice(1).trim()
 
-    if (trimmed.startsWith('C')) {
+    const originalIndex = line.indexOf(trimmed)
+    const prefix = line.slice(originalIndex, originalIndex + 5)
+
+    let status: 'C' | 'U' | 'A' | 'D' | '' = ''
+    let conflictType: 'text' | 'tree' | undefined
+    let filePath = ''
+
+    // Match possible merge statuses
+    if (prefix.startsWith('C')) {
       status = 'C'
-    } else if (trimmed.startsWith('U')) {
+      filePath = trimmed.slice(1).trim()
+
+      // Determine conflict type based on position of 'C'
+      if (line.indexOf('C') === 3) {
+        conflictType = 'tree'
+        treeConflicts++
+      } else {
+        conflictType = 'text'
+        textConflicts++
+      }
+    } else if (prefix.startsWith('U')) {
       status = 'U'
-    } else if (trimmed.startsWith('A')) {
+      filePath = trimmed.slice(1).trim()
+    } else if (prefix.startsWith('A')) {
       status = 'A'
-    } else if (trimmed.startsWith('D')) {
+      filePath = trimmed.slice(1).trim()
+    } else if (prefix.startsWith('D')) {
       status = 'D'
+      filePath = trimmed.slice(1).trim()
     } else {
       continue
     }
 
     result.push({
       status,
-      filePath
+      filePath,
+      ...(conflictType ? { conflictType } : {}),
     })
   }
-
-  return result
+  return {
+    status: 'success',
+    message: 'Check merge successfully',
+    data: {
+      dryRunOutput: stdout,
+      mergeTableData: result,
+      summary: {
+        textConflicts,
+        treeConflicts,
+      },
+    },
+  }
 }

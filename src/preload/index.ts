@@ -22,7 +22,7 @@ declare global {
       }
 
       svn: {
-        changed_files: () => Promise<SVNResponse>
+        changed_files: (targetPath: string) => Promise<SVNResponse>
         get_diff: (selectedFiles: any[]) => Promise<SVNResponse>
         commit: (commitMessage: string, violations: string, selectedFiles: any[]) => Promise<SVNResponse>
         info: (filePath: string, revision?: string) => Promise<any>
@@ -35,7 +35,7 @@ declare global {
         open_diff: (filePath: string, options?: { fileStatus: string; revision?: string; currentRevision?: string }) => void
         statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) => Promise<any>
         merge: (options: { sourcePath: string; targetPath: string; dryRun?: boolean; revision?: string }) => Promise<any>
-        merge_resolve_conflict: (filePath: string, resolution: 'mine' | 'theirs' | 'base' | 'working', isRevisionConflict?: boolean, targetPath?: string) => Promise<any>
+        merge_resolve_conflict: (filePath: string, resolution: 'working' | 'theirs' | 'mine' | 'base' | '', isRevisionConflict?: boolean, targetPath?: string) => Promise<any>
         merge_create_snapshot: (targetPath: string) => Promise<any>
         merge_get_commits: (options: { sourcePath: string; targetPath: string }) => Promise<any>
       }
@@ -66,18 +66,6 @@ declare global {
             {
               name: string
               url: string
-            },
-          ]
-        }>
-        set: (...args: any[]) => Promise<void>
-      }
-
-      history: {
-        get: () => Promise<{
-          commitMessages: [
-            {
-              message: string
-              date: string
             },
           ]
         }>
@@ -116,13 +104,6 @@ contextBridge.exposeInMainWorld('api', {
     set: (data: MailServerConfig) => ipcRenderer.invoke(IPC.SETTING.MAIL_SERVER.SET, data),
   },
 
-  history: {
-    // Không sử dụng IPC handlers nữa vì chúng ta đang sử dụng IndexedDB trực tiếp trong renderer process
-    // Giữ lại API để đảm bảo tính tương thích ngược
-    get: () => Promise.resolve({ commitMessages: [] }),
-    set: (data: HistoryCommitMessage) => Promise.resolve(),
-  },
-
   openai: {
     send_message: (data: {
       type: keyof typeof PROMPT
@@ -143,7 +124,7 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   svn: {
-    changed_files: () => ipcRenderer.invoke(IPC.SVN.CHANGED_FILES),
+    changed_files: (targetPath: string) => ipcRenderer.invoke(IPC.SVN.CHANGED_FILES, targetPath),
     get_diff: (selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.GET_DIFF, selectedFiles),
     commit: (commitMessage: string, violations: string, selectedFiles: any[]) => ipcRenderer.invoke(IPC.SVN.COMMIT, commitMessage, violations, selectedFiles),
     info: (filePath: string) => ipcRenderer.invoke(IPC.SVN.INFO, filePath),
@@ -159,7 +140,7 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),
     merge: (options: { sourcePath: string; targetPath: string; dryRun?: boolean; revision?: string }) =>
       ipcRenderer.invoke(IPC.SVN.MERGE, options),
-    merge_resolve_conflict: (filePath: string, resolution: 'mine' | 'theirs' | 'base' | 'working', isRevisionConflict?: boolean, targetPath?: string) =>
+    merge_resolve_conflict: (filePath: string, resolution: 'working' | 'theirs' | 'mine' | 'base' | '', isRevisionConflict?: boolean, targetPath?: string) =>
       ipcRenderer.invoke(IPC.SVN.MERGE_RESOLVE_CONFLICT, filePath, resolution, isRevisionConflict, targetPath),
     merge_create_snapshot: (targetPath: string) =>
       ipcRenderer.invoke(IPC.SVN.MERGE_CREATE_SNAPSHOT, targetPath),

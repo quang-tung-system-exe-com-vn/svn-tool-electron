@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { Clock, Hash, User } from 'lucide-react'
@@ -168,12 +168,12 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
           <div className="max-h-60 border rounded-md overflow-auto">
             <ScrollArea className="h-full">
               <Table wrapperClassName={cn('overflow-clip', (svnInfo?.changedFiles ?? []).length === 0 && 'h-full')}>
-                <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                {/* <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
                   <TableRow>
                     <TableHead>{t('dialog.updateSvn.action')}</TableHead>
                     <TableHead>{t('dialog.updateSvn.path')}</TableHead>
                   </TableRow>
-                </TableHeader>
+                </TableHeader> */}
                 <TableBody className={(svnInfo?.changedFiles ?? []).length === 0 ? 'h-full' : ''}>
                   {(svnInfo?.changedFiles ?? []).map((file, index) => (
                     <TableRow key={index}>
