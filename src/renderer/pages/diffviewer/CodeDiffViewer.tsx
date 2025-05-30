@@ -1,5 +1,4 @@
 'use client'
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
 import toast from '@/components/ui-elements/Toast'
 import i18n from '@/lib/i18n'
 import logger from '@/services/logger'
@@ -345,7 +344,7 @@ export function CodeDiffViewer() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <OverlayLoader isLoading={isLoading} />
+      {/* <OverlayLoader isLoading={isLoading} /> */}
       <DiffToolbar
         onRefresh={onRefresh}
         onSwapSides={handleSwap}
@@ -358,12 +357,12 @@ export function CodeDiffViewer() {
       <div className="flex px-4 py-1 text-xs text-gray-500 border-b">
         <div className="flex items-center justify-center w-[50%]">
           <span className="border rounded px-2 dark:bg-gray-200 dark:text-gray-600 font-bold">
-            {isSwapped ? revision : currentRevision ? Number(revision) - 1 : 'Working Copy'}
+            {isSwapped ? (currentRevision ? revision : 'Working Copy') : currentRevision ? Number(revision) - 1 : 'Working Base'}
           </span>
         </div>
         <div className="flex items-center justify-center w-[50%]">
           <span className="border rounded px-2 dark:bg-gray-200 dark:text-gray-600 font-bold">
-            {isSwapped ? (currentRevision ? Number(revision) - 1 : 'Working Copy') : revision}
+            {isSwapped ? (currentRevision ? Number(revision) - 1 : 'Working Base') : currentRevision ? revision : 'Working Copy'}
           </span>
         </div>
       </div>
