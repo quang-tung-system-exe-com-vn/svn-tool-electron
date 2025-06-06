@@ -2,7 +2,7 @@
   "displayName": "SVNTool",
   "name": "svn-tool-electron",
   "description": "SVNTool",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
@@ -13,7 +13,9 @@
   "packageManager": "pnpm@10.11.1",
   "pnpm": {
     "onlyBuiltDependenciesFile": "./trusted-dependencies-scripts.json",
-    "ignoredBuiltDependencies": ["@tailwindcss/oxide"]
+    "ignoredBuiltDependencies": [
+      "@tailwindcss/oxide"
+    ]
   },
   "scripts": {
     "start": "electron-vite preview",
