@@ -12,6 +12,10 @@ log.transports.file.level = 'info'
 autoUpdater.logger = log
 autoUpdater.forceDevUpdateConfig = true
 autoUpdater.autoDownload = true
+autoUpdater.fullChangelog = true
+autoUpdater.requestHeaders = {
+  'Cache-Control': 'no-cache',
+}
 
 export function initAutoUpdater(window: BrowserWindow) {
   const { showNotifications } = configurationStore.store
