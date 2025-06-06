@@ -2,37 +2,37 @@
 
 ### English (en)
 
-- Updated IPC handlers to support additional parameters for SVN operations (`cat`, `open_diff`).
-- Improved error handling and logging in SVN commands.
-- Enhanced the `CodeDiffViewer` to manage file status and revisions more effectively.
-- Added loading states for AI interactions in SpotBugs.
-- Updated SpotBugs and its components to reflect loading states and improve user experience.
-- Refactored the handling of file paths in `ShowLog` and `DataTable` for better clarity.
-- Improved the UI of the `NewRevisionDialog` to display status summaries of changed files.
-- Added functionality to handle file path processing in SVN logs.
+- Added IPC handlers for coding rules management in the main process.
+- Created a new store to manage coding rules.
+- Implemented dialogs for adding and editing coding rules.
+- Integrated coding rules with OpenAI message handling.
+- Updated the settings dialog to support coding rules management.
+- Refactored webhook management to allow updates and deletions.
+- Enhanced the main page to apply selected coding rules during checks.
+- Removed the unused `AddNewWebhookDialog` component.
 
 ---
 
 ### Japanese (ja)
 
-- SVN 操作（`cat`、`open_diff`）に追加パラメータを対応するため、IPC ハンドラーを更新しました。
-- SVN コマンドのエラーハンドリングとログ出力を改善しました。
-- `CodeDiffViewer` を強化し、ファイルステータスとリビジョン管理を改善しました。
-- SpotBugs の AI 連携においてローディング状態を追加しました。
-- SpotBugs とそのコンポーネントを更新し、ユーザー体験を向上させました。
-- `ShowLog` と `DataTable` におけるファイルパスの処理をリファクタリングしました。
-- `NewRevisionDialog` の UI を改善し、変更ファイルのステータス概要を表示できるようにしました。
-- SVN ログ内のファイルパス処理機能を追加しました。
+- コーディングルール管理のために、メインプロセスに IPC ハンドラーを追加しました。
+- コーディングルールを管理するための新しいストアを作成しました。
+- コーディングルール追加・編集用のダイアログを実装しました。
+- OpenAI メッセージ処理にコーディングルールを統合しました。
+- 設定ダイアログを更新し、コーディングルールの管理をサポートしました。
+- Webhook 管理をリファクタリングし、更新と削除をサポートしました。
+- メインページを強化し、チェック時に選択されたコーディングルールを利用できるようにしました。
+- 未使用の `AddNewWebhookDialog` コンポーネントを削除しました。
 
 ---
 
 ### Vietnamese (vi)
 
-- Cập nhật các handler IPC để hỗ trợ thêm tham số cho các thao tác SVN (`cat`, `open_diff`).
-- Cải thiện xử lý lỗi và ghi log trong các lệnh SVN.
-- Nâng cấp `CodeDiffViewer` để quản lý trạng thái và phiên bản file hiệu quả hơn.
-- Thêm trạng thái loading cho các tương tác AI trong SpotBugs.
-- Cập nhật SpotBugs và các component để phản ánh trạng thái tải và cải thiện trải nghiệm người dùng.
-- Refactor lại xử lý đường dẫn file trong `ShowLog` và `DataTable` cho rõ ràng hơn.
-- Cải tiến UI của `NewRevisionDialog` để hiển thị tổng quan trạng thái của các file thay đổi.
-- Thêm chức năng xử lý đường dẫn file trong SVN logs.
+- Thêm các handler IPC cho quản lý quy tắc kiểm tra code ở main process.
+- Tạo store mới để quản lý các quy tắc coding.
+- Triển khai dialog cho thao tác thêm/sửa quy tắc coding.
+- Tích hợp các quy tắc coding vào xử lý message của OpenAI.
+- Cập nhật dialog cài đặt để hỗ trợ quản lý quy tắc coding.
+- Refactor phần quản lý webhook để hỗ trợ cập nhật và xóa.
+- Nâng cấp trang chính để áp dụng quy tắc kiểm tra code được chọn trong quá trình kiểm tra.
+- Xóa component `AddNewWebhookDialog` không còn sử dụng.

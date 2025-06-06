@@ -1,6 +1,7 @@
 import { type BrowserWindow, app } from 'electron'
 import { makeAppWithSingleInstanceLock } from 'lib/electron-app/factories/app/instance'
 import { makeAppSetup } from 'lib/electron-app/factories/app/setup'
+import { registerCodingRuleIpcHandlers } from './ipc/codingRule'
 import { registerHistoryIpcHandlers } from './ipc/history'
 import { registerNotificationsIpcHandlers } from './ipc/notifications'
 import { registerOpenAiIpcHandlers } from './ipc/openai'
@@ -26,6 +27,7 @@ makeAppWithSingleInstanceLock(async () => {
   registerOpenAiIpcHandlers()
   registerSystemIpcHandlers()
   registerNotificationsIpcHandlers()
+  registerCodingRuleIpcHandlers()
 
   // Assign the created window to the exported variable
   mainWindow = await makeAppSetup(MainWindow)

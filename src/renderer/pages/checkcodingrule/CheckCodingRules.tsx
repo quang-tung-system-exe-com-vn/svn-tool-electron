@@ -37,23 +37,29 @@ export function CheckCodingRules() {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
   const [result, setResult] = useState('')
+  const [codingRuleName, setCodingRuleName] = useState('')
 
   useEffect(() => {
     const handler = (_event: any, data: any) => {
       setSelectedFiles(data.selectedFiles)
-      handleRefresh(data.selectedFiles)
+      setCodingRuleName(data.codingRuleName)
+      handleRefresh(data.selectedFiles, data.codingRuleName)
     }
     window.api.on('load-diff-data', handler)
+
+    return () => {
+      window.api.removeAllListeners('load-diff-data')
+    }
   }, [])
 
-  const handleRefresh = async (selectedFiles: any[]) => {
-    if (selectedFiles.length === 0) {
+  const handleRefresh = async (files: any[], ruleName: string) => {
+    if (files.length === 0) {
       toast.warning(t('message.noFilesWarning'))
       return
     }
     const languageName = LANGUAGES.find(lang => lang.code === language)?.label || 'English'
     setIsLoading(true)
-    const result = await window.api.svn.get_diff(selectedFiles)
+    const result = await window.api.svn.get_diff(files)
     const { status, message, data } = result
     if (status === 'success') {
       const params = {
@@ -61,6 +67,7 @@ export function CheckCodingRules() {
         values: {
           diff_content: data.diffContent,
           language: languageName,
+          codingRuleName: ruleName,
         },
       }
       const openai_result = await window.api.openai.send_message(params)
@@ -76,10 +83,10 @@ export function CheckCodingRules() {
   return (
     <div className="flex h-screen w-full">
       <div className="flex flex-col flex-1 w-full">
-        <CheckCodingRulesToolbar isLoading={isLoading} onRefresh={() => handleRefresh(selectedFiles)} />
-        <div className="p-4 space-y-4 flex-1 h-full flex flex-col">
-          <div className="flex-1 border rounded-md overflow-hidden">
-            <ScrollArea className="h-full">
+        <CheckCodingRulesToolbar isLoading={isLoading} onRefresh={() => handleRefresh(selectedFiles, codingRuleName)} />
+        <div className="p-4 space-y-4 flex-1 h-full flex flex-col overflow-hidden">
+          <div className="flex flex-col border rounded-md overflow-auto h-full">
+            <ScrollArea className="h-full w-full">
               <OverlayLoader isLoading={isLoading} />
               {result ? (
                 <div className="p-4 prose prose-sm dark:prose-invert max-w-none">

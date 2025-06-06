@@ -14,6 +14,7 @@ import {
   Bell,
   Cloud,
   Database,
+  FileCode,
   Folder,
   HelpCircle,
   KeyRound,
@@ -23,8 +24,11 @@ import {
   Mail,
   Network,
   Palette,
+  Pencil,
+  Plus,
   RefreshCw,
   Settings,
+  Trash2,
   TypeOutline,
   User,
   Webhook,
@@ -35,12 +39,14 @@ import { useTranslation } from 'react-i18next'
 import Joyride, { ACTIONS, type CallBackProps, STATUS, type Step } from 'react-joyride'
 
 import { useAppearanceStore } from '../../stores/useAppearanceStore'
+import { useCodingRuleStore } from '../../stores/useCodingRuleStore'
 import { useConfigurationStore } from '../../stores/useConfigurationStore'
 import { useMailServerStore } from '../../stores/useMailServerStore'
 import { useWebhookStore } from '../../stores/useWebhookStore'
 import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES, THEMES } from '../shared/constants'
 import { JoyrideTooltip } from '../tooltips/joyride-tooltip'
-import { AddWebhookDialog } from './AddNewWebhookDialog'
+import { AddOrEditCodingRuleDialog } from './AddOrEditCodingRuleDialog'
+import { AddOrEditWebhookDialog } from './AddOrEditWebhookDialog'
 
 interface SettingsDialogProps {
   open?: boolean
@@ -59,6 +65,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     sourceFolder,
     emailPL,
     webhookMS,
+    codingRule,
     oneDriveClientId,
     oneDriveClientSecret,
     oneDriveRefreshToken,
@@ -72,10 +79,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   } = useConfigurationStore()
 
   const { smtpServer, port, email, password, setFieldMailServer, saveMailServerConfig, loadMailServerConfig } = useMailServerStore()
-  const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook } = useWebhookStore()
-  const [nestedDialogOpen, setNestedDialogOpen] = useState(false)
+  const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook, updateWebhook } = useWebhookStore()
+  const { codingRuleList, loadCodingRuleConfig, addCodingRule, deleteCodingRule, updateCodingRule } = useCodingRuleStore()
+  const [webhookDialogOpen, setWebhookDialogOpen] = useState(false)
+  const [editWebhookDialogOpen, setEditWebhookDialogOpen] = useState(false)
+  const [codingRuleDialogOpen, setCodingRuleDialogOpen] = useState(false)
+  const [editCodingRuleDialogOpen, setEditCodingRuleDialogOpen] = useState(false)
   const [webhookName, setWebhookName] = useState('')
   const [webhookUrl, setWebhookUrl] = useState('')
+  const [codingRuleName, setCodingRuleName] = useState('')
+  const [codingRuleContent, setCodingRuleContent] = useState('')
   const [runTour, setRunTour] = useState(false)
   const [steps, setTourSteps] = useState<Step[]>([])
   const [activeTab, setActiveTab] = useState('appearance')
@@ -89,11 +102,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   useEffect(() => {
     if (open) {
       loadWebhookConfig()
+      loadCodingRuleConfig()
       loadConfigurationConfig()
       loadMailServerConfig()
       setIsDarkMode(themeMode === 'dark')
     }
-  }, [open, loadWebhookConfig, loadConfigurationConfig, loadMailServerConfig, themeMode])
+  }, [open, loadWebhookConfig, loadCodingRuleConfig, loadConfigurationConfig, loadMailServerConfig, themeMode])
 
   useEffect(() => {
     const tourSteps: Step[] = [
@@ -234,14 +248,64 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     if (result) {
       setWebhookName('')
       setWebhookUrl('')
-      setNestedDialogOpen(false)
-      setFieldConfiguration('webhookMS', webhookUrl)
+      setWebhookDialogOpen(false)
+      setFieldConfiguration('webhookMS', webhookName)
     }
   }
 
-  const handleDeleteWebhook = async (url: string) => {
-    deleteWebhook(url)
+  const handleUpdateWebhook = async () => {
+    if (!webhookName.trim() || !webhookUrl.trim()) {
+      return
+    }
+    const updatedWebhook = {
+      name: webhookName,
+      url: webhookUrl,
+    }
+    const result = await updateWebhook(updatedWebhook)
+    if (result) {
+      setEditWebhookDialogOpen(false)
+    }
+  }
+
+  const handleAddCodingRule = async () => {
+    if (!codingRuleName.trim() || !codingRuleContent.trim()) {
+      return
+    }
+    const newCodingRule = {
+      name: codingRuleName,
+      content: codingRuleContent,
+    }
+    const result = await addCodingRule(newCodingRule)
+    if (result) {
+      setCodingRuleName('')
+      setCodingRuleContent('')
+      setCodingRuleDialogOpen(false)
+      setFieldConfiguration('codingRule', newCodingRule.name)
+    }
+  }
+
+  const handleUpdateCodingRule = async () => {
+    if (!codingRuleName.trim() || !codingRuleContent.trim()) {
+      return
+    }
+    const updatedRule = {
+      name: codingRuleName,
+      content: codingRuleContent,
+    }
+    const result = await updateCodingRule(updatedRule)
+    if (result) {
+      setEditCodingRuleDialogOpen(false)
+    }
+  }
+
+  const handleDeleteWebhook = async (name: string) => {
+    deleteWebhook(name)
     setFieldConfiguration('webhookMS', '')
+  }
+
+  const handleDeleteCodingRule = async (name: string) => {
+    deleteCodingRule(name)
+    setFieldConfiguration('codingRule', '')
   }
 
   const handleSaveConfigurationConfig = async () => {
@@ -673,7 +737,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {webhookList.map(webhook => (
-                          <SelectItem key={webhook.url} value={webhook.url}>
+                          <SelectItem key={webhook.name} value={webhook.name}>
                             {webhook.name}
                           </SelectItem>
                         ))}
@@ -681,28 +745,144 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     </Select>
 
                     <div className="flex gap-2">
-                      <Button variant={buttonVariant} onClick={() => setNestedDialogOpen(true)}>
-                        {t('settings.configuration.addNewWebhook')}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        disabled={!webhookMS}
+                        onClick={() => {
+                          const webhook = webhookList.find(w => w.name === webhookMS)
+                          if (webhook) {
+                            setWebhookName(webhook.name)
+                            setWebhookUrl(webhook.url)
+                            setEditWebhookDialogOpen(true)
+                          }
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" onClick={() => setWebhookDialogOpen(true)}>
+                        <Plus className="h-4 w-4" />
                       </Button>
 
                       {webhookMS && (
-                        <Button variant={buttonVariant} onClick={() => handleDeleteWebhook(webhookMS)}>
-                          {t('common.delete')}
+                        <Button variant="outline" size="icon" onClick={() => handleDeleteWebhook(webhookMS)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
                   </div>
 
-                  {/* AddWebhookDialog Dialog */}
-                  <AddWebhookDialog
-                    open={nestedDialogOpen}
-                    onOpenChange={setNestedDialogOpen}
+                  {/* Add Webhook Dialog */}
+                  <AddOrEditWebhookDialog
+                    open={webhookDialogOpen}
+                    onOpenChange={setWebhookDialogOpen}
+                    isEditMode={false}
                     webhookName={webhookName}
                     webhookUrl={webhookUrl}
                     setWebhookName={setWebhookName}
                     setWebhookUrl={setWebhookUrl}
                     onAdd={handleAddWebhook}
+                    onUpdate={() => {}}
                   />
+                  {/* Edit Webhook Dialog */}
+                  {editWebhookDialogOpen && (
+                    <AddOrEditWebhookDialog
+                      open={editWebhookDialogOpen}
+                      onOpenChange={setEditWebhookDialogOpen}
+                      isEditMode={true}
+                      webhookName={webhookName}
+                      webhookUrl={webhookUrl}
+                      setWebhookName={setWebhookName}
+                      setWebhookUrl={setWebhookUrl}
+                      onUpdate={handleUpdateWebhook}
+                      onAdd={() => {}}
+                    />
+                  )}
+                </div>
+
+                {/* Coding Rule */}
+                <div id="settings-coding-rule" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="mr-2 flex items-center gap-2">
+                      <FileCode className="w-4 h-4" /> {t('settings.configuration.codingRule', 'Coding Rule')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <Select value={codingRule} onValueChange={value => setFieldConfiguration('codingRule', value)}>
+                      <SelectTrigger className="border rounded-md w-full">
+                        <SelectValue placeholder={t('settings.configuration.selectCodingRule', 'Select a coding rule')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {codingRuleList.map(rule => (
+                          <SelectItem key={rule.name} value={rule.name}>
+                            {rule.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        disabled={!codingRule}
+                        onClick={() => {
+                          const rule = codingRuleList.find(r => r.name === codingRule)
+                          if (rule) {
+                            setCodingRuleName(rule.name)
+                            setCodingRuleContent(rule.content)
+                            setEditCodingRuleDialogOpen(true)
+                          }
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setCodingRuleName('')
+                          setCodingRuleContent('')
+                          setCodingRuleDialogOpen(true)
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+
+                      {codingRule && (
+                        <Button variant="outline" size="icon" onClick={() => handleDeleteCodingRule(codingRule)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Add Dialog */}
+                  <AddOrEditCodingRuleDialog
+                    open={codingRuleDialogOpen}
+                    onOpenChange={setCodingRuleDialogOpen}
+                    isEditMode={false}
+                    ruleName={codingRuleName}
+                    ruleContent={codingRuleContent}
+                    setRuleName={setCodingRuleName}
+                    setRuleContent={setCodingRuleContent}
+                    onAdd={handleAddCodingRule}
+                    onUpdate={() => {}} // No-op for add mode
+                  />
+                  {/* Edit Dialog */}
+                  {editCodingRuleDialogOpen && (
+                    <AddOrEditCodingRuleDialog
+                      open={editCodingRuleDialogOpen}
+                      onOpenChange={setEditCodingRuleDialogOpen}
+                      isEditMode={true}
+                      ruleName={codingRuleName}
+                      ruleContent={codingRuleContent}
+                      setRuleName={setCodingRuleName}
+                      setRuleContent={setCodingRuleContent}
+                      onUpdate={handleUpdateCodingRule}
+                      onAdd={() => {}} // No-op for edit mode
+                    />
+                  )}
                 </div>
 
                 {/* Start on Login Switch */}

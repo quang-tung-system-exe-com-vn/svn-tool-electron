@@ -72,6 +72,18 @@ declare global {
         set: (...args: any[]) => Promise<void>
       }
 
+      codingRule: {
+        get: () => Promise<{
+          codingRules: [
+            {
+              name: string
+              content: string
+            },
+          ]
+        }>
+        set: (...args: any[]) => Promise<void>
+      }
+
       system: {
         select_folder: () => Promise<string>
         reveal_in_file_explorer: (filePath: string) => Promise<void>
@@ -111,11 +123,17 @@ contextBridge.exposeInMainWorld('api', {
     }) => {
       const { type, values } = data
       const template = PROMPT[type]
-      const prompt = Object.entries(values).reduce((result, [key, val]) => result.replaceAll(`{${key}}`, val), template)
-      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, prompt)
+      const prompt = Object.entries(values).reduce((result, [key, val]) => {
+        if (key !== 'codingRuleName') {
+          return result.replaceAll(`{${key}}`, val)
+        }
+        return result
+      }, template)
+
+      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, { prompt, codingRuleName: values.codingRuleName })
     },
     chat: (prompt: string) => {
-      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, prompt)
+      return ipcRenderer.invoke(IPC.OPENAI.SEND_MESSAGE, { prompt })
     },
   },
 
@@ -138,14 +156,11 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.send(IPC.WINDOW.DIFF_WINDOWS, { filePath, ...options }),
     statistics: (filePath: string, options?: { period?: 'day' | 'week' | 'month' | 'year' | 'all'; dateFrom?: string; dateTo?: string }) =>
       ipcRenderer.invoke(IPC.SVN.STATISTICS, filePath, options),
-    merge: (options: { sourcePath: string; targetPath: string; dryRun?: boolean; revision?: string }) =>
-      ipcRenderer.invoke(IPC.SVN.MERGE, options),
+    merge: (options: { sourcePath: string; targetPath: string; dryRun?: boolean; revision?: string }) => ipcRenderer.invoke(IPC.SVN.MERGE, options),
     merge_resolve_conflict: (filePath: string, resolution: 'working' | 'theirs' | 'mine' | 'base' | '', isRevisionConflict?: boolean, targetPath?: string) =>
       ipcRenderer.invoke(IPC.SVN.MERGE_RESOLVE_CONFLICT, filePath, resolution, isRevisionConflict, targetPath),
-    merge_create_snapshot: (targetPath: string) =>
-      ipcRenderer.invoke(IPC.SVN.MERGE_CREATE_SNAPSHOT, targetPath),
-    merge_get_commits: (options: { sourcePath: string; targetPath: string }) =>
-      ipcRenderer.invoke(IPC.SVN.MERGE_GET_COMMITS, options),
+    merge_create_snapshot: (targetPath: string) => ipcRenderer.invoke(IPC.SVN.MERGE_CREATE_SNAPSHOT, targetPath),
+    merge_get_commits: (options: { sourcePath: string; targetPath: string }) => ipcRenderer.invoke(IPC.SVN.MERGE_GET_COMMITS, options),
   },
 
   updater: {
@@ -157,6 +172,11 @@ contextBridge.exposeInMainWorld('api', {
   webhook: {
     get: () => ipcRenderer.invoke(IPC.SETTING.WEBHOOK.GET),
     set: (webhook: string) => ipcRenderer.invoke(IPC.SETTING.WEBHOOK.SET, webhook),
+  },
+
+  codingRule: {
+    get: () => ipcRenderer.invoke(IPC.SETTING.CODING_RULE.GET),
+    set: (config: any) => ipcRenderer.invoke(IPC.SETTING.CODING_RULE.SET, config),
   },
 
   system: {

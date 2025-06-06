@@ -7,7 +7,7 @@ import { useButtonVariant } from '@/stores/useAppearanceStore'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-interface AddWebhookDialogProps {
+interface AddOrEditWebhookDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   webhookName: string
@@ -15,24 +15,36 @@ interface AddWebhookDialogProps {
   setWebhookName: (value: string) => void
   setWebhookUrl: (value: string) => void
   onAdd: () => void
+  onUpdate: () => void
+  isEditMode?: boolean
 }
 
-export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, setWebhookName, setWebhookUrl, onAdd }: AddWebhookDialogProps) {
+export function AddOrEditWebhookDialog({
+  open,
+  onOpenChange,
+  webhookName,
+  webhookUrl,
+  setWebhookName,
+  setWebhookUrl,
+  onAdd,
+  onUpdate,
+  isEditMode = false,
+}: AddOrEditWebhookDialogProps) {
   const [errorName, setErrorName] = useState(false)
   const [errorUrl, setErrorUrl] = useState(false)
   const variant = useButtonVariant()
   const { t } = useTranslation()
 
   useEffect(() => {
-    if (open) {
+    if (open && !isEditMode) {
       setWebhookName('')
       setWebhookUrl('')
       setErrorName(false)
       setErrorUrl(false)
     }
-  }, [open, setWebhookName, setWebhookUrl])
+  }, [open, isEditMode, setWebhookName, setWebhookUrl])
 
-  const handleAdd = () => {
+  const handleSave = () => {
     const nameValid = webhookName.trim().length > 0
     const urlValid = webhookUrl.trim().length > 0
 
@@ -40,7 +52,11 @@ export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, 
     setErrorUrl(!urlValid)
 
     if (nameValid && urlValid) {
-      onAdd()
+      if (isEditMode) {
+        onUpdate()
+      } else {
+        onAdd()
+      }
     }
   }
 
@@ -48,8 +64,8 @@ export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{t('dialog.newWebhook.title')}</DialogTitle>
-          <DialogDescription>{t('dialog.newWebhook.description')}</DialogDescription>
+          <DialogTitle>{isEditMode ? t('dialog.editWebhook.title', 'Edit Webhook') : t('dialog.newWebhook.title')}</DialogTitle>
+          <DialogDescription>{isEditMode ? t('dialog.editWebhook.description', 'Update the webhook details.') : t('dialog.newWebhook.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
@@ -59,6 +75,7 @@ export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, 
             onChange={e => setWebhookName(e.target.value)}
             placeholder={t('dialog.newWebhook.placeholderName')}
             className={errorName ? 'border-red-500' : ''}
+            disabled={isEditMode}
           />
           {errorName && <p className="text-sm text-red-500">{t('dialog.newWebhook.msgRequiredName')}</p>}
 
@@ -76,8 +93,8 @@ export function AddWebhookDialog({ open, onOpenChange, webhookName, webhookUrl, 
           <Button variant={variant} onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button variant={variant} onClick={handleAdd}>
-            {t('common.add')}
+          <Button variant={variant} onClick={handleSave}>
+            {isEditMode ? t('common.update', 'Update') : t('common.add')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -14,6 +14,7 @@ import { DataTable } from '@/pages/main/DataTable'
 import { TitleBar } from '@/pages/main/TitleBar'
 import logger from '@/services/logger'
 import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
+import { useConfigurationStore } from '@/stores/useConfigurationStore'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { motion } from 'framer-motion'
 import { Bug, CheckCircle, CircleAlert, Languages, Palette, PlayCircle, SendHorizontal, Sparkles } from 'lucide-react' // Added icons
@@ -35,19 +36,25 @@ export function MainPage() {
   const { t } = useTranslation()
   const variant = useButtonVariant()
   const { addHistory } = useHistoryStore()
+  const { codingRule, loadConfigurationConfig } = useConfigurationStore()
 
   useEffect(() => {
-    const initDB = async () => {
+    const init = async () => {
       try {
+        // Load configuration first
+        await loadConfigurationConfig()
+        logger.info('Configuration loaded in MainPage')
+
+        // Then initialize IndexedDB
         const { initializeIfNeeded } = await import('@/services/indexedDB')
         await initializeIfNeeded()
-        logger.info('IndexedDB đã được khởi tạo trong MainPage')
+        logger.info('IndexedDB initialized in MainPage')
       } catch (error) {
-        logger.error('Lỗi khi khởi tạo IndexedDB trong MainPage:', error)
+        logger.error('Error during initialization in MainPage:', error)
       }
     }
-    initDB()
-  }, [])
+    init()
+  }, [loadConfigurationConfig])
 
   const [isLoadingGenerate, setLoadingGenerate] = useState(false)
   const [isLoadingCommit, setLoadingCommit] = useState(false)
@@ -279,7 +286,7 @@ export function MainPage() {
       filePath: row.original.filePath,
       status: row.original.status,
     }))
-    window.api.electron.send(IPC.WINDOW.CHECK_CODING_RULES, selectedFiles)
+    window.api.electron.send(IPC.WINDOW.CHECK_CODING_RULES, { selectedFiles, codingRuleName: codingRule })
   }
 
   const commitCode = async () => {

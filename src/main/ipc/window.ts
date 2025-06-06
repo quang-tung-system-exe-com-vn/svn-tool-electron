@@ -85,11 +85,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/code-diff-viewer'
       : format({
-        pathname: resolve(__dirname, '../renderer/index.html'),
-        protocol: 'file:',
-        slashes: true,
-        hash: '/code-diff-viewer',
-      })
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/code-diff-viewer',
+        })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
@@ -122,17 +122,15 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/show-log'
       : format({
-        pathname: resolve(__dirname, '../renderer/index.html'),
-        protocol: 'file:',
-        slashes: true,
-        hash: '/show-log',
-      })
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/show-log',
+        })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
-      const dataToSend = typeof data === 'string'
-        ? { path: data }
-        : data
+      const dataToSend = typeof data === 'string' ? { path: data } : data
       window.webContents.send('load-diff-data', dataToSend)
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })
@@ -141,7 +139,7 @@ export function registerWindowIpcHandlers() {
     })
   })
 
-  ipcMain.on(IPC.WINDOW.CHECK_CODING_RULES, (event, selectedFiles) => {
+  ipcMain.on(IPC.WINDOW.CHECK_CODING_RULES, (event, { selectedFiles, codingRuleName }) => {
     const window = new BrowserWindow({
       width: 1365,
       height: 768,
@@ -162,15 +160,15 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/check-coding-rules'
       : format({
-        pathname: resolve(__dirname, '../renderer/index.html'),
-        protocol: 'file:',
-        slashes: true,
-        hash: '/check-coding-rules',
-      })
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/check-coding-rules',
+        })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
-      window.webContents.send('load-diff-data', { selectedFiles })
+      window.webContents.send('load-diff-data', { selectedFiles, codingRuleName })
       if (ENVIRONMENT.IS_DEV) {
         window.webContents.openDevTools({ mode: 'bottom' })
       }
@@ -205,11 +203,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/spotbugs'
       : format({
-        pathname: resolve(__dirname, '../renderer/index.html'),
-        protocol: 'file:',
-        slashes: true,
-        hash: '/spotbugs',
-      })
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/spotbugs',
+        })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', async () => {
@@ -262,11 +260,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/commit-message-history'
       : format({
-        pathname: resolve(__dirname, '../renderer/index.html'),
-        protocol: 'file:',
-        slashes: true,
-        hash: '/commit-message-history',
-      })
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/commit-message-history',
+        })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {
@@ -298,11 +296,11 @@ export function registerWindowIpcHandlers() {
     const url = ENVIRONMENT.IS_DEV
       ? 'http://localhost:4927/#/merge-svn'
       : format({
-        pathname: resolve(__dirname, '../renderer/index.html'),
-        protocol: 'file:',
-        slashes: true,
-        hash: '/merge-svn',
-      })
+          pathname: resolve(__dirname, '../renderer/index.html'),
+          protocol: 'file:',
+          slashes: true,
+          hash: '/merge-svn',
+        })
     window.loadURL(url)
 
     window.webContents.on('did-finish-load', () => {

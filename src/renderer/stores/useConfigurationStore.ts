@@ -6,6 +6,7 @@ type ConfigurationStore = {
   sourceFolder: string
   emailPL: string
   webhookMS: string
+  codingRule: string
   oneDriveClientId: string
   oneDriveClientSecret: string
   oneDriveRefreshToken: string
@@ -24,6 +25,7 @@ export const useConfigurationStore = create<ConfigurationStore>((set, get) => ({
   sourceFolder: '',
   emailPL: '',
   webhookMS: '',
+  codingRule: '',
   oneDriveClientId: '',
   oneDriveClientSecret: '',
   oneDriveRefreshToken: '',

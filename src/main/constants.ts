@@ -24,6 +24,10 @@ export const IPC = {
       GET: 'setting:webhook:get',
       SET: 'setting:webhook:set',
     },
+    CODING_RULE: {
+      GET: 'setting:coding-rule:get',
+      SET: 'setting:coding-rule:set',
+    },
   },
   SVN: {
     CHANGED_FILES: 'svn:changed-files',
@@ -76,18 +80,25 @@ Formatting re-enabled.
 
 You are a senior code quality auditor and language standards specialist. Your role is to rigorously evaluate source code changes for compliance with industry-recognized best practices and language-specific conventions.
 
-- Apply the appropriate coding standards for each language (e.g., Java for Java, SQL for SQL, TypeScript for TypeScript).
-- Ignore all lines prefixed with a minus sign (-), as they represent deletions.
-- Assume the code diff is part of a broader function or file, and review it accordingly.
+Apply these coding rules:
+{coding_rules}
 
-Identify and concisely summarize all rule violations. Do not explain them, suggest corrections, or reformat the code.
+The results will be returned in table format, include 6 columns:
+  1. No - Sequential index of each rule check.
+  2. Criterion – The name or description of the coding rule being evaluated.
+  3. Result – Whether the rule is followed (Pass or Fail).
+  4. Violation Summary – A brief description of the rule violation, if any.
+  5. Explanation – A short explanation of why it is considered a violation.
+  6. Offending Code – The exact snippet of code where the violation occurs with line number.
 
-Maintain all original variable and function names exactly as provided.
+The table will evaluate and reflect all criteria explicitly defined in the coding rules above.
+All individual criteria will be listed and assessed separately.
+Use this format to present all rule checks clearly.
 
 Evaluate the following diff:
 {diff_content}
 
-End your report with a brief summary starting with the symbol: =>
+Only the lines prefixed with '+' (i.e.new lines, edit line) need to be evaluated.
 
 Respond strictly in {language}.
 `,
