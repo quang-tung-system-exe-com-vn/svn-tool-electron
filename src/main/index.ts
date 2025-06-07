@@ -6,6 +6,7 @@ import { registerHistoryIpcHandlers } from './ipc/history'
 import { registerNotificationsIpcHandlers } from './ipc/notifications'
 import { registerOpenAiIpcHandlers } from './ipc/openai'
 import { registerSettingsIpcHandlers } from './ipc/settings'
+import { registerSourceFolderIpcHandlers } from './ipc/sourcefolder'
 import { registerSvnIpcHandlers } from './ipc/svn'
 import { registerSystemIpcHandlers } from './ipc/system'
 import { registerWindowIpcHandlers } from './ipc/window'
@@ -28,6 +29,7 @@ makeAppWithSingleInstanceLock(async () => {
   registerSystemIpcHandlers()
   registerNotificationsIpcHandlers()
   registerCodingRuleIpcHandlers()
+  registerSourceFolderIpcHandlers()
 
   // Assign the created window to the exported variable
   mainWindow = await makeAppSetup(MainWindow)

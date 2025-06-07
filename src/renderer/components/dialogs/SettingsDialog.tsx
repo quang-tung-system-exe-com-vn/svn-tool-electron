@@ -42,10 +42,12 @@ import { useAppearanceStore } from '../../stores/useAppearanceStore'
 import { useCodingRuleStore } from '../../stores/useCodingRuleStore'
 import { useConfigurationStore } from '../../stores/useConfigurationStore'
 import { useMailServerStore } from '../../stores/useMailServerStore'
+import { useSourceFolderStore } from '../../stores/useSourceFolderStore'
 import { useWebhookStore } from '../../stores/useWebhookStore'
 import { BUTTON_VARIANTS, FONT_FAMILIES, FONT_SIZES, LANGUAGES, THEMES } from '../shared/constants'
 import { JoyrideTooltip } from '../tooltips/joyride-tooltip'
 import { AddOrEditCodingRuleDialog } from './AddOrEditCodingRuleDialog'
+import { AddOrEditSourceFolderDialog } from './AddOrEditSourceFolderDialog'
 import { AddOrEditWebhookDialog } from './AddOrEditWebhookDialog'
 
 interface SettingsDialogProps {
@@ -81,14 +83,19 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { smtpServer, port, email, password, setFieldMailServer, saveMailServerConfig, loadMailServerConfig } = useMailServerStore()
   const { webhookList, loadWebhookConfig, addWebhook, deleteWebhook, updateWebhook } = useWebhookStore()
   const { codingRuleList, loadCodingRuleConfig, addCodingRule, deleteCodingRule, updateCodingRule } = useCodingRuleStore()
+  const { sourceFolderList, loadSourceFolderConfig, addSourceFolder, deleteSourceFolder, updateSourceFolder } = useSourceFolderStore()
   const [webhookDialogOpen, setWebhookDialogOpen] = useState(false)
   const [editWebhookDialogOpen, setEditWebhookDialogOpen] = useState(false)
   const [codingRuleDialogOpen, setCodingRuleDialogOpen] = useState(false)
   const [editCodingRuleDialogOpen, setEditCodingRuleDialogOpen] = useState(false)
+  const [sourceFolderDialogOpen, setSourceFolderDialogOpen] = useState(false)
+  const [editSourceFolderDialogOpen, setEditSourceFolderDialogOpen] = useState(false)
   const [webhookName, setWebhookName] = useState('')
   const [webhookUrl, setWebhookUrl] = useState('')
   const [codingRuleName, setCodingRuleName] = useState('')
   const [codingRuleContent, setCodingRuleContent] = useState('')
+  const [sourceFolderName, setSourceFolderName] = useState('')
+  const [sourceFolderPath, setSourceFolderPath] = useState('')
   const [runTour, setRunTour] = useState(false)
   const [steps, setTourSteps] = useState<Step[]>([])
   const [activeTab, setActiveTab] = useState('appearance')
@@ -105,9 +112,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       loadCodingRuleConfig()
       loadConfigurationConfig()
       loadMailServerConfig()
+      loadSourceFolderConfig()
       setIsDarkMode(themeMode === 'dark')
     }
-  }, [open, loadWebhookConfig, loadCodingRuleConfig, loadConfigurationConfig, loadMailServerConfig, themeMode])
+  }, [open, loadWebhookConfig, loadCodingRuleConfig, loadConfigurationConfig, loadMailServerConfig, loadSourceFolderConfig, themeMode])
 
   useEffect(() => {
     const tourSteps: Step[] = [
@@ -249,7 +257,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       setWebhookName('')
       setWebhookUrl('')
       setWebhookDialogOpen(false)
-      setFieldConfiguration('webhookMS', webhookName)
+      setFieldConfiguration('webhookMS', webhookUrl)
     }
   }
 
@@ -376,6 +384,42 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   const startTour = () => {
     setRunTour(true)
+  }
+
+  const handleAddSourceFolder = async () => {
+    if (!sourceFolderName.trim() || !sourceFolderPath.trim()) {
+      return
+    }
+    const newSourceFolder = {
+      name: sourceFolderName,
+      path: sourceFolderPath,
+    }
+    const result = await addSourceFolder(newSourceFolder)
+    if (result) {
+      setSourceFolderName('')
+      setSourceFolderPath('')
+      setSourceFolderDialogOpen(false)
+      setFieldConfiguration('sourceFolder', sourceFolderPath)
+    }
+  }
+
+  const handleUpdateSourceFolder = async () => {
+    if (!sourceFolderName.trim() || !sourceFolderPath.trim()) {
+      return
+    }
+    const updatedSourceFolder = {
+      name: sourceFolderName,
+      path: sourceFolderPath,
+    }
+    const result = await updateSourceFolder(updatedSourceFolder)
+    if (result) {
+      setEditSourceFolderDialogOpen(false)
+    }
+  }
+
+  const handleDeleteSourceFolder = async (name: string) => {
+    deleteSourceFolder(name)
+    setFieldConfiguration('sourceFolder', '')
   }
 
   return (
@@ -674,23 +718,91 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   <Label className="flex items-center gap-2">
                     <Folder className="w-4 h-4" /> {t('settings.configuration.sourceFolder')}
                   </Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      placeholder={t('settings.configuration.sourceFolderPlaceholder')}
-                      value={sourceFolder}
-                      onChange={e => setFieldConfiguration('sourceFolder', e.target.value)}
-                    />
-                    <Button
-                      variant={buttonVariant}
-                      onClick={async () => {
-                        const folder = await window.api.system.select_folder()
-                        if (folder) setFieldConfiguration('sourceFolder', folder)
-                      }}
-                    >
-                      {t('settings.configuration.chooseFolder')}
-                    </Button>
+                  <div className="flex items-center justify-between gap-2">
+                    <Select value={sourceFolder} onValueChange={value => setFieldConfiguration('sourceFolder', value)}>
+                      <SelectTrigger className="border rounded-md w-full">
+                        <SelectValue placeholder={t('settings.configuration.selectSourceFolder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sourceFolderList.map(folder => (
+                          <SelectItem key={folder.name} value={folder.path}>
+                            {folder.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setSourceFolderName('')
+                          setSourceFolderPath('')
+                          setSourceFolderDialogOpen(true)
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      {sourceFolder && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              const folder = sourceFolderList.find(f => f.path === sourceFolder)
+                              if (folder) {
+                                setSourceFolderName(folder.name)
+                                setSourceFolderPath(folder.path)
+                                setEditSourceFolderDialogOpen(true)
+                              }
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              const folder = sourceFolderList.find(f => f.path === sourceFolder)
+                              if (folder) {
+                                handleDeleteSourceFolder(folder.name)
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Add Source Folder Dialog */}
+                  <AddOrEditSourceFolderDialog
+                    open={sourceFolderDialogOpen}
+                    onOpenChange={setSourceFolderDialogOpen}
+                    isEditMode={false}
+                    folderName={sourceFolderName}
+                    folderPath={sourceFolderPath}
+                    setFolderName={setSourceFolderName}
+                    setFolderPath={setSourceFolderPath}
+                    onAdd={handleAddSourceFolder}
+                    onUpdate={() => {}}
+                  />
+                  {/* Edit Source Folder Dialog */}
+                  {editSourceFolderDialogOpen && (
+                    <AddOrEditSourceFolderDialog
+                      open={editSourceFolderDialogOpen}
+                      onOpenChange={setEditSourceFolderDialogOpen}
+                      isEditMode={true}
+                      folderName={sourceFolderName}
+                      folderPath={sourceFolderPath}
+                      setFolderName={setSourceFolderName}
+                      setFolderPath={setSourceFolderPath}
+                      onUpdate={handleUpdateSourceFolder}
+                      onAdd={() => {}}
+                    />
+                  )}
                 </div>
 
                 {/* Email PL */}
@@ -701,7 +813,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     </Label>
                     <div className="flex items-center space-x-2">
                       <Label htmlFor="enable-mail-notification" className="cursor-pointer">
-                        {t('settings.configuration.receiveMailNotification', 'Nhận thông báo Mail')}
+                        {t('settings.configuration.receiveMailNotification')}
                       </Label>
                       <Switch
                         id="enable-mail-notification"
@@ -721,7 +833,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     </Label>
                     <div className="flex items-center space-x-2">
                       <Label htmlFor="enable-teams-notification" className="cursor-pointer">
-                        {t('settings.configuration.receiveTeamsNotification', 'Nhận thông báo MS Teams')}
+                        {t('settings.configuration.receiveTeamsNotification')}
                       </Label>
                       <Switch
                         id="enable-teams-notification"
@@ -737,7 +849,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {webhookList.map(webhook => (
-                          <SelectItem key={webhook.name} value={webhook.name}>
+                          <SelectItem key={webhook.name} value={webhook.url}>
                             {webhook.name}
                           </SelectItem>
                         ))}
@@ -748,26 +860,34 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <Button
                         variant="outline"
                         size="icon"
-                        disabled={!webhookMS}
                         onClick={() => {
-                          const webhook = webhookList.find(w => w.name === webhookMS)
-                          if (webhook) {
-                            setWebhookName(webhook.name)
-                            setWebhookUrl(webhook.url)
-                            setEditWebhookDialogOpen(true)
-                          }
+                          setWebhookName('')
+                          setWebhookUrl('')
+                          setWebhookDialogOpen(true)
                         }}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="icon" onClick={() => setWebhookDialogOpen(true)}>
                         <Plus className="h-4 w-4" />
                       </Button>
-
                       {webhookMS && (
-                        <Button variant="outline" size="icon" onClick={() => handleDeleteWebhook(webhookMS)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              const webhook = webhookList.find(w => w.url === webhookMS)
+                              if (webhook) {
+                                setWebhookName(webhook.name)
+                                setWebhookUrl(webhook.url)
+                                setEditWebhookDialogOpen(true)
+                              }
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => handleDeleteWebhook(webhookList.find(w => w.url === webhookMS)?.name || '')}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -810,7 +930,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   <div className="flex items-center justify-between gap-2">
                     <Select value={codingRule} onValueChange={value => setFieldConfiguration('codingRule', value)}>
                       <SelectTrigger className="border rounded-md w-full">
-                        <SelectValue placeholder={t('settings.configuration.selectCodingRule', 'Select a coding rule')} />
+                        <SelectValue placeholder={t('settings.configuration.selectCodingRule')} />
                       </SelectTrigger>
                       <SelectContent>
                         {codingRuleList.map(rule => (
@@ -825,21 +945,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <Button
                         variant="outline"
                         size="icon"
-                        disabled={!codingRule}
-                        onClick={() => {
-                          const rule = codingRuleList.find(r => r.name === codingRule)
-                          if (rule) {
-                            setCodingRuleName(rule.name)
-                            setCodingRuleContent(rule.content)
-                            setEditCodingRuleDialogOpen(true)
-                          }
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
                         onClick={() => {
                           setCodingRuleName('')
                           setCodingRuleContent('')
@@ -848,11 +953,26 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
-
                       {codingRule && (
-                        <Button variant="outline" size="icon" onClick={() => handleDeleteCodingRule(codingRule)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              const rule = codingRuleList.find(r => r.name === codingRule)
+                              if (rule) {
+                                setCodingRuleName(rule.name)
+                                setCodingRuleContent(rule.content)
+                                setEditCodingRuleDialogOpen(true)
+                              }
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => handleDeleteCodingRule(codingRule)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -982,13 +1102,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 {/* Client Secret */}
                 <div id="settings-onedrive-client-secret" className="space-y-3">
                   <Label className="flex items-center gap-2">
-                    <Lock className="w-4 h-4" /> {t('settings.onedrive.clientSecret', 'Client Secret')}
+                    <Lock className="w-4 h-4" /> {t('settings.onedrive.clientSecret')}
                   </Label>
                   <Input
                     type="password"
                     value={oneDriveClientSecret}
                     onChange={e => setFieldConfiguration('oneDriveClientSecret', e.target.value)}
-                    placeholder={t('settings.onedrive.clientSecretPlaceholder', 'Enter Client Secret')}
+                    placeholder={t('settings.onedrive.clientSecretPlaceholder')}
                   />
                 </div>
                 {/* Refresh Token */}

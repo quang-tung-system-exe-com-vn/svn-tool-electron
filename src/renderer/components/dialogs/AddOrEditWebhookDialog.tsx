@@ -68,25 +68,31 @@ export function AddOrEditWebhookDialog({
           <DialogDescription>{isEditMode ? t('dialog.editWebhook.description', 'Update the webhook details.') : t('dialog.newWebhook.description')}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2">
-          <Label>Webhook Name</Label>
-          <Input
-            value={webhookName}
-            onChange={e => setWebhookName(e.target.value)}
-            placeholder={t('dialog.newWebhook.placeholderName')}
-            className={errorName ? 'border-red-500' : ''}
-            disabled={isEditMode}
-          />
-          {errorName && <p className="text-sm text-red-500">{t('dialog.newWebhook.msgRequiredName')}</p>}
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="webhook-name">{t('dialog.newWebhook.name', 'Webhook Name')}</Label>
+            <Input
+              id="webhook-name"
+              value={webhookName}
+              onChange={e => setWebhookName(e.target.value)}
+              placeholder={t('dialog.newWebhook.placeholderName')}
+              className={errorName ? 'border-red-500' : ''}
+              disabled={isEditMode}
+            />
+            {errorName && <p className="text-sm text-red-500">{t('dialog.newWebhook.msgRequiredName')}</p>}
+          </div>
 
-          <Label>Webhook URL</Label>
-          <Input
-            value={webhookUrl}
-            onChange={e => setWebhookUrl(e.target.value)}
-            placeholder={t('dialog.newWebhook.placeholderUrl')}
-            className={errorUrl ? 'border-red-500' : ''}
-          />
-          {errorUrl && <p className="text-sm text-red-500">{t('dialog.newWebhook.msgRequiredUrl')}</p>}
+          <div className="space-y-2">
+            <Label htmlFor="webhook-url">{t('dialog.newWebhook.url', 'Webhook URL')}</Label>
+            <Input
+              id="webhook-url"
+              value={webhookUrl}
+              onChange={e => setWebhookUrl(e.target.value)}
+              placeholder={t('dialog.newWebhook.placeholderUrl')}
+              className={errorUrl ? 'border-red-500' : ''}
+            />
+            {errorUrl && <p className="text-sm text-red-500">{t('dialog.newWebhook.msgRequiredUrl')}</p>}
+          </div>
         </div>
 
         <DialogFooter>

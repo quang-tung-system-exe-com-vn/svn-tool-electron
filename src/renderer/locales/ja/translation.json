@@ -24,7 +24,10 @@
     "finish": "完了",
     "startTour": "開始",
     "dontShowAgain": "今後表示しない",
-    "revert": "元に戻す"
+    "revert": "元に戻す",
+    "name": "名前",
+    "path": "パス",
+    "browse": "参照"
   },
   "message": {
     "commitMessageWarning": "コミットメッセージを入力してください！",
@@ -204,18 +207,22 @@
       "description": "プロジェクト設定を構成します。",
       "openaiApiKey": "OpenAI APIキー",
       "openaiApiKeyPlaceholder": "OpenAI APIキーを入力してください",
-      "svnFolder": "SVNフォルダ",
-      "svnFolderPlaceholder": "SVNフォルダを選択",
-      "chooseFolder": "フォルダを選択",
-      "sourceFolder": "ソースフォルダ",
-      "sourceFolderPlaceholder": "ソースフォルダを選択",
-      "emailPL": "メールPL",
-      "emailPlaceholder": "メールアドレスを入力",
+      "svnFolder": "SVNフォルダー",
+      "svnFolderPlaceholder": "svn.exe を含むフォルダーを選択してください",
+      "selectSourceFolder": "ソースフォルダーを選択",
+      "sourceFolder": "ソースフォルダー",
+      "sourceFolderPlaceholder": "ソースフォルダーを選択してください",
+      "chooseFolder": "フォルダーを選択",
+      "emailPL": "PLのメールアドレス",
+      "emailPlaceholder": "メールアドレスを入力してください",
       "webhookMS": "Webhook MS",
-      "selectWebhook": "Webhookを選択",
+      "selectWebhook": "Webhook を選択",
       "addNewWebhook": "新しいWebhookを追加",
-      "startOnLogin": "SVNToolを自動起動する",
-      "showNotifications": "ウィンドウ通知を表示する"
+      "startOnLogin": "SVNTool を自動起動",
+      "showNotifications": "ウィンドウ通知を表示",
+      "selectCodingRule": "コーディング規則を選択",
+      "receiveTeamsNotification": "Microsoft Teams に通知を送信",
+      "receiveMailNotification": "メール通知を送信"
     },
     "mailserver": {
       "description": "メールサーバー設定を構成します。",
@@ -502,6 +509,15 @@
   "welcome": {
     "title": "SVN Toolへようこそ！",
     "description": "初めてのご利用のようです。主な機能について簡単なツアーをご覧になりますか？"
+  },
+  "editSourceFolder": "ソースフォルダーを編集",
+  "addSourceFolder": "ソースフォルダーを追加",
+  "editSourceFolderDesc": "ソースフォルダーの詳細を更新します。",
+  "addSourceFolderDesc": "新しいソースフォルダーの詳細を入力してください。",
+  "newCodingRule": {
+    "title": "新しいコーディングルールを追加",
+    "msgRequiredName": "ルール名は必須です。",
+    "msgRequiredContent": "コーディングルールの内容は必須です。"
   },
   "spotbugs": {
     "categoryDescriptions": {

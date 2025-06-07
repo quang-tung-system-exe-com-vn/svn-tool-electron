@@ -23,6 +23,7 @@ import { Folder, FolderOpen, History, Info, RefreshCw, RotateCcw } from 'lucide-
 import { IPC } from 'main/constants'
 import { type HTMLProps, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { STATUS_COLOR_CLASS_MAP, STATUS_TEXT, type SvnStatusCode } from '../../components/shared/constants'
+import { useConfigurationStore } from '../../stores/useConfigurationStore'
 
 export type SvnFile = {
   filePath: string
@@ -186,6 +187,7 @@ interface DataTableProps {
 }
 
 export const DataTable = forwardRef(({ targetPath }: DataTableProps, ref) => {
+  const { sourceFolder } = useConfigurationStore()
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState<SvnFile[]>([])
@@ -230,6 +232,7 @@ export const DataTable = forwardRef(({ targetPath }: DataTableProps, ref) => {
   }, [])
 
   async function changedFiles(): Promise<SvnFile[]> {
+    console.log(sourceFolder)
     console.log(targetPath)
     const result = await window.api.svn.changed_files(targetPath || '')
     const { status, message, data } = result

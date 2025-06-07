@@ -24,7 +24,10 @@
     "finish": "Hoàn thành",
     "startTour": "Bắt đầu",
     "dontShowAgain": "Không hiển thị lại",
-    "revert": "Hoàn tác"
+    "revert": "Hoàn tác",
+    "name": "Tên",
+    "path": "Đường dẫn",
+    "browse": "Duyệt"
   },
   "message": {
     "commitMessageWarning": "Vui lòng nhập thông điệp commit!",
@@ -201,21 +204,25 @@
       "onedrive": "OneDrive"
     },
     "configuration": {
-      "description": "Cấu hình cài đặt dự án của bạn.",
+      "description": "Cấu hình cài đặt dự án của bạn",
       "openaiApiKey": "Khóa API OpenAI",
-      "openaiApiKeyPlaceholder": "Nhập khóa API OpenAI của bạn",
+      "openaiApiKeyPlaceholder": "Nhập khóa API OpenAI",
       "svnFolder": "Thư mục SVN",
-      "svnFolderPlaceholder": "Chọn thư mục SVN",
-      "chooseFolder": "Chọn thư mục",
+      "svnFolderPlaceholder": "Chọn thư mục chứa svn.exe",
+      "selectSourceFolder": "Chọn thư mục nguồn",
       "sourceFolder": "Thư mục nguồn",
-      "sourceFolderPlaceholder": "Chọn thư mục nguồn",
+      "sourceFolderPlaceholder": "Chọn thư mục nguồn của bạn",
+      "chooseFolder": "Chọn thư mục",
       "emailPL": "Email PL",
       "emailPlaceholder": "Nhập địa chỉ email",
       "webhookMS": "Webhook MS",
       "selectWebhook": "Chọn Webhook",
       "addNewWebhook": "Thêm Webhook mới",
-      "startOnLogin": "Tự động mở app SVNTool",
-      "showNotifications": "Hiển thị thông báo window"
+      "startOnLogin": "Tự động khởi động SVNTool",
+      "showNotifications": "Hiển thị thông báo cửa sổ",
+      "selectCodingRule": "Chọn quy tắc coding",
+      "receiveTeamsNotification": "Gửi thông báo Microsoft Teams",
+      "receiveMailNotification": "Gửi thông báo email"
     },
     "mailserver": {
       "description": "Cấu hình cài đặt máy chủ mail của bạn.",
@@ -502,6 +509,15 @@
   "welcome": {
     "title": "Chào mừng đến với SVN Tool!",
     "description": "Có vẻ đây là lần đầu bạn sử dụng ứng dụng. Bạn có muốn tham gia một chuyến tham quan nhanh để tìm hiểu về các tính năng chính không?"
+  },
+  "editSourceFolder": "Chỉnh sửa thư mục nguồn",
+  "addSourceFolder": "Thêm thư mục nguồn",
+  "editSourceFolderDesc": "Cập nhật thông tin cho thư mục nguồn.",
+  "addSourceFolderDesc": "Nhập thông tin cho thư mục nguồn mới.",
+  "newCodingRule": {
+    "title": "Thêm quy tắc mã hóa mới",
+    "msgRequiredName": "Tên quy tắc là bắt buộc.",
+    "msgRequiredContent": "Nội dung quy tắc mã hóa là bắt buộc."
   },
   "spotbugs": {
     "categoryDescriptions": {

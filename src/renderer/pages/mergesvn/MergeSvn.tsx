@@ -40,6 +40,11 @@ interface ConflictFile {
   isRevisionConflict?: boolean
 }
 
+interface CommittedFile {
+  filePath: string
+  status: string
+}
+
 interface MergeOutputItem {
   status: string
   filePath: string
@@ -53,9 +58,9 @@ export function MergeSvn() {
   const tableRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('setup')
-  const [sourcePath, setSourcePath] = useState('D:\\tokodenko\\ProgramSource\\FrontEnd\\tokodenko-material')
-  const [targetPath, setTargetPath] = useState('D:\\tokodenko\\ProgramSource\\FrontEnd\\tokodenko-material_mobile')
-  const [revision, setRevision] = useState('4598')
+  const [sourcePath, setSourcePath] = useState('')
+  const [targetPath, setTargetPath] = useState('')
+  const [revision, setRevision] = useState('')
   const [createBackup, setCreateBackup] = useState(false)
   const [dryRunOutput, setDryRunOutput] = useState('')
   const [mergeTableData, setMergeTableData] = useState<MergeOutputItem[]>([])
@@ -63,6 +68,7 @@ export function MergeSvn() {
   const [conflicts, setConflicts] = useState<ConflictFile[]>([])
   const [selectedConflict, setSelectedConflict] = useState<ConflictFile | null>(null)
   const [commitMessage, setCommitMessage] = useState('')
+  const [committedInfo, setCommittedInfo] = useState<{ files: CommittedFile[]; message: string } | null>(null)
   const [mergeTableSort, setMergeTableSort] = useState<string | null>(null)
   const [mergeTableSortDirection, setMergeTableSortDirection] = useState<'asc' | 'desc'>('asc')
   const [commitsSort, setCommitsSort] = useState<string | null>(null)
@@ -187,7 +193,7 @@ export function MergeSvn() {
         revision: revision || undefined,
       })
       if (result.status === 'success') {
-        setActiveTab('complete')
+        setActiveTab('commit')
         toast.success(t('toast.mergeSuccess'))
       } else if (result.status === 'conflict') {
         setConflicts(result.data?.conflicts || [])
@@ -219,7 +225,7 @@ export function MergeSvn() {
         if (updatedConflicts.length > 0) {
           setSelectedConflict(updatedConflicts[0])
         } else {
-          setActiveTab('complete')
+          setActiveTab('commit')
         }
         toast.success(result.message)
       } else {
@@ -238,7 +244,7 @@ export function MergeSvn() {
       return
     }
     const selectedRows = tableRef.current.table?.getSelectedRowModel().rows ?? []
-    const selectedFiles = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
+    const selectedFiles: CommittedFile[] = selectedRows.map((row: { original: { filePath: any; status: any } }) => ({
       filePath: row.original.filePath,
       status: row.original.status,
     }))
@@ -251,7 +257,9 @@ export function MergeSvn() {
       const result = await window.api.svn.commit(commitMessage, '', selectedFiles)
       const { status, message } = result
       if (status === 'success') {
+        setCommittedInfo({ files: selectedFiles, message: commitMessage })
         toast.success(t('toast.commitSuccess'))
+        setActiveTab('complete')
         if (tableRef.current) {
           tableRef.current.reloadData()
           setTimeout(() => {
@@ -368,11 +376,12 @@ export function MergeSvn() {
         <MergeSvnToolbar isLoading={isLoading} />
         <div className="p-4 space-y-4 flex-1 flex flex-col">
           <Tabs value={activeTab} className="flex-1 flex flex-col">
-            <TabsList className="grid grid-cols-4">
+            <TabsList className="grid grid-cols-5">
               <TabsTrigger value="setup">{t('dialog.mergeSvn.tabs.setup')}</TabsTrigger>
               <TabsTrigger value="preview">{t('dialog.mergeSvn.tabs.preview')}</TabsTrigger>
               <TabsTrigger value="conflicts">{t('dialog.mergeSvn.tabs.conflicts')}</TabsTrigger>
-              <TabsTrigger value="complete">{t('dialog.mergeSvn.tabs.complete')}</TabsTrigger>
+              <TabsTrigger value="commit">{t('dialog.mergeSvn.tabs.commit', 'Commit')}</TabsTrigger>
+              <TabsTrigger value="complete">{t('dialog.mergeSvn.tabs.complete', 'Hoàn thành')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="setup" className="flex-1 flex flex-col">
@@ -384,27 +393,49 @@ export function MergeSvn() {
                         <Label htmlFor="source-path" className="text-right">
                           {t('dialog.mergeSvn.sourcePath')}
                         </Label>
-                        <Input
-                          id="source-path"
-                          disabled={isLoading}
-                          value={sourcePath}
-                          onChange={e => setSourcePath(e.target.value)}
-                          placeholder="Source path (URL hoặc local path)"
-                          className="col-span-3"
-                        />
+                        <div className="col-span-3 flex items-center space-x-2">
+                          <Input
+                            id="source-path"
+                            disabled={isLoading}
+                            value={sourcePath}
+                            onChange={e => setSourcePath(e.target.value)}
+                            placeholder="Source path (URL hoặc local path)"
+                          />
+                          <Button
+                            variant={variant}
+                            disabled={isLoading}
+                            onClick={async () => {
+                              const folder = await window.api.system.select_folder()
+                              if (folder) setSourcePath(folder)
+                            }}
+                          >
+                            {t('settings.configuration.chooseFolder')}
+                          </Button>
+                        </div>
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="target-path" className="text-right">
                           {t('dialog.mergeSvn.targetPath')}
                         </Label>
-                        <Input
-                          id="target-path"
-                          disabled={isLoading}
-                          value={targetPath}
-                          onChange={e => setTargetPath(e.target.value)}
-                          placeholder="Target path (URL hoặc local path)"
-                          className="col-span-3"
-                        />
+                        <div className="col-span-3 flex items-center space-x-2">
+                          <Input
+                            id="target-path"
+                            disabled={isLoading}
+                            value={targetPath}
+                            onChange={e => setTargetPath(e.target.value)}
+                            placeholder="Target path (URL hoặc local path)"
+                          />
+                          <Button
+                            variant={variant}
+                            disabled={isLoading}
+                            onClick={async () => {
+                              const folder = await window.api.system.select_folder()
+                              if (folder) setTargetPath(folder)
+                            }}
+                          >
+                            {t('settings.configuration.chooseFolder')}
+                          </Button>
+                        </div>
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="revision" className="text-right">
@@ -415,7 +446,7 @@ export function MergeSvn() {
                           disabled={isLoading}
                           value={revision}
                           onChange={e => setRevision(e.target.value)}
-                          placeholder="100:HEAD hoặc 100:200"
+                          placeholder="100 hoặc 100:HEAD hoặc 100:200"
                           className="col-span-3"
                         />
                       </div>
@@ -746,7 +777,7 @@ export function MergeSvn() {
               </div>
             </TabsContent>
 
-            <TabsContent value="complete" className="flex-1 flex flex-col">
+            <TabsContent value="commit" className="flex-1 flex flex-col">
               <ResizablePanelGroup direction="vertical" className="rounded-md border">
                 <ResizablePanel defaultSize={40} minSize={30}>
                   <DataTable ref={tableRef} targetPath={targetPath} />
@@ -781,6 +812,55 @@ export function MergeSvn() {
                   {isLoading ? <GlowLoader /> : <SendHorizontal className="h-4 w-4" />} {t('common.commit')}
                 </Button>
               </div>
+            </TabsContent>
+
+            <TabsContent value="complete" className="flex-1 flex flex-col">
+              {committedInfo ? (
+                <ResizablePanelGroup direction="vertical" className="rounded-md border flex-1">
+                  <ResizablePanel defaultSize={50} minSize={30}>
+                    <div className="h-full flex flex-col p-2">
+                      <Label className="mb-2">{t('dialog.mergeSvn.committedFiles', 'Các file đã commit')}</Label>
+                      <div className="border rounded-md flex-1 overflow-auto relative">
+                        <ScrollArea className="absolute h-full w-full">
+                          <Table>
+                            <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
+                              <TableRow>
+                                <TableHead>{t('dialog.showLogs.action')}</TableHead>
+                                <TableHead>{t('dialog.showLogs.path')}</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {committedInfo.files.map((file, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="w-1 py-0.5">
+                                    <span className={`${MERGE_STATUS_COLOR_CLASS_MAP[file.status as SvnMergeStatusCode]}`}>
+                                      {t(MERGE_STATUS_TEXT[file.status as SvnMergeStatusCode])}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className={`py-0.5 ${MERGE_STATUS_COLOR_CLASS_MAP[file.status as SvnMergeStatusCode]}`}>{file.filePath}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={50} minSize={30}>
+                    <div className="h-full flex flex-col p-2">
+                      <Label htmlFor="committed-message" className="mb-2">
+                        {t('dialog.mergeSvn.commitMessage', 'Nội dung commit')}
+                      </Label>
+                      <Textarea id="committed-message" value={committedInfo.message} readOnly className="resize-none flex-1" spellCheck={false} />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p>{t('dialog.mergeSvn.noCommitInfo', 'Không có thông tin commit.')}</p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
