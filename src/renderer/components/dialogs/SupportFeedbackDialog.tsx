@@ -179,6 +179,7 @@ export const SupportFeedbackDialog = ({ open, onOpenChange }: SupportFeedbackDia
               id="message"
               value={message}
               onChange={e => setMessage(e.target.value)}
+              spellCheck={false}
               className="min-h-[120px]"
               placeholder={t('dialog.supportFeedback.messagePlaceholder')}
             />

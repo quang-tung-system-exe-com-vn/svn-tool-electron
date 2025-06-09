@@ -91,6 +91,7 @@ export function AddOrEditCodingRuleDialog({
             placeholder={t('dialog.newCodingRule.placeholderContent', 'Enter the coding rules here...')}
             className={errorContent ? 'border-red-500' : ''}
             rows={10}
+            spellCheck={false}
           />
           {errorContent && <p className="text-sm text-red-500">{t('dialog.newCodingRule.msgRequiredContent', 'Coding rules content is required.')}</p>}
         </div>

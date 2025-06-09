@@ -212,6 +212,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
           <Textarea
             value={svnInfo?.commitMessage}
             readOnly={true}
+            spellCheck={false}
             className="min-h-[80px] w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
           />
         </div>
