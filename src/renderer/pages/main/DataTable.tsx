@@ -232,8 +232,6 @@ export const DataTable = forwardRef(({ targetPath }: DataTableProps, ref) => {
   }, [])
 
   async function changedFiles(): Promise<SvnFile[]> {
-    console.log(sourceFolder)
-    console.log(targetPath)
     const result = await window.api.svn.changed_files(targetPath || '')
     const { status, message, data } = result
     if (status === 'error') {

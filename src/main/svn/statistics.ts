@@ -49,9 +49,6 @@ export interface StatisticsResponse {
   totalCommits: number
 }
 
-/**
- * Lấy thống kê từ SVN log
- */
 export async function getStatistics(filePath = '.', options?: StatisticsOptions): Promise<SVNResponse> {
   try {
     const { sourceFolder } = configurationStore.store

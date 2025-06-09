@@ -109,7 +109,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
       <DialogContent className="sm:max-w-md" aria-describedby={t('dialog.updateSvn.title')}>
         <DialogHeader>
           <DialogTitle>{t('dialog.updateSvn.title')}</DialogTitle>
-          <DialogDescription>{t('dialog.updateSvn.description', { 0: svnInfo.revision, 1: svnInfo.curRevision })}</DialogDescription>
+          {hasSvnUpdate && <DialogDescription>{t('dialog.updateSvn.description', { 0: svnInfo.revision, 1: svnInfo.curRevision })}</DialogDescription>}
         </DialogHeader>
 
         {svnInfo && (

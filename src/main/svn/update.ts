@@ -4,10 +4,10 @@ import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
 
 const execPromise = promisify(exec)
-const { sourceFolder } = configurationStore.store
 
 export async function update(filePath: string | string[] = '.'): Promise<SVNResponse> {
   try {
+    const { sourceFolder } = configurationStore.store
     let filePathsStr = ''
     if (Array.isArray(filePath)) {
       const paths = filePath.map(path => (path === '.' ? '' : `"${path}"`))
@@ -18,6 +18,7 @@ export async function update(filePath: string | string[] = '.'): Promise<SVNResp
     } else {
       filePathsStr = filePath === '.' ? '' : `"${filePath}"`
     }
+    console.log(`Updating SVN for paths: svn update ${filePathsStr}, cwd: ${sourceFolder}`)
     const { stdout, stderr } = await execPromise(`svn update ${filePathsStr}`, { cwd: sourceFolder })
     if (stderr) return { status: 'error', message: stderr }
 

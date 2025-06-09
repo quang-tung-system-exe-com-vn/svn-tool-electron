@@ -1,5 +1,5 @@
-import { join } from 'node:path'
 import { BrowserWindow } from 'electron'
+import { join } from 'node:path'
 
 import Store from 'electron-store'
 import { createWindow } from 'lib/electron-app/factories/windows/create'
@@ -20,9 +20,9 @@ export async function MainWindow() {
     title: displayName,
     frame: false,
     width: 800,
-    height: 600,
+    height: 900,
     minWidth: 800,
-    minHeight: 600,
+    minHeight: 900,
     show: false,
     center: true,
     movable: true,

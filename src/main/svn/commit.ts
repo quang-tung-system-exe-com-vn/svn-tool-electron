@@ -38,9 +38,9 @@ export async function commit(commitMessage: string, violations: string, selected
   let addedFilePaths: string[] = []
   let deletedFilePaths: string[] = []
   const unsortedPaths: string[] = []
+  const { sourceFolder } = configurationStore.store
 
   for (const filePath of deletedFiles) {
-    const { sourceFolder } = configurationStore.store
     const absolutePath = path.join(sourceFolder, filePath)
     const isDir = await isSVNDirectory(filePath)
 
@@ -89,7 +89,7 @@ export async function commit(commitMessage: string, violations: string, selected
       const tempFile = path.join(os.tmpdir(), `svn-commit-message-${Date.now()}.txt`)
       fs.writeFileSync(tempFile, commitMessage)
 
-      let commitResult: SVNResponse;
+      let commitResult: SVNResponse
       try {
         commitResult = await runSVNCommand('commit', allFiles, tempFile, true)
       } finally {
