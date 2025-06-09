@@ -2,7 +2,7 @@
   "displayName": "SVNTool",
   "name": "svn-tool-electron",
   "description": "SVNTool",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "main": "./node_modules/.dev/main/index.js",
   "resources": "src/resources",
   "author": {
@@ -10,7 +10,7 @@
     "email": "quang-tung@system-exe.com.vn"
   },
   "license": "MIT",
-  "packageManager": "pnpm@10.11.1",
+  "packageManager": "pnpm@10.12.1",
   "pnpm": {
     "onlyBuiltDependenciesFile": "./trusted-dependencies-scripts.json"
   },
@@ -71,7 +71,7 @@
     "electron-router-dom": "^2.1.0",
     "electron-updater": "^6.6.5",
     "embla-carousel-react": "^8.6.0",
-    "fast-xml-parser": "^5.2.4",
+    "fast-xml-parser": "^5.2.5",
     "framer-motion": "^12.16.0",
     "i18next": "^25.2.1",
     "i18next-browser-languagedetector": "^8.1.0",
