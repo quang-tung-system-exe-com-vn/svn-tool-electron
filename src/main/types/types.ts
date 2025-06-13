@@ -32,6 +32,8 @@ type SVNResponse = {
   data?: any
   totalEntries?: number
   suggestedStartDate?: string | null
+  sourceFolderPrefix?: string
+  workingCopyRootFolder?: string
 }
 
 type SupportFeedback = {

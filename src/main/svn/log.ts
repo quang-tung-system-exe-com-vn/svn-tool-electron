@@ -2,6 +2,7 @@ import logger from 'electron-log'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import configurationStore from '../store/ConfigurationStore'
+import { getWorkingCopyRoot } from './info'
 const execPromise = promisify(exec)
 export interface LogOptions {
   dateFrom?: string
@@ -17,6 +18,8 @@ async function fetchAllLogData(
   totalEntries?: number
   data?: string
   message?: string
+  sourceFolderPrefix?: string
+  workingCopyRootFolder?: string
 }> {
   let baseCommand = `svn log "${filePath}"`
   let detailCommandBase = `svn log -v "${filePath}"`
@@ -104,39 +107,56 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
     const { sourceFolder } = configurationStore.store
     let suggestedStartDate: string | null = null
 
+    let sourceFolderPrefix = ''
+    let workingCopyRootFolder = ''
+    const rootFolder = await getWorkingCopyRoot()
+    if (rootFolder && sourceFolder) {
+      workingCopyRootFolder = rootFolder.replace(/\\/g, '/').replace(/\/$/, '')
+      const normalizedSource = sourceFolder.replace(/\\/g, '/').replace(/\/$/, '')
+      if (normalizedSource.length > workingCopyRootFolder.length && normalizedSource.startsWith(workingCopyRootFolder)) {
+        sourceFolderPrefix = normalizedSource.substring(workingCopyRootFolder.length)
+        if (sourceFolderPrefix.startsWith('/')) {
+          sourceFolderPrefix = sourceFolderPrefix.substring(1)
+        }
+      }
+    }
+
+
     if (Array.isArray(filePath)) {
-      logger.info(`Multiple files provided (${filePath.length}), fetching logs for each file separately`);
-      let combinedData = '';
-      let totalEntries = 0;
-      let hasError = false;
-      let errorMessage = '';
+      logger.info(`Multiple files provided (${filePath.length}), fetching logs for each file separately`)
+      let combinedData = ''
+      let totalEntries = 0
+      let hasError = false
+      let errorMessage = ''
       for (const path of filePath) {
-        logger.info(`Fetching log for file: ${path}`);
-        const singleResult = await fetchAllLogData(path, dateFrom, dateTo);
+        logger.info(`Fetching log for file: ${path}`)
+        const singleResult = await fetchAllLogData(path, dateFrom, dateTo)
         if (singleResult.status === 'error') {
-          hasError = true;
-          errorMessage += `Error fetching log for ${path}: ${singleResult.message}\n`;
-          continue;
+          hasError = true
+          errorMessage += `Error fetching log for ${path}: ${singleResult.message}\n`
+          continue
         }
         if (singleResult.data) {
           if (combinedData) {
-            combinedData += '\n------------------------------------------------------------------------\n';
+            combinedData += '\n------------------------------------------------------------------------\n'
           }
-          combinedData += singleResult.data;
-          totalEntries += singleResult.totalEntries || 0;
+          combinedData += singleResult.data
+          totalEntries += singleResult.totalEntries || 0
         }
       }
 
       if (hasError && !combinedData) {
-        return { status: 'error', message: errorMessage.trim() };
+        return { status: 'error', message: errorMessage.trim() }
       }
 
       return {
         status: 'success',
         data: combinedData,
         totalEntries,
-        message: hasError ? errorMessage.trim() : undefined
-      };
+        sourceFolderPrefix,
+        workingCopyRootFolder,
+        message: hasError ? errorMessage.trim() : undefined,
+      }
     }
 
     logger.info(`--- Attempt 1: Fetching ALL logs for [${dateFrom || 'Beginning'}, ${dateTo || 'HEAD'}] ---`)
@@ -200,8 +220,10 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
                 data: combinedData,
                 totalEntries,
                 suggestedStartDate,
-                message: hasError ? errorMessage.trim() : undefined
-              };
+                sourceFolderPrefix,
+                workingCopyRootFolder,
+                message: hasError ? errorMessage.trim() : undefined,
+              }
             }
 
             result = await fetchAllLogData(filePath, suggestedStartDate, dateTo) // Gọi lại fetchAllLogData
@@ -211,7 +233,11 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
             }
             totalEntries = result.totalEntries ?? 0
             allData = result.data ?? ''
-            return { status: 'success', data: allData, totalEntries, suggestedStartDate }
+            return {
+              status: 'success', data: allData, totalEntries, suggestedStartDate,
+              sourceFolderPrefix,
+              workingCopyRootFolder,
+            }
           }
           logger.info('Could not parse date from the last revision XML output. No retry possible.')
         } else {
@@ -222,11 +248,19 @@ export async function log(filePath: string | string[] = '.', options?: LogOption
           `Could not find any revision for "${filePath}" at or before ${dateFrom}. No retry possible. Error: ${findLastError instanceof Error ? findLastError.message : String(findLastError)}`
         )
       }
-      return { status: 'success', data: '', totalEntries: 0, suggestedStartDate }
+      return {
+        status: 'success', data: '', totalEntries: 0, suggestedStartDate,
+        sourceFolderPrefix,
+        workingCopyRootFolder,
+      }
     }
 
     logger.info('Returning result (all data fetched).')
-    return { status: 'success', data: allData, totalEntries, suggestedStartDate } // suggestedStartDate is likely null here
+    return {
+      status: 'success', data: allData, totalEntries, suggestedStartDate,
+      sourceFolderPrefix,
+      workingCopyRootFolder,
+    } // suggestedStartDate is likely null here
   } catch (error) {
     logger.error('Unexpected error in log function:', error)
     return { status: 'error', message: error instanceof Error ? error.message : String(error) }

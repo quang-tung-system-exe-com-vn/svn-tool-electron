@@ -2,37 +2,31 @@
 
 ### English (en)
 
-- Added IPC handlers for coding rules management in the main process.
-- Created a new store to manage coding rules.
-- Implemented dialogs for adding and editing coding rules.
-- Integrated coding rules with OpenAI message handling.
-- Updated the settings dialog to support coding rules management.
-- Refactored webhook management to allow updates and deletions.
-- Enhanced the main page to apply selected coding rules during checks.
-- Removed the unused `AddNewWebhookDialog` component.
+- Integrated `GlowLoader` component in `CodeDiffViewer` and `ShowLog` for loading states.
+- Removed unnecessary configuration store usage in `DataTable`.
+- Cleaned up `TitleBar` by removing unused props.
+- Enhanced `ShowLog` to handle path processing with source folder prefix.
+- Refactored table rendering logic in `ShowLog` to improve readability and maintainability.
+- Ensured consistent loading state handling across components.
 
 ---
 
 ### Japanese (ja)
 
-- コーディングルール管理のために、メインプロセスに IPC ハンドラーを追加しました。
-- コーディングルールを管理するための新しいストアを作成しました。
-- コーディングルール追加・編集用のダイアログを実装しました。
-- OpenAI メッセージ処理にコーディングルールを統合しました。
-- 設定ダイアログを更新し、コーディングルールの管理をサポートしました。
-- Webhook 管理をリファクタリングし、更新と削除をサポートしました。
-- メインページを強化し、チェック時に選択されたコーディングルールを利用できるようにしました。
-- 未使用の `AddNewWebhookDialog` コンポーネントを削除しました。
+- `CodeDiffViewer` と `ShowLog` にローディング状態を示すため、`GlowLoader` コンポーネントを統合しました。
+- `DataTable` で不要な設定ストアの使用を削除しました。
+- 未使用の props を削除して `TitleBar` を整理しました。
+- `ShowLog` にてソースフォルダーのプレフィックスを含むパス処理を強化しました。
+- `ShowLog` のテーブル描画ロジックをリファクタリングし、可読性と保守性を改善しました。
+- 各コンポーネントでローディング状態の一貫した管理を実装しました。
 
 ---
 
 ### Vietnamese (vi)
 
-- Thêm các handler IPC cho quản lý quy tắc kiểm tra code ở main process.
-- Tạo store mới để quản lý các quy tắc coding.
-- Triển khai dialog cho thao tác thêm/sửa quy tắc coding.
-- Tích hợp các quy tắc coding vào xử lý message của OpenAI.
-- Cập nhật dialog cài đặt để hỗ trợ quản lý quy tắc coding.
-- Refactor phần quản lý webhook để hỗ trợ cập nhật và xóa.
-- Nâng cấp trang chính để áp dụng quy tắc kiểm tra code được chọn trong quá trình kiểm tra.
-- Xóa component `AddNewWebhookDialog` không còn sử dụng.
+- Tích hợp component `GlowLoader` vào `CodeDiffViewer` và `ShowLog` để hiển thị trạng thái loading.
+- Loại bỏ việc sử dụng store cấu hình không cần thiết trong `DataTable`.
+- Dọn dẹp `TitleBar` bằng cách xóa các prop không dùng đến.
+- Cải thiện `ShowLog` để xử lý đường dẫn có tiền tố thư mục nguồn.
+- Refactor logic hiển thị bảng trong `ShowLog` nhằm nâng cao khả năng đọc và bảo trì.
+- Đảm bảo xử lý trạng thái loading đồng nhất giữa các component.

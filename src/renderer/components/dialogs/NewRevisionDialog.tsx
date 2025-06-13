@@ -20,23 +20,26 @@ import { ScrollArea } from '../ui/scroll-area'
 interface NewRevisionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  svnInfo: {
-    author: string
-    revision: string
-    date: string
-    curRevision: string
-    commitMessage: string
-    changedFiles: { status: SvnStatusCode; path: string }[]
-  }
   onCurRevisionUpdate: (revision: string) => void
-  hasSvnUpdate: boolean
   isManuallyOpened?: boolean
 }
 
-export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUpdate, hasSvnUpdate, isManuallyOpened = false }: NewRevisionDialogProps) {
+type SvnInfo = {
+  author: string
+  revision: string
+  date: string
+  curRevision: string
+  commitMessage: string
+  changedFiles: { status: SvnStatusCode; path: string }[]
+}
+
+export function NewRevisionDialog({ open, onOpenChange, onCurRevisionUpdate, isManuallyOpened = false }: NewRevisionDialogProps) {
   const { t, i18n } = useTranslation()
   const variant = useButtonVariant()
   const [isLoading, setLoading] = useState(false)
+  const [isCheckingForUpdate, setCheckingForUpdate] = useState(true)
+  const [svnInfo, setSvnInfo] = useState<SvnInfo | null>(null)
+  const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const [statusSummary, setStatusSummary] = useState<Record<SvnStatusCode, number>>({} as Record<SvnStatusCode, number>)
 
@@ -45,7 +48,28 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
       const dontShowRevisionDialog = localStorage.getItem('dont-show-revision-dialog') === 'true'
       if (dontShowRevisionDialog && !isManuallyOpened) {
         onOpenChange(false)
+        return
       }
+
+      const checkSvnUpdates = async () => {
+        setCheckingForUpdate(true)
+        try {
+          const { status, data } = await window.api.svn.info('.')
+          if (status === 'success') {
+            setSvnInfo(data)
+            setHasSvnUpdate(true)
+          } else if (status === 'no-change') {
+            setSvnInfo(data)
+            setHasSvnUpdate(false)
+          }
+        } catch (error) {
+          toast.error('Error checking for SVN updates')
+        } finally {
+          setCheckingForUpdate(false)
+        }
+      }
+
+      checkSvnUpdates()
     }
   }, [open, onOpenChange, isManuallyOpened])
 
@@ -53,7 +77,7 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
     if (open && svnInfo?.changedFiles) {
       setStatusSummary(calculateStatusSummary(svnInfo.changedFiles))
     }
-  }, [open, svnInfo?.changedFiles])
+  }, [open, svnInfo])
 
   useEffect(() => {
     const savedState = localStorage.getItem('dont-show-revision-dialog') === 'true'
@@ -109,150 +133,154 @@ export function NewRevisionDialog({ open, onOpenChange, svnInfo, onCurRevisionUp
       <DialogContent className="sm:max-w-md" aria-describedby={t('dialog.updateSvn.title')}>
         <DialogHeader>
           <DialogTitle>{t('dialog.updateSvn.title')}</DialogTitle>
-          {hasSvnUpdate && <DialogDescription>{t('dialog.updateSvn.description', { 0: svnInfo.revision, 1: svnInfo.curRevision })}</DialogDescription>}
+          {!isCheckingForUpdate && hasSvnUpdate && svnInfo && (
+            <DialogDescription>{t('dialog.updateSvn.description', { 0: svnInfo.revision, 1: svnInfo.curRevision })}</DialogDescription>
+          )}
+          {!isCheckingForUpdate && !hasSvnUpdate && svnInfo && <DialogDescription>You are up to date. Current revision is {svnInfo.curRevision}</DialogDescription>}
         </DialogHeader>
 
-        {svnInfo && (
-          <Card className="max-w-md ring-0 !shadow-none">
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span>
-                  <strong>{t('dialog.updateSvn.author')}</strong>
-                  {svnInfo.author}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Hash className="w-4 h-4 text-muted-foreground" />
-                <span>
-                  <strong>{t('dialog.updateSvn.revision')}</strong>
-                  {svnInfo.revision} ({t('dialog.updateSvn.curRevision')} {svnInfo.curRevision})
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span>
-                  <strong>{t('dialog.updateSvn.date')}</strong>
-                  {svnInfo.date &&
-                    new Date(svnInfo.date).toLocaleString(i18n.language, {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Changed Files Table */}
-        <div className="space-y-2 grid">
-          <div className="font-medium flex justify-between items-center">
-            <label htmlFor="commitMessage" className="text-sm font-medium">
-              {t('dialog.updateSvn.changedFiles')}
-            </label>
-            <div className="flex gap-2">
-              {Object.entries(statusSummary).map(([code, count]) =>
-                count > 0 ? (
-                  <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
-                    <StatusIcon code={code as SvnStatusCode} />
-                    <span>{count}</span>
+        {isCheckingForUpdate ? (
+          <div className="flex items-center justify-center h-159">
+            <GlowLoader className="w-10 h-10" />
+          </div>
+        ) : (
+          svnInfo && (
+            <>
+              <Card className="max-w-md ring-0 !shadow-none">
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span>
+                      <strong>{t('dialog.updateSvn.author')}</strong>
+                      {svnInfo.author}
+                    </span>
                   </div>
-                ) : null
+                  <div className="flex items-center gap-2">
+                    <Hash className="w-4 h-4 text-muted-foreground" />
+                    <span>
+                      <strong>{t('dialog.updateSvn.revision')}</strong>
+                      {svnInfo.revision} ({t('dialog.updateSvn.curRevision')} {svnInfo.curRevision})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span>
+                      <strong>{t('dialog.updateSvn.date')}</strong>
+                      {svnInfo.date &&
+                        new Date(svnInfo.date).toLocaleString(i18n.language, {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Changed Files Table */}
+              <div className="space-y-2 grid">
+                <div className="font-medium flex justify-between items-center">
+                  <label htmlFor="commitMessage" className="text-sm font-medium">
+                    {t('dialog.updateSvn.changedFiles')}
+                  </label>
+                  <div className="flex gap-2">
+                    {Object.entries(statusSummary).map(([code, count]) =>
+                      count > 0 ? (
+                        <div key={code} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
+                          <StatusIcon code={code as SvnStatusCode} />
+                          <span>{count}</span>
+                        </div>
+                      ) : null
+                    )}
+                  </div>
+                </div>
+                <div className="max-h-60 border rounded-md overflow-auto">
+                  <ScrollArea className="h-full">
+                    <Table wrapperClassName={cn('overflow-clip', (svnInfo?.changedFiles ?? []).length === 0 && 'h-full')}>
+                      <TableBody className={(svnInfo?.changedFiles ?? []).length === 0 ? 'h-full' : ''}>
+                        {(svnInfo?.changedFiles ?? []).map((file, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="p-0 h-6 px-2">
+                              <StatusIcon code={file.status} />
+                            </TableCell>
+                            <TableCell
+                              className="p-0 h-6 px-2 cursor-pointer break-all whitespace-normal"
+                              onClick={() => {
+                                try {
+                                  window.api.svn.open_diff(file.path, {
+                                    fileStatus: file.status,
+                                    revision: svnInfo.revision,
+                                    currentRevision: svnInfo.curRevision,
+                                  })
+                                } catch (error) {
+                                  toast.error(error)
+                                }
+                              }}
+                            >
+                              {file.path}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </div>
+              </div>
+
+              {/* Commit Message */}
+              <div className="space-y-2 grid">
+                <label htmlFor="commitMessage" className="text-sm font-medium">
+                  {t('dialog.updateSvn.commitMessage')}
+                </label>
+                <Textarea
+                  value={svnInfo?.commitMessage}
+                  readOnly={true}
+                  spellCheck={false}
+                  className="min-h-[80px] w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
+                />
+              </div>
+              {hasSvnUpdate && !isCheckingForUpdate && (
+                <DialogFooter className="mt-4 flex-col items-start sm:flex-row sm:items-center">
+                  <div className="flex items-center space-x-2 mb-4 sm:mb-0 w-full">
+                    <Checkbox
+                      id="dontShowRevisionDialog"
+                      checked={dontShowAgain}
+                      onCheckedChange={checked => {
+                        setDontShowAgain(checked === true)
+                        if (checked === true) {
+                          localStorage.setItem('dont-show-revision-dialog', 'true')
+                        } else {
+                          localStorage.removeItem('dont-show-revision-dialog')
+                        }
+                      }}
+                    />
+                    <Label htmlFor="dontShowRevisionDialog">{t('common.dontShowAgain')}</Label>
+                  </div>
+                  <div className="flex w-full justify-end space-x-2">
+                    <DialogClose asChild>
+                      <Button disabled={isLoading} variant={variant}>
+                        {t('common.cancel')}
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      className={`relative ${isLoading ? 'border-effect cursor-progress' : ''}`}
+                      variant={variant}
+                      onClick={() => {
+                        if (!isLoading) {
+                          handleSvnUpdate()
+                        }
+                      }}
+                    >
+                      {isLoading ? <GlowLoader /> : null} {t('common.update')}
+                    </Button>
+                  </div>
+                </DialogFooter>
               )}
-            </div>
-          </div>
-          <div className="max-h-60 border rounded-md overflow-auto">
-            <ScrollArea className="h-full">
-              <Table wrapperClassName={cn('overflow-clip', (svnInfo?.changedFiles ?? []).length === 0 && 'h-full')}>
-                {/* <TableHeader className="sticky top-0 z-10 bg-[var(--table-header-bg)]">
-                  <TableRow>
-                    <TableHead>{t('dialog.updateSvn.action')}</TableHead>
-                    <TableHead>{t('dialog.updateSvn.path')}</TableHead>
-                  </TableRow>
-                </TableHeader> */}
-                <TableBody className={(svnInfo?.changedFiles ?? []).length === 0 ? 'h-full' : ''}>
-                  {(svnInfo?.changedFiles ?? []).map((file, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="p-0 h-6 px-2">
-                        <StatusIcon code={file.status} />
-                      </TableCell>
-                      <TableCell
-                        className="p-0 h-6 px-2 cursor-pointer break-all whitespace-normal"
-                        onClick={() => {
-                          try {
-                            window.api.svn.open_diff(file.path, {
-                              fileStatus: file.status,
-                              revision: svnInfo.revision,
-                              currentRevision: svnInfo.curRevision,
-                            })
-                          } catch (error) {
-                            toast.error(error)
-                          }
-                        }}
-                      >
-                        {file.path}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </div>
-        </div>
-
-        {/* Commit Message */}
-        <div className="space-y-2 grid">
-          <label htmlFor="commitMessage" className="text-sm font-medium">
-            {t('dialog.updateSvn.commitMessage')}
-          </label>
-          <Textarea
-            value={svnInfo?.commitMessage}
-            readOnly={true}
-            spellCheck={false}
-            className="min-h-[80px] w-full h-full resize-none border-1 cursor-default break-all relative focus-visible:ring-0 !shadow-none focus-visible:border-color"
-          />
-        </div>
-
-        {hasSvnUpdate && (
-          <DialogFooter className="mt-4 flex-col items-start sm:flex-row sm:items-center">
-            <div className="flex items-center space-x-2 mb-4 sm:mb-0 w-full">
-              <Checkbox
-                id="dontShowRevisionDialog"
-                checked={dontShowAgain}
-                onCheckedChange={checked => {
-                  setDontShowAgain(checked === true)
-                  if (checked === true) {
-                    localStorage.setItem('dont-show-revision-dialog', 'true')
-                  } else {
-                    localStorage.removeItem('dont-show-revision-dialog')
-                  }
-                }}
-              />
-              <Label htmlFor="dontShowRevisionDialog">{t('common.dontShowAgain')}</Label>
-            </div>
-            <div className="flex w-full justify-end space-x-2">
-              <DialogClose asChild>
-                <Button disabled={isLoading} variant={variant}>
-                  {t('common.cancel')}
-                </Button>
-              </DialogClose>
-              <Button
-                className={`relative ${isLoading ? 'border-effect cursor-progress' : ''}`}
-                variant={variant}
-                onClick={() => {
-                  if (!isLoading) {
-                    handleSvnUpdate()
-                  }
-                }}
-              >
-                {isLoading ? <GlowLoader /> : null} {t('common.update')}
-              </Button>
-            </div>
-          </DialogFooter>
+            </>
+          )
         )}
       </DialogContent>
     </Dialog>

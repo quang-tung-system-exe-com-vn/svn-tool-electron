@@ -6,8 +6,6 @@ import configurationStore from '../store/ConfigurationStore'
 import { getResourcePath } from '../utils/utils'
 import { updateRevisionStatus } from '../windows/overlayStateManager'
 
-export type SVNResponse = { status: 'success'; data: any } | { status: 'no-change'; data: any } | { status: 'error'; message: string }
-
 export interface SVNLastChangedInfo {
   author: string
   revision: string
@@ -16,29 +14,6 @@ export interface SVNLastChangedInfo {
 }
 const execPromise = promisify(exec)
 
-let sourceFolderPrefix = '';
-
-async function calculateSourceFolderPrefix() {
-  try {
-    const { sourceFolder } = configurationStore.store
-    const rootFolder = await getWorkingCopyRoot()
-
-    if (rootFolder && sourceFolder) {
-      const normalizedRoot = rootFolder.replace(/\\/g, '/').replace(/\/$/, '')
-      const normalizedSource = sourceFolder.replace(/\\/g, '/').replace(/\/$/, '')
-      if (normalizedSource.length > normalizedRoot.length && normalizedSource.startsWith(normalizedRoot)) {
-        sourceFolderPrefix = normalizedSource.substring(normalizedRoot.length)
-        if (sourceFolderPrefix.startsWith('/')) {
-          sourceFolderPrefix = sourceFolderPrefix.substring(1)
-        }
-      }
-    }
-  } catch (error) {
-    log.error('Lỗi khi tính toán phần dư:', error)
-  }
-}
-
-calculateSourceFolderPrefix()
 
 export async function getWorkingCopyRoot(): Promise<string> {
   try {
@@ -137,7 +112,25 @@ async function getCommitInfo(): Promise<any> {
   }
 }
 
-function parseCommitInfo(info: string) {
+async function parseCommitInfo(info: string) {
+
+  let sourceFolderPrefix = ''
+  let workingCopyRootFolder = ''
+
+  const { sourceFolder } = configurationStore.store
+  const rootFolder = await getWorkingCopyRoot()
+
+  if (rootFolder && sourceFolder) {
+    workingCopyRootFolder = rootFolder.replace(/\\/g, '/').replace(/\/$/, '')
+    const normalizedSource = sourceFolder.replace(/\\/g, '/').replace(/\/$/, '')
+    if (normalizedSource.length > workingCopyRootFolder.length && normalizedSource.startsWith(workingCopyRootFolder)) {
+      sourceFolderPrefix = normalizedSource.substring(workingCopyRootFolder.length)
+      if (sourceFolderPrefix.startsWith('/')) {
+        sourceFolderPrefix = sourceFolderPrefix.substring(1)
+      }
+    }
+  }
+
   const lines = info.split('\n')
   const changedFiles: { status: string; path: string }[] = []
   const commitMessageLines: string[] = []
@@ -160,21 +153,15 @@ function parseCommitInfo(info: string) {
       if (fileMatch) {
         let filePath = fileMatch[2].trim();
         try {
-          if (sourceFolderPrefix) {
-            const prefixPattern = new RegExp(`^/?${sourceFolderPrefix}/?`);
-            filePath = filePath.replace(prefixPattern, '');
-          } else {
-            const pathParts = filePath.split('/').filter(Boolean);
-            if (pathParts.length > 1) {
-              filePath = pathParts.slice(1).join('/');
-            }
-          }
+          const normalizedRoot = workingCopyRootFolder.replace(/\\/g, '/').replace(/\/$/, '')
+          const normalizedSource = configurationStore.store.sourceFolder.replace(/\\/g, '/').replace(/\/$/, '')
+          const fullPrefix = normalizedSource.substring(normalizedRoot.length).replace(/^\/+/, '')
+
+          const prefixPattern = new RegExp(`^/?${fullPrefix}/?`)
+          filePath = filePath.replace(prefixPattern, '')
+          console.log('Đường dẫn đã chuẩn hóa:', filePath)
         } catch (error) {
-          log.error('Lỗi khi xử lý đường dẫn:', error);
-          const pathParts = filePath.split('/').filter(Boolean);
-          if (pathParts.length > 1) {
-            filePath = pathParts.slice(1).join('/');
-          }
+          log.error('Lỗi khi xử lý đường dẫn:', error)
         }
         changedFiles.push({
           status: fileMatch[1],

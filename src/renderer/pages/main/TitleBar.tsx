@@ -214,8 +214,6 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
       <NewRevisionDialog
         open={showSvnUpdateDialog}
         onOpenChange={setShowSvnUpdateDialog}
-        svnInfo={svnInfo}
-        hasSvnUpdate={hasSvnUpdate}
         onCurRevisionUpdate={handleCurRevisionUpdate}
         isManuallyOpened={isSvnDialogManuallyOpened}
       />
