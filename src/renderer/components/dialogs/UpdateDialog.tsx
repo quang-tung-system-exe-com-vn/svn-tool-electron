@@ -50,7 +50,7 @@ export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, r
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]" aria-describedby={t('dialog.updateApp.appVersion')}>
+      <DialogContent className="sm:max-w-md" aria-describedby={t('dialog.updateApp.appVersion')}>
         <DialogHeader>
           <DialogTitle className="flex flex-row items-center gap-2">
             {t('dialog.updateApp.appVersion')}
@@ -61,11 +61,11 @@ export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, r
           <DialogDescription>{t('dialog.updateApp.description')}</DialogDescription>
         </DialogHeader>
 
-        <div className="mt-2 prose prose-sm dark:prose-invert max-h-[40vh] overflow-y-auto p-4 border rounded bg-muted/30 max-w-none">
+        <div className="mt-2 prose prose-sm dark:prose-invert max-h-[50vh] overflow-y-auto p-4 border rounded bg-muted/30 max-w-none">
           {releaseNotes ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{releaseNotes}</ReactMarkdown> : <p>{t('dialog.updateApp.noReleaseNotes')}</p>}
         </div>
-        <div className="border rounded w-full p-3 items-center justify-center text-sm flex flex-row gap-2 border-red-400">
-          <CircleAlert className="w-4 h-4 text-red-400" />
+        <div className="border rounded w-full p-3 items-center justify-center text-sm flex flex-row gap-2 dark:border-blue-400 border-blue-800">
+          <CircleAlert className="w-4 h-4 dark:text-blue-400 text-blue-800" />
           {t('dialog.updateApp.message')}
         </div>
         <DialogFooter className="flex-col items-start sm:flex-row sm:items-center">
@@ -85,10 +85,7 @@ export const UpdateDialog = ({ open, onOpenChange, currentVersion, newVersion, r
             <Label htmlFor="dontShowUpdateDialog">{t('common.dontShowAgain')}</Label>
           </div>
           <div className="flex w-full justify-end space-x-2">
-            <Button variant={variant} onClick={() => onOpenChange(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button variant={variant} onClick={handleInstall}>
+            <Button className="dark:bg-blue-400! bg-blue-800!" onClick={handleInstall}>
               {t('common.install')}
             </Button>
           </div>

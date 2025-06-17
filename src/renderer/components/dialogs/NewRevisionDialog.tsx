@@ -1,20 +1,17 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { Clock, Hash, User } from 'lucide-react'
 import { forwardRef, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useButtonVariant } from '../../stores/useAppearanceStore'
 import { STATUS_TEXT, type SvnStatusCode } from '../shared/constants'
 import { GlowLoader } from '../ui-elements/GlowLoader'
 import { StatusIcon } from '../ui-elements/StatusIcon'
 import toast from '../ui-elements/Toast'
-import { Checkbox } from '../ui/checkbox'
-import { Label } from '../ui/label'
 import { ScrollArea } from '../ui/scroll-area'
 
 interface NewRevisionDialogProps {
@@ -35,12 +32,10 @@ type SvnInfo = {
 
 export function NewRevisionDialog({ open, onOpenChange, onCurRevisionUpdate, isManuallyOpened = false }: NewRevisionDialogProps) {
   const { t, i18n } = useTranslation()
-  const variant = useButtonVariant()
   const [isLoading, setLoading] = useState(false)
   const [isCheckingForUpdate, setCheckingForUpdate] = useState(true)
   const [svnInfo, setSvnInfo] = useState<SvnInfo | null>(null)
   const [hasSvnUpdate, setHasSvnUpdate] = useState(false)
-  const [dontShowAgain, setDontShowAgain] = useState(false)
   const [statusSummary, setStatusSummary] = useState<Record<SvnStatusCode, number>>({} as Record<SvnStatusCode, number>)
 
   useEffect(() => {
@@ -78,11 +73,6 @@ export function NewRevisionDialog({ open, onOpenChange, onCurRevisionUpdate, isM
       setStatusSummary(calculateStatusSummary(svnInfo.changedFiles))
     }
   }, [open, svnInfo])
-
-  useEffect(() => {
-    const savedState = localStorage.getItem('dont-show-revision-dialog') === 'true'
-    setDontShowAgain(savedState)
-  }, [])
 
   const calculateStatusSummary = (changedFiles: { status: SvnStatusCode; path: string }[]) => {
     const summary: Record<SvnStatusCode, number> = {} as Record<SvnStatusCode, number>
@@ -244,30 +234,10 @@ export function NewRevisionDialog({ open, onOpenChange, onCurRevisionUpdate, isM
               </div>
               {hasSvnUpdate && !isCheckingForUpdate && (
                 <DialogFooter className="mt-4 flex-col items-start sm:flex-row sm:items-center">
-                  <div className="flex items-center space-x-2 mb-4 sm:mb-0 w-full">
-                    <Checkbox
-                      id="dontShowRevisionDialog"
-                      checked={dontShowAgain}
-                      onCheckedChange={checked => {
-                        setDontShowAgain(checked === true)
-                        if (checked === true) {
-                          localStorage.setItem('dont-show-revision-dialog', 'true')
-                        } else {
-                          localStorage.removeItem('dont-show-revision-dialog')
-                        }
-                      }}
-                    />
-                    <Label htmlFor="dontShowRevisionDialog">{t('common.dontShowAgain')}</Label>
-                  </div>
                   <div className="flex w-full justify-end space-x-2">
-                    <DialogClose asChild>
-                      <Button disabled={isLoading} variant={variant}>
-                        {t('common.cancel')}
-                      </Button>
-                    </DialogClose>
                     <Button
                       className={`relative ${isLoading ? 'border-effect cursor-progress' : ''}`}
-                      variant={variant}
+                      variant="destructive"
                       onClick={() => {
                         if (!isLoading) {
                           handleSvnUpdate()
