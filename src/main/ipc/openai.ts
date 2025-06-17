@@ -17,7 +17,6 @@ export function registerOpenAiIpcHandlers() {
         const rulesContent = rule ? rule.content : 'No specific coding rules provided.'
         finalPrompt = prompt.replace('{coding_rules}', rulesContent)
       } else {
-        // Nếu không có coding rule nào được chọn, thay thế placeholder bằng chuỗi trống hoặc thông báo mặc định
         finalPrompt = prompt.replace('{coding_rules}', 'No specific coding rules provided.')
       }
 
@@ -30,7 +29,7 @@ export function registerOpenAiIpcHandlers() {
       log.info('finalPrompt:', finalPrompt)
       const openai = new OpenAI({ apiKey: openaiApiKey })
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-mini',
         messages: [{ role: 'user', content: finalPrompt }],
         temperature: 0.1,
       })

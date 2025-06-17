@@ -87,7 +87,7 @@ export async function commit(commitMessage: string, violations: string, selected
     try {
       const os = require('node:os')
       const tempFile = path.join(os.tmpdir(), `svn-commit-message-${Date.now()}.txt`)
-      fs.writeFileSync(tempFile, commitMessage)
+      fs.writeFileSync(tempFile, `\uFEFF${commitMessage}`, { encoding: 'utf8' })
 
       let commitResult: SVNResponse
       try {

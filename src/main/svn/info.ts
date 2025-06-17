@@ -159,7 +159,6 @@ async function parseCommitInfo(info: string) {
 
           const prefixPattern = new RegExp(`^/?${fullPrefix}/?`)
           filePath = filePath.replace(prefixPattern, '')
-          console.log('Đường dẫn đã chuẩn hóa:', filePath)
         } catch (error) {
           log.error('Lỗi khi xử lý đường dẫn:', error)
         }

@@ -2,31 +2,22 @@
 
 ### English (en)
 
-- Integrated `GlowLoader` component in `CodeDiffViewer` and `ShowLog` for loading states.
-- Removed unnecessary configuration store usage in `DataTable`.
-- Cleaned up `TitleBar` by removing unused props.
-- Enhanced `ShowLog` to handle path processing with source folder prefix.
-- Refactored table rendering logic in `ShowLog` to improve readability and maintainability.
-- Ensured consistent loading state handling across components.
+- Refactored OpenAI IPC handler to improve prompt handling and update model version.
+- Enhanced commit message file writing by adding BOM to ensure proper UTF-8 encoding.
+- Removed unnecessary `console.log` from `parseCommitInfo` function for cleaner output.
 
 ---
 
 ### Japanese (ja)
 
-- `CodeDiffViewer` と `ShowLog` にローディング状態を示すため、`GlowLoader` コンポーネントを統合しました。
-- `DataTable` で不要な設定ストアの使用を削除しました。
-- 未使用の props を削除して `TitleBar` を整理しました。
-- `ShowLog` にてソースフォルダーのプレフィックスを含むパス処理を強化しました。
-- `ShowLog` のテーブル描画ロジックをリファクタリングし、可読性と保守性を改善しました。
-- 各コンポーネントでローディング状態の一貫した管理を実装しました。
+- プロンプト処理を改善し、モデルバージョンを更新するために、OpenAI の IPC ハンドラーをリファクタリングしました。
+- UTF-8 エンコーディングを正しく認識させるため、コミットメッセージファイルの先頭に BOM を追加しました。
+- `parseCommitInfo` 関数から不要な `console.log` を削除し、出力を整理しました。
 
 ---
 
 ### Vietnamese (vi)
 
-- Tích hợp component `GlowLoader` vào `CodeDiffViewer` và `ShowLog` để hiển thị trạng thái loading.
-- Loại bỏ việc sử dụng store cấu hình không cần thiết trong `DataTable`.
-- Dọn dẹp `TitleBar` bằng cách xóa các prop không dùng đến.
-- Cải thiện `ShowLog` để xử lý đường dẫn có tiền tố thư mục nguồn.
-- Refactor logic hiển thị bảng trong `ShowLog` nhằm nâng cao khả năng đọc và bảo trì.
-- Đảm bảo xử lý trạng thái loading đồng nhất giữa các component.
+- Refactor lại handler OpenAI IPC để cải thiện xử lý prompt và cập nhật phiên bản mô hình.
+- Cải tiến việc ghi file commit message bằng cách thêm BOM để đảm bảo mã hóa UTF-8 chính xác.
+- Xóa `console.log` không cần thiết khỏi hàm `parseCommitInfo` để giữ log sạch sẽ.
