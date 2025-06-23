@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, PROMPT } from 'main/constants'
+import type { Configuration, MailServerConfig, SupportFeedback, SVNResponse } from 'main/types/types'
 
 declare global {
   interface Window {
@@ -123,10 +124,7 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   openai: {
-    send_message: (data: {
-      type: keyof typeof PROMPT
-      values: Record<string, string>
-    }) => {
+    send_message: (data: { type: keyof typeof PROMPT; values: Record<string, string> }) => {
       const { type, values } = data
       const template = PROMPT[type]
       const prompt = Object.entries(values).reduce((result, [key, val]) => {

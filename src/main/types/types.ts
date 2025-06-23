@@ -1,4 +1,4 @@
-type CommitInfo = {
+export type CommitInfo = {
   commitUser: string
   commitTime: string
   commitMessage: string
@@ -8,7 +8,7 @@ type CommitInfo = {
   deletedFiles: string[]
 }
 
-type Configuration = {
+export type Configuration = {
   openaiApiKey: string
   svnFolder: string
   sourceFolder: string
@@ -19,14 +19,14 @@ type Configuration = {
   oneDriveRefreshToken: string
 }
 
-type MailServerConfig = {
+export type MailServerConfig = {
   smtpServer: string
   port: string
   email: string
   password: string
 }
 
-type SVNResponse = {
+export type SVNResponse = {
   status: string
   message?: string
   data?: any
@@ -36,14 +36,14 @@ type SVNResponse = {
   workingCopyRootFolder?: string
 }
 
-type SupportFeedback = {
+export type SupportFeedback = {
   type: 'support' | 'feedback'
   email: string
   message: string
   images: string[]
 }
 
-type HistoryCommitMessage = {
+export type HistoryCommitMessage = {
   message: string
   date: string
 }
