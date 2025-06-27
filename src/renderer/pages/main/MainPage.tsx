@@ -1,21 +1,4 @@
 'use client'
-import { LANGUAGES } from '@/components/shared/constants'
-import { JoyrideTooltip } from '@/components/tooltips/joyride-tooltip'
-import { GlowLoader } from '@/components/ui-elements/GlowLoader'
-import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
-import toast from '@/components/ui-elements/Toast'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { DataTable } from '@/pages/main/DataTable'
-import { TitleBar } from '@/pages/main/TitleBar'
-import logger from '@/services/logger'
-import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
-import { useConfigurationStore } from '@/stores/useConfigurationStore'
-import { useHistoryStore } from '@/stores/useHistoryStore'
 import { motion } from 'framer-motion'
 import { Bug, CheckCircle, CircleAlert, Languages, Palette, PlayCircle, SendHorizontal, Sparkles } from 'lucide-react' // Added icons
 import { IPC } from 'main/constants'
@@ -23,6 +6,23 @@ import type { Language } from 'main/store/AppearanceStore'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Joyride, { type CallBackProps, STATUS, type Step } from 'react-joyride'
+import { LANGUAGES } from '@/components/shared/constants'
+import { JoyrideTooltip } from '@/components/tooltips/joyride-tooltip'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { GlowLoader } from '@/components/ui-elements/GlowLoader'
+import { OverlayLoader } from '@/components/ui-elements/OverlayLoader'
+import toast from '@/components/ui-elements/Toast'
+import { DataTable } from '@/pages/main/DataTable'
+import { TitleBar } from '@/pages/main/TitleBar'
+import logger from '@/services/logger'
+import { useAppearanceStore, useButtonVariant } from '@/stores/useAppearanceStore'
+import { useConfigurationStore } from '@/stores/useConfigurationStore'
+import { useHistoryStore } from '@/stores/useHistoryStore'
 
 const MAIN_PANEL_SIZES_KEY = 'main-panel-sizes-config'
 
@@ -213,7 +213,7 @@ export function MainPage() {
   ]
 
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { status, type, action, index, size } = data
+    const { status, index, size } = data
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
     if (index === size - 2) {
       setShowTourIconForLastStep(true)

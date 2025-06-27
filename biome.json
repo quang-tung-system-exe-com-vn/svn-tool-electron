@@ -36,7 +36,9 @@
       "style": {
         "noUselessElse": "warn"
       },
-      "nursery": {},
+      "nursery": {
+        "useUniqueElementIds": "off"
+      },
       "correctness": {
         "noUnusedImports": "warn",
         "useExhaustiveDependencies": "off"

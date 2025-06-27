@@ -1,8 +1,7 @@
-import { type BrowserWindow, app } from 'electron'
+import { app, type BrowserWindow } from 'electron'
 import { makeAppWithSingleInstanceLock } from 'lib/electron-app/factories/app/instance'
 import { makeAppSetup } from 'lib/electron-app/factories/app/setup'
 import { registerCodingRuleIpcHandlers } from './ipc/codingRule'
-import { registerHistoryIpcHandlers } from './ipc/history'
 import { registerNotificationsIpcHandlers } from './ipc/notifications'
 import { registerOpenAiIpcHandlers } from './ipc/openai'
 import { registerSettingsIpcHandlers } from './ipc/settings'
@@ -23,7 +22,6 @@ makeAppWithSingleInstanceLock(async () => {
   // Register all IPC handlers
   registerWindowIpcHandlers()
   registerSettingsIpcHandlers()
-  registerHistoryIpcHandlers()
   registerSvnIpcHandlers()
   registerOpenAiIpcHandlers()
   registerSystemIpcHandlers()
