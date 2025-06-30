@@ -172,7 +172,7 @@ export const ShowlogToolbar: React.FC<ShowlogProps> = ({
                 <LayoutTemplate className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{layoutDirection === 'horizontal' ? t('common.switchToVertical') : t('common.switchToHorizontal')}</TooltipContent>
+            {/* <TooltipContent>{layoutDirection === 'horizontal' ? t('common.switchToVertical') : t('common.switchToHorizontal')}</TooltipContent> */}
           </Tooltip>
         )}
         <button onClick={() => handleWindow('minimize')} className="w-10 h-8 flex items-center justify-center hover:bg-[var(--hover-bg)] hover:text-[var(--hover-fg)]">

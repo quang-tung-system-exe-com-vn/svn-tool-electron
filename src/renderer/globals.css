@@ -1492,4 +1492,9 @@
   .language-java {
     border-radius: 4px;
   }
+
+  .recharts-legend-wrapper > .flex {
+    flex-wrap: wrap !important;
+    gap: 0.25rem 0.75rem !important;
+  }
 }

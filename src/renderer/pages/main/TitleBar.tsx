@@ -11,7 +11,7 @@ import toast from '@/components/ui-elements/Toast'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import logger from '@/services/logger'
-import { CircleArrowDown, Eraser, FileText, GitMerge, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
+import { CircleArrowDown, FileText, GitMerge, History, Info, LifeBuoy, Minus, PlayCircle, Settings2, Square, SquareArrowDown, X } from 'lucide-react'
 import { IPC } from 'main/constants'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -367,7 +367,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
               <TooltipContent>{t('title.mergeSvn')}</TooltipContent>
             </Tooltip>
 
-            <Tooltip>
+            {/* <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   id="svn-clean-button"
@@ -380,7 +380,7 @@ export const TitleBar = ({ isLoading, onTourIconClick, hasCompletedTour, showTou
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{t('title.cleanSvn')}</TooltipContent>
-            </Tooltip>
+            </Tooltip> */}
 
             <Tooltip>
               <TooltipTrigger asChild>
